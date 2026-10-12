@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html lang="mg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CITE HUB</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      color: #1e293b;
+    }
+    header {
+      background: #173b68;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 8px; }
+    main {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 16px;
+    }
+    .card {
+      background: white;
+      padding: 22px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px #0000000c;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
+    input, select {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      margin-bottom: 15px;
+      background: white;
+    }
+    button {
+      padding: 12px 18px;
+      background: #1769aa;
+      color: white;
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #104d80; }
+    .notice { color: #92400e; font-size: 14px; }
+    #message { margin-top: 14px; font-weight: bold; }
+    footer { text-align: center; padding: 24px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CITE HUB</h1>
+    <p>Fitantanana tatitra isam-bolana sy isan-taona</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Fandraisana</h2>
+      <p>Tongasoa eto amin'ny CITE HUB.</p>
+      <p>Toerana iray hanomanana sy hitantanana ny tatitry ny andiany 7.</p>
+      <p class="notice">
+        Dika andrana ity. Tsy mbola misy fidirana amin'ny kaonty
+        na tahiry angona iombonana.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Fampidirana tatitra isam-bolana</h2>
+      <form id="reportForm">
+        <div class="grid">
+          <div>
+            <label for="month">Volana</label>
+            <input id="month" type="month" required>
+          </div>
+          <div>
+            <label for="group">Andiany</label>
+            <select id="group" required>
+              <option value="">-- Safidio --</option>
+              <option>N°01</option>
+              <option>N°02</option>
+              <option>N°03</option>
+              <option>N°04</option>
+              <option>N°05</option>
+              <option>N°06</option>
+              <option>N°07</option>
+            </select>
+          </div>
+          <div>
+            <label for="name">Anarana</label>
+            <input id="name" required placeholder="Anarana sy fanampiny">
+          </div>
+          <div>
+            <label for="category">Sokajy</label>
+            <select id="category" required>
+              <option value="">-- Safidio --</option>
+              <option>Mpitory</option>
+              <option>Mpisavalalana mpanampy</option>
+              <option>Mpisavalalana maharitra</option>
+            </select>
+          </div>
+          <div>
+            <label for="participation">Nandray anjara</label>
+            <select id="participation" required>
+              <option value="">-- Safidio --</option>
+              <option value="Eny">Eny</option>
+              <option value="Tsia">Tsia</option>
+            </select>
+          </div>
+          <div>
+            <label for="hours">Ora</label>
+            <input id="hours" type="number" min="0" step="0.5" value="0" required>
+          </div>
+          <div>
+            <label for="studies">Fampianarana Baiboly</label>
+            <input id="studies" type="number" min="0" step="1" value="0" required>
+          </div>
+        </div>
+        <button type="submit">Tehirizo ny tatitra</button>
+        <div id="message" role="status"></div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Tatitra voatahiry amin'ity navigateur ity</h2>
+      <p id="count">Mbola tsy misy tatitra.</p>
+      <button id="exportBtn" type="button">Haka tatitra CSV</button>
+      <button id="clearBtn" type="button">Fafao ny tatitra andrana</button>
+      <p class="notice">
+        Ny angona voatahiry eto dia amin'ity navigateur ity ihany,
+        fa tsy zaraina amin'ireo tompon'andraikitry ny andiany.
+      </p>
+    </section>
+  </main>
+
+  <footer>CITE HUB — Dika andrana voalohany</footer>
+
+  <script>
+    const storageKey = "citeHubDemoReports";
+    const form = document.getElementById("reportForm");
+    const message = document.getElementById("message");
+
+    function getReports() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function refreshCount() {
+      const n = getReports().length;
+      document.getElementById("count").textContent =
+        n + (n === 1 ? " tatitra voatahiry." : " tatitra voatahiry.");
+    }
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const report = {
+        volana: document.getElementById("month").value,
+        andiany: document.getElementById("group").value,
+        anarana: document.getElementById("name").value.trim(),
+        sokajy: document.getElementById("category").value,
+        fandraisana_anjara: document.getElementById("participation").value,
+        ora: document.getElementById("hours").value,
+        fampianarana_baiboly: document.getElementById("studies").value
+      };
+
+      const reports = getReports();
+      reports.push(report);
+
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(reports));
+        message.textContent = "Voatahiry soa aman-tsara ny tatitra.";
+        message.style.color = "green";
+        form.reset();
+        refreshCount();
+      } catch {
+        message.textContent = "Tsy voatahiry. Jereo ny toerana fitahirizana.";
+        message.style.color = "red";
+      }
+    });
+
+    document.getElementById("exportBtn").addEventListener("click", function() {
+      const reports = getReports();
+      if (!reports.length) {
+        alert("Mbola tsy misy tatitra azo alaina.");
+        return;
+      }
+
+      const columns = [
+        "volana", "andiany", "anarana", "sokajy",
+        "fandraisana_anjara", "ora", "fampianarana_baiboly"
+      ];
+      const quote = value =>
+        '"' + String(value ?? "").replace(/"/g, '""') + '"';
+
+      const csv = [
+        columns.join(";"),
+        ...reports.map(row => columns.map(key => quote(row[key])).join(";"))
+      ].join("\r\n");
+
+      const blob = new Blob(["\uFEFF" + csv], {
+        type: "text/csv;charset=utf-8;"
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "cite-hub-tatitra.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", function() {
+      if (confirm("Tena hofafana ve ny tatitra andrana rehetra amin'ity navigateur ity?")) {
+        localStorage.removeItem(storageKey);
+        refreshCount();
+        message.textContent = "Voafafa ny tatitra andrana.";
+      }
+    });
+
+    refreshCount();
+  </script>
+</body>
+</html>
