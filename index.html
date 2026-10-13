@@ -63,6 +63,16 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 <p>Ovay eto ny sokajin’ny olona rehefa misy fiovana. Voatahiry ny sokajy taloha, ny sokajy vaovao ary ny daty nanovana azy. Tsy ovaina ny tatitra efa voatahiry.</p>
 <div class="grid"><div><label for="manageGroup">Andiany hotantanana</label><select id="manageGroup"><option value="">-- Safidio ny andiany --</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div></div>
 <div id="managePeople" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
+<div class="profile-box" id="personProfile" style="margin:16px 0;padding:18px;border:1px solid #bfdbfe;border-radius:12px;background:#f8fbff">
+<h3>Mombamomba ny olona</h3><p class="hint">Safidio ny olona iray mba hijerena sy hanovana ny sokajiny.</p>
+<div><label for="profilePerson">Anarana — Andiany</label><select id="profilePerson" disabled><option value="">-- Safidio ny olona --</option></select></div>
+<div id="profileDetails" style="display:none;margin-top:16px">
+<h3 id="profileName">—</h3>
+<div style="padding:12px;border-radius:9px;background:#e8f1fc;margin:8px 0 14px"><span class="hint">Sokajy ankehitriny</span><strong id="profileCurrent" style="display:block;color:#173b68;font-size:17px">—</strong></div>
+<div><label for="profileNewRole">Sokajy vaovao voafidy</label><select id="profileNewRole"><option value="Mpitory">Mpitory</option><option value="Mpisava lalana maharitra">Mpisava lalana maharitra</option><option value="Mpanampy">Mpanampy</option></select></div>
+<div class="toolbar"><button type="button" id="saveProfileRole">Tehirizo ny fanovana</button><button type="button" class="secondary" id="cancelProfileRole">Aoka ihany</button></div>
+<p class="hint">Ohatra: RAKOTO — N°01 · Sokajy ankehitriny: Mpitory · Sokajy vaovao voafidy: Mpisava lalana maharitra.</p>
+</div></div>
 <h3>Tantaran’ny fanovana sokajy</h3><div id="roleHistory"><p class="hint">Mbola tsy misy fanovana voatahiry.</p></div>
 </section>
 <section class="card" id="tatitra">
@@ -99,10 +109,18 @@ function renderRoleHistory(){
  $("roleHistory").innerHTML=history.length?'<div class="table-wrap"><table><thead><tr><th>Daty</th><th>Andiany</th><th>Anarana</th><th>Sokajy taloha</th><th>Sokajy vaovao</th></tr></thead><tbody>'+history.map(h=>'<tr><td>'+esc(h.daty)+'</td><td>'+esc(h.andiany)+'</td><td>'+esc(h.anarana)+'</td><td>'+esc(h.taloha)+'</td><td>'+esc(h.vaovao)+'</td></tr>').join("")+'</tbody></table></div>':'<p class="hint">Mbola tsy misy fanovana voatahiry.</p>';
 }
 function renderManagePeople(){
- const group=$("manageGroup").value, container=$("managePeople");
- if(!group){container.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';return}
+ const group=$("manageGroup").value,container=$("managePeople"),sel=$("profilePerson");
+ if(!group){container.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';sel.innerHTML='<option value="">-- Safidio ny olona --</option>';sel.disabled=true;$("profileDetails").style.display="none";return}
  const people=roster.filter(p=>p.andiany===group).sort((a,b)=>roleRank(a.sokajy)-roleRank(b.sokajy)||a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}));
- container.innerHTML=people.length?people.map((p,i)=>'<div class="person" data-manage-name="'+esc(p.anarana)+'" data-manage-group="'+esc(p.andiany)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><span class="role">'+esc(p.sokajy)+'</span></div><div><label>Sokajy vaovao</label><select data-role-select><option value="Mpitory" '+(p.sokajy==="Mpitory"?"selected":"")+'>Mpitory</option><option value="Mpanampy" '+(p.sokajy==="Mpanampy"?"selected":"")+'>Mpanampy</option><option value="Mpisava lalana maharitra" '+(p.sokajy==="Mpisava lalana maharitra"?"selected":"")+'>Mpisava lalana maharitra</option></select></div><div><button type="button" data-save-role>Tehirizo ny sokajy</button></div></div>').join(""):'<p class="hint">Tsy misy olona voatanisa amin’ity andiany ity.</p>';
+ sel.disabled=!people.length;sel.innerHTML='<option value="">-- Safidio ny olona --</option>'+people.map(p=>'<option value="'+esc(p.anarana)+'">'+esc(p.anarana)+' — '+esc(p.andiany)+'</option>').join("");
+ container.innerHTML=people.length?people.map((p,i)=>'<div class="person"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><span class="role">'+esc(p.sokajy)+'</span></div><div class="hint">Sokajy ankehitriny</div><div><button type="button" class="secondary" data-open-profile="'+esc(p.anarana)+'">Mombamomba / Hanova</button></div></div>').join(""):'<p class="hint">Tsy misy olona voatanisa amin’ity andiany ity.</p>';
+ $("profileDetails").style.display="none";
+}
+function renderPersonProfile(){
+ const group=$("manageGroup").value,name=$("profilePerson").value;
+ const p=roster.find(x=>x.andiany===group&&x.anarana===name);
+ if(!p){$("profileDetails").style.display="none";return}
+ $("profileDetails").style.display="block";$("profileName").textContent="Anarana: "+p.anarana+" — "+p.andiany;$("profileCurrent").textContent=p.sokajy;$("profileNewRole").value=p.sokajy;
 }
 
 function getReports(){try{return JSON.parse(localStorage.getItem(storageKey)||"[]")}catch{return []}}
@@ -140,22 +158,21 @@ function refreshDashboard(){
  $("monthlyTable").innerHTML=rows.length?'<table><thead><tr><th>Volana</th><th>Andiany</th><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.volana)+'</td><td>'+esc(r.andiany)+'</td><td>'+esc(r.anarana)+'</td><td>'+esc(r.sokajy)+'</td><td>'+esc(r.fandraisana_anjara||"—")+'</td><td>'+esc(r.ora||"—")+'</td><td>'+esc(r.fampianarana_baiboly??0)+'</td></tr>').join("")+'</tbody></table>':'<p class="hint">Mbola tsy misy tatitra mifanaraka amin’ity sivana ity.</p>';
  $("count").textContent=getReports().length+" andalana tatitra voatahiry amin'ity navigateur ity.";
 }
-$("manageGroup").addEventListener("change",renderManagePeople);
-$("managePeople").addEventListener("click",event=>{
- const button=event.target.closest("[data-save-role]");if(!button)return;
- const row=button.closest(".person"), group=row.dataset.manageGroup, name=row.dataset.manageName, newRole=row.querySelector("[data-role-select]").value;
- const person=roster.find(p=>p.andiany===group&&p.anarana===name);if(!person)return;
- if(person.sokajy===newRole){alert("Efa io sokajy io ihany no voafidy.");return}
- if(!confirm("Hanova ny sokajin’i "+name+" avy amin’ny “"+person.sokajy+"” ho “"+newRole+"” ve?"))return;
+function saveProfileRole(){
+ const group=$("manageGroup").value,name=$("profilePerson").value,newRole=$("profileNewRole").value;
+ const p=roster.find(x=>x.andiany===group&&x.anarana===name);if(!p)return;
+ if(p.sokajy===newRole){alert("Efa io sokajy io ihany no voafidy.");return}
+ if(!confirm("Hanova ny sokajin’i "+name+" avy amin’ny “"+p.sokajy+"” ho “"+newRole+"” ve?"))return;
  const edits={};try{Object.assign(edits,JSON.parse(localStorage.getItem(rosterEditsKey)||"{}"))}catch{}
  edits[group+"::"+name]=newRole;
- try{
-  localStorage.setItem(rosterEditsKey,JSON.stringify(edits));
-  const history=getRoleHistory();history.push({daty:new Date().toLocaleString("fr-FR"),andiany:group,anarana:name,taloha:person.sokajy,vaovao:newRole});
-  localStorage.setItem(roleHistoryKey,JSON.stringify(history));
-  roster=getRoster();renderManagePeople();renderRoleHistory();renderPeople();refreshDashboard();
- }catch{alert("Tsy voatahiry ilay fanovana. Mety feno ny toerana fitahirizana.");}
-});
+ try{localStorage.setItem(rosterEditsKey,JSON.stringify(edits));const history=getRoleHistory();history.push({daty:new Date().toLocaleString("fr-FR"),andiany:group,anarana:name,taloha:p.sokajy,vaovao:newRole});localStorage.setItem(roleHistoryKey,JSON.stringify(history));roster=getRoster();renderManagePeople();$("profilePerson").value=name;renderPersonProfile();renderRoleHistory();renderPeople();refreshDashboard();}
+ catch{alert("Tsy voatahiry ilay fanovana. Mety feno ny toerana fitahirizana.");}
+}
+$("manageGroup").addEventListener("change",renderManagePeople);
+$("profilePerson").addEventListener("change",renderPersonProfile);
+$("managePeople").addEventListener("click",event=>{const b=event.target.closest("[data-open-profile]");if(!b)return;$("profilePerson").value=b.dataset.openProfile;renderPersonProfile();$("personProfile").scrollIntoView({behavior:"smooth",block:"center"});});
+$("saveProfileRole").addEventListener("click",saveProfileRole);
+$("cancelProfileRole").addEventListener("click",renderPersonProfile);
 $("group").addEventListener("change",renderPeople);
 $("month").addEventListener("change",renderPeople);
 $("saveAll").addEventListener("click",()=>{
