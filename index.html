@@ -61,6 +61,15 @@
     }
     button:hover { background: #104d80; }
     .notice { color: #92400e; font-size: 14px; }
+    .stat { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px; box-shadow:0 2px 8px #00000008; }
+    .stat h3 { margin:0 0 12px; font-size:16px; }
+    .metric { padding:8px 0; border-top:1px solid #edf2f7; }
+    .metric span { display:block; color:#64748b; font-size:12px; margin-bottom:4px; }
+    .metric strong { font-size:24px; color:#173b68; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th,td { text-align:left; padding:9px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+    th { background:#eff6ff; }
     #message { margin-top: 14px; font-weight: bold; }
     footer { text-align: center; padding: 24px; color: #64748b; }
   </style>
@@ -139,6 +148,13 @@
     </section>
 
     <section class="card">
+      <h2>Tatitra isam-bolana</h2>
+      <p>Famintinana araka ny volana sy ny andiany, amin’ny endrika karatra.</p>
+      <div class="grid"><div><label for="filterMonth">Volana</label><input id="filterMonth" type="month"></div><div><label for="filterGroup">Andiany</label><select id="filterGroup"><option value="all">Andiany rehetra</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div></div>
+      <div class="grid" id="monthlyCards"></div><h3>Lisitra sy tarehimarika voatahiry</h3><div class="table-wrap" id="monthlyTable"></div>
+    </section>
+
+    <section class="card">
       <h2>Tatitra voatahiry amin'ity navigateur ity</h2>
       <p id="count">Mbola tsy misy tatitra.</p>
       <button id="exportBtn" type="button">Haka tatitra CSV</button>
@@ -167,8 +183,20 @@
 
     function refreshCount() {
       const n = getReports().length;
-      document.getElementById("count").textContent =
-        n + (n === 1 ? " tatitra voatahiry." : " tatitra voatahiry.");
+      document.getElementById("count").textContent = n + " tatitra voatahiry.";
+      refreshDashboard();
+    }
+    function esc(v) { return String(v == null ? "" : v).replace(/[&<>"]/g, function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch];}); }
+    function refreshDashboard() {
+      const month=document.getElementById("filterMonth").value, group=document.getElementById("filterGroup").value;
+      const rows=getReports().filter(function(r){return (!month||r.volana===month)&&(group==="all"||r.andiany===group);});
+      const by=function(cat){return rows.filter(function(r){return r.sokajy===cat;});};
+      const sum=function(a,k){return a.reduce(function(n,r){return n+(Number(r[k])||0);},0);};
+      const people=function(a){return new Set(a.map(function(r){return r.andiany+"::"+r.anarana;})).size;};
+      const card=function(title,metrics){return '<div class="stat"><h3>'+title+'</h3>'+metrics.map(function(m){return '<div class="metric"><span>'+m[0]+'</span><strong>'+m[1]+'</strong></div>';}).join("")+'</div>';};
+      const p=by("Mpitory"), a=by("Mpisavalalana mpanampy"), m=by("Mpisavalalana maharitra");
+      document.getElementById("monthlyCards").innerHTML=card("Mpitory rehetra",[["Isan’ny olona voarakitra",people(rows)],["Nandray anjara: Eny",rows.filter(function(r){return r.fandraisana_anjara==="Eny";}).length]])+card("Mpitory",[["Isan’ny olona",people(p)],["Fampianarana Baiboly",sum(p,"fampianarana_baiboly")]])+card("Mpisavalalana mpanampy",[["Isan’ny olona",people(a)],["Ora",sum(a,"ora")],["Fampianarana Baiboly",sum(a,"fampianarana_baiboly")]])+card("Mpisavalalana maharitra",[["Isan’ny olona",people(m)],["Ora",sum(m,"ora")],["Fampianarana Baiboly",sum(m,"fampianarana_baiboly")]]);
+      document.getElementById("monthlyTable").innerHTML=rows.length?'<table><thead><tr><th>Volana</th><th>Andiany</th><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(r.volana)+'</td><td>'+esc(r.andiany)+'</td><td>'+esc(r.anarana)+'</td><td>'+esc(r.sokajy)+'</td><td>'+esc(r.fandraisana_anjara)+'</td><td>'+esc(r.ora)+'</td><td>'+esc(r.fampianarana_baiboly)+'</td></tr>';}).join("")+'</tbody></table>':'<p>Mbola tsy misy tatitra mifanaraka amin’ity sivana ity.</p>';
     }
 
     form.addEventListener("submit", function(event) {
@@ -237,6 +265,9 @@
       }
     });
 
+    document.getElementById("filterMonth").value = new Date().toISOString().slice(0,7);
+    document.getElementById("filterMonth").addEventListener("change", refreshDashboard);
+    document.getElementById("filterGroup").addEventListener("change", refreshDashboard);
     refreshCount();
   </script>
 </body>
