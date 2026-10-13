@@ -1,306 +1,153 @@
-
 <!DOCTYPE html>
 <html lang="mg">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CITE HUB</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f3f6fb;
-      color: #1e293b;
-    }
-    header {
-      background: #173b68;
-      color: white;
-      padding: 24px;
-      text-align: center;
-    }
-    header h1 { margin: 0 0 8px; }
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #fff;
-      border-bottom: 1px solid #dbe4f0;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    nav a {
-      display: inline-block;
-      padding: 10px 14px;
-      color: #173b68;
-      text-decoration: none;
-      font-weight: bold;
-      border-radius: 7px;
-    }
-    nav a:hover, nav a:focus {
-      background: #e8f1fc;
-      outline: 2px solid #1769aa;
-      outline-offset: 1px;
-    }
-    main {
-      max-width: 900px;
-      margin: 24px auto;
-      padding: 16px;
-    }
-    .card {
-      background: white;
-      padding: 22px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px #0000000c;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 7px;
-    }
-    input, select {
-      width: 100%;
-      padding: 11px;
-      border: 1px solid #cbd5e1;
-      border-radius: 7px;
-      margin-bottom: 15px;
-      background: white;
-    }
-    button {
-      padding: 12px 18px;
-      background: #1769aa;
-      color: white;
-      border: 0;
-      border-radius: 7px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover { background: #104d80; }
-    .notice { color: #92400e; font-size: 14px; }
-    .stat { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px; box-shadow:0 2px 8px #00000008; }
-    .stat h3 { margin:0 0 12px; font-size:16px; }
-    .metric { padding:8px 0; border-top:1px solid #edf2f7; }
-    .metric span { display:block; color:#64748b; font-size:12px; margin-bottom:4px; }
-    .metric strong { font-size:24px; color:#173b68; }
-    .table-wrap { overflow-x:auto; }
-    table { width:100%; border-collapse:collapse; font-size:14px; }
-    th,td { text-align:left; padding:9px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
-    th { background:#eff6ff; }
-    #message { margin-top: 14px; font-weight: bold; }
-    footer { text-align: center; padding: 24px; color: #64748b; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CITE HUB — Fitantanana tatitra</title>
+<style>
+:root{--navy:#173b68;--blue:#1769aa;--pale:#e8f1fc;--ink:#1e293b;--muted:#64748b;--line:#dbe4f0;--bg:#f3f6fb;--white:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:82px}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+header{background:linear-gradient(135deg,#173b68,#1769aa);color:white;padding:26px 18px;text-align:center}
+header h1{margin:0 0 6px;letter-spacing:.5px}header p{margin:0;color:#e8f1fc}
+nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:10px;background:white;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+nav a{padding:10px 13px;color:var(--navy);text-decoration:none;font-weight:bold;border-radius:8px}
+nav a:hover,nav a:focus{background:var(--pale);outline:2px solid var(--blue)}
+main{max-width:1100px;margin:22px auto;padding:0 15px}
+.card{background:white;padding:22px;margin-bottom:18px;border-radius:14px;box-shadow:0 3px 14px #102d5010;border:1px solid #edf1f7}
+h2{margin-top:0;color:var(--navy)}h3{color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+label{display:block;font-weight:700;font-size:14px;margin:0 0 6px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:var(--ink);font:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid #93c5fd;border-color:var(--blue)}
+button{padding:11px 15px;background:var(--blue);color:white;border:0;border-radius:8px;cursor:pointer;font-weight:700;font:inherit}
+button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--navy)}button.secondary:hover{background:#dbe7f5}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+.toolbar button{flex:0 0 auto}.hint{font-size:13px;color:var(--muted)}.notice{padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;color:#9a3412;font-size:14px}
+.people-list{display:grid;gap:10px;margin-top:14px}
+.person{border:1px solid var(--line);border-radius:11px;padding:14px;background:#fff;display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(2,minmax(150px,1fr));gap:13px;align-items:center}
+.person-name{font-weight:700}.role{display:inline-block;font-size:12px;color:#1d4ed8;background:#eff6ff;border-radius:20px;padding:4px 8px;margin-top:5px}
+.person label{font-size:12px;color:var(--muted)}.person input,.person select{margin-top:4px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px}.stat h3{font-size:15px;margin:0 0 8px}.big{font-size:25px;color:var(--navy);font-weight:700}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px;border-bottom:1px solid #e2e8f0;white-space:nowrap}th{background:#eff6ff}
+#message{margin-top:12px;font-weight:700}footer{text-align:center;padding:24px;color:var(--muted)}
+@media(max-width:700px){.person{grid-template-columns:1fr 1fr}.person .person-main{grid-column:1/-1}.card{padding:16px}nav a{font-size:13px;padding:8px}}
+</style>
 </head>
 <body>
-  <header>
-    <h1>CITE HUB</h1>
-    <p>Fitantanana tatitra isam-bolana sy isan-taona</p>
-  </header>
-
-  <nav aria-label="Menu lehibe">
-    <a href="#accueil">Fandraisana</a>
-    <a href="#fampidirana">Fampidirana tatitra</a>
-    <a href="#tatitra">Tatitra isam-bolana</a>
-    <a href="#voatahiry">Tatitra voatahiry</a>
-  </nav>
-
-  <main>
-    <section class="card" id="accueil">
-      <h2>Fandraisana</h2>
-      <p>Tongasoa eto amin'ny CITE HUB.</p>
-      <p>Toerana iray hanomanana sy hitantanana ny tatitry ny andiany 7.</p>
-      <p class="notice">
-        Dika andrana ity. Tsy mbola misy fidirana amin'ny kaonty
-        na tahiry angona iombonana.
-      </p>
-    </section>
-
-    <section class="card" id="fampidirana">
-      <h2>Fampidirana tatitra isam-bolana</h2>
-      <form id="reportForm">
-        <div class="grid">
-          <div>
-            <label for="month">Volana</label>
-            <input id="month" type="month" required>
-          </div>
-          <div>
-            <label for="group">Andiany</label>
-            <select id="group" required>
-              <option value="">-- Safidio --</option>
-              <option>N°01</option>
-              <option>N°02</option>
-              <option>N°03</option>
-              <option>N°04</option>
-              <option>N°05</option>
-              <option>N°06</option>
-              <option>N°07</option>
-            </select>
-          </div>
-          <div>
-            <label for="name">Anarana</label>
-            <input id="name" required placeholder="Anarana sy fanampiny">
-          </div>
-          <div>
-            <label for="category">Sokajy</label>
-            <select id="category" required>
-              <option value="">-- Safidio --</option>
-              <option>Mpitory</option>
-              <option>Mpisavalalana mpanampy</option>
-              <option>Mpisavalalana maharitra</option>
-            </select>
-          </div>
-          <div>
-            <label for="participation">Nandray anjara</label>
-            <select id="participation" required>
-              <option value="">-- Safidio --</option>
-              <option value="Eny">Eny</option>
-              <option value="Tsia">Tsia</option>
-            </select>
-          </div>
-          <div>
-            <label for="hours">Ora</label>
-            <input id="hours" type="number" min="0" step="0.5" value="0" required>
-          </div>
-          <div>
-            <label for="studies">Fampianarana Baiboly</label>
-            <input id="studies" type="number" min="0" step="1" value="0" required>
-          </div>
-        </div>
-        <button type="submit">Tehirizo ny tatitra</button>
-        <div id="message" role="status"></div>
-      </form>
-    </section>
-
-    <section class="card" id="tatitra">
-      <h2>Tatitra isam-bolana</h2>
-      <p>Famintinana araka ny volana sy ny andiany, amin’ny endrika karatra.</p>
-      <div class="grid"><div><label for="filterMonth">Volana</label><input id="filterMonth" type="month"></div><div><label for="filterGroup">Andiany</label><select id="filterGroup"><option value="all">Andiany rehetra</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div></div>
-      <div class="grid" id="monthlyCards"></div><h3>Lisitra sy tarehimarika voatahiry</h3><div class="table-wrap" id="monthlyTable"></div>
-    </section>
-
-    <section class="card" id="voatahiry">
-      <h2>Tatitra voatahiry amin'ity navigateur ity</h2>
-      <p id="count">Mbola tsy misy tatitra.</p>
-      <button id="exportBtn" type="button">Haka tatitra CSV</button>
-      <button id="clearBtn" type="button">Fafao ny tatitra andrana</button>
-      <p class="notice">
-        Ny angona voatahiry eto dia amin'ity navigateur ity ihany,
-        fa tsy zaraina amin'ireo tompon'andraikitry ny andiany.
-      </p>
-    </section>
-  </main>
-
-  <footer>CITE HUB — Dika andrana voalohany</footer>
-
-  <script>
-    const storageKey = "citeHubDemoReports";
-    const form = document.getElementById("reportForm");
-    const message = document.getElementById("message");
-
-    function getReports() {
-      try {
-        return JSON.parse(localStorage.getItem(storageKey) || "[]");
-      } catch {
-        return [];
-      }
-    }
-
-    function refreshCount() {
-      const n = getReports().length;
-      document.getElementById("count").textContent = n + " tatitra voatahiry.";
-      refreshDashboard();
-    }
-    function esc(v) { return String(v == null ? "" : v).replace(/[&<>"]/g, function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch];}); }
-    function refreshDashboard() {
-      const month=document.getElementById("filterMonth").value, group=document.getElementById("filterGroup").value;
-      const rows=getReports().filter(function(r){return (!month||r.volana===month)&&(group==="all"||r.andiany===group);});
-      const by=function(cat){return rows.filter(function(r){return r.sokajy===cat;});};
-      const sum=function(a,k){return a.reduce(function(n,r){return n+(Number(r[k])||0);},0);};
-      const people=function(a){return new Set(a.map(function(r){return r.andiany+"::"+r.anarana;})).size;};
-      const card=function(title,metrics){return '<div class="stat"><h3>'+title+'</h3>'+metrics.map(function(m){return '<div class="metric"><span>'+m[0]+'</span><strong>'+m[1]+'</strong></div>';}).join("")+'</div>';};
-      const p=by("Mpitory"), a=by("Mpisavalalana mpanampy"), m=by("Mpisavalalana maharitra");
-      document.getElementById("monthlyCards").innerHTML=card("Mpitory rehetra",[["Isan’ny olona voarakitra",people(rows)],["Nandray anjara: Eny",rows.filter(function(r){return r.fandraisana_anjara==="Eny";}).length]])+card("Mpitory",[["Isan’ny olona",people(p)],["Fampianarana Baiboly",sum(p,"fampianarana_baiboly")]])+card("Mpisavalalana mpanampy",[["Isan’ny olona",people(a)],["Ora",sum(a,"ora")],["Fampianarana Baiboly",sum(a,"fampianarana_baiboly")]])+card("Mpisavalalana maharitra",[["Isan’ny olona",people(m)],["Ora",sum(m,"ora")],["Fampianarana Baiboly",sum(m,"fampianarana_baiboly")]]);
-      document.getElementById("monthlyTable").innerHTML=rows.length?'<table><thead><tr><th>Volana</th><th>Andiany</th><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td>'+esc(r.volana)+'</td><td>'+esc(r.andiany)+'</td><td>'+esc(r.anarana)+'</td><td>'+esc(r.sokajy)+'</td><td>'+esc(r.fandraisana_anjara)+'</td><td>'+esc(r.ora)+'</td><td>'+esc(r.fampianarana_baiboly)+'</td></tr>';}).join("")+'</tbody></table>':'<p>Mbola tsy misy tatitra mifanaraka amin’ity sivana ity.</p>';
-    }
-
-    form.addEventListener("submit", function(event) {
-      event.preventDefault();
-
-      const report = {
-        volana: document.getElementById("month").value,
-        andiany: document.getElementById("group").value,
-        anarana: document.getElementById("name").value.trim(),
-        sokajy: document.getElementById("category").value,
-        fandraisana_anjara: document.getElementById("participation").value,
-        ora: document.getElementById("hours").value,
-        fampianarana_baiboly: document.getElementById("studies").value
-      };
-
-      const reports = getReports();
-      reports.push(report);
-
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(reports));
-        message.textContent = "Voatahiry soa aman-tsara ny tatitra.";
-        message.style.color = "green";
-        form.reset();
-        refreshCount();
-      } catch {
-        message.textContent = "Tsy voatahiry. Jereo ny toerana fitahirizana.";
-        message.style.color = "red";
-      }
-    });
-
-    document.getElementById("exportBtn").addEventListener("click", function() {
-      const reports = getReports();
-      if (!reports.length) {
-        alert("Mbola tsy misy tatitra azo alaina.");
-        return;
-      }
-
-      const columns = [
-        "volana", "andiany", "anarana", "sokajy",
-        "fandraisana_anjara", "ora", "fampianarana_baiboly"
-      ];
-      const quote = value =>
-        '"' + String(value ?? "").replace(/"/g, '""') + '"';
-
-      const csv = [
-        columns.join(";"),
-        ...reports.map(row => columns.map(key => quote(row[key])).join(";"))
-      ].join("\r\n");
-
-      const blob = new Blob(["\uFEFF" + csv], {
-        type: "text/csv;charset=utf-8;"
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "cite-hub-tatitra.csv";
-      link.click();
-      URL.revokeObjectURL(url);
-    });
-
-    document.getElementById("clearBtn").addEventListener("click", function() {
-      if (confirm("Tena hofafana ve ny tatitra andrana rehetra amin'ity navigateur ity?")) {
-        localStorage.removeItem(storageKey);
-        refreshCount();
-        message.textContent = "Voafafa ny tatitra andrana.";
-      }
-    });
-
-    document.getElementById("filterMonth").value = new Date().toISOString().slice(0,7);
-    document.getElementById("filterMonth").addEventListener("change", refreshDashboard);
-    document.getElementById("filterGroup").addEventListener("change", refreshDashboard);
-    refreshCount();
-  </script>
-</body>
-</html>
+<header><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></header>
+<nav aria-label="Menu lehibe">
+<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
+</nav>
+<main>
+<section class="card" id="accueil">
+<h2>Fandraisana</h2><p>Tongasoa eto amin'ny CITE HUB.</p>
+<p>Safidio ny andiany dia hiseho ho azy ny lisitry ny olona. Fenoy amin'ny pejy iray ny tatitry ny olona ao amin'ilay andiany.</p>
+<div class="notice">Dika andrana: voatahiry amin'ity navigateur ity ihany ny tatitra. Tsy mbola misy tahiry iombonana na fidirana amin'ny kaonty.</div>
+</section>
+<section class="card" id="fampidirana">
+<h2>Fampidirana tatitra isam-bolana</h2>
+<div class="grid">
+<div><label for="month">Volana anaovana tatitra</label><input id="month" type="month" required></div>
+<div><label for="group">Andiany</label><select id="group"><option value="">-- Safidio ny andiany --</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div>
+</div>
+<p class="hint">Rehefa misafidy andiany ianao dia miseho eto ambany ny lisitry ny olona sy ny saha mifanaraka amin'ny andraikiny.</p>
+<div id="rosterStatus" class="notice" style="display:none"></div>
+<div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
+<div class="toolbar"><button id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div>
+<div id="message" role="status" aria-live="polite"></div>
+</section>
+<section class="card" id="tatitra">
+<h2>Tatitra isam-bolana</h2>
+<div class="grid">
+<div><label for="filterMonth">Volana</label><input id="filterMonth" type="month"></div>
+<div><label for="filterGroup">Andiany</label><select id="filterGroup"><option value="all">Andiany rehetra</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div>
+</div>
+<div class="statgrid" id="monthlyCards" style="margin-top:14px"></div><h3>Antsipirihan'ny tatitra</h3><div class="table-wrap" id="monthlyTable"></div>
+</section>
+<section class="card" id="voatahiry">
+<h2>Tatitra voatahiry</h2><p id="count">Mbola tsy misy tatitra.</p>
+<div class="toolbar"><button id="exportBtn" type="button">Haka tatitra CSV</button><button class="secondary" id="clearBtn" type="button">Fafao ny tatitra andrana</button></div>
+<p class="hint">Ny angona eto dia amin'ity navigateur ity ihany. Raha manova solosaina na navigateur ianao dia tsy hifindra ho azy ny tatitra.</p>
+</section>
+</main>
+<footer>CITE HUB — Dika andrana nohavaozina</footer>
+<script>
+const roster = [{"andiany":"N°01","anarana":"Andoniaina","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Andoniaina Lovasoa","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°01","anarana":"Edmond","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Esther","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°01","anarana":"Falimanana","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Fanny","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°01","anarana":"Fanomezatsoa","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Faramalala","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Fenoso sarindra","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Germaine","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Jean Paul","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°01","anarana":"Julette","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°01","anarana":"Lydia","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°01","anarana":"Léa","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°01","anarana":"Meltine","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°01","anarana":"Mendrika","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Narindra","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Onja","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Rayhan","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Rondro","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Sarindra","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Sitraka","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°01","anarana":"Tantelitiana","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°01","anarana":"Tantely","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Tovo","sokajy":"Mpitory"},{"andiany":"N°01","anarana":"Yannou","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°02","anarana":"Ando","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°02","anarana":"Andriamirado","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Clara","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°02","anarana":"Dina","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°02","anarana":"Ezekia tiavina","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Faniry","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°02","anarana":"Fanja","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Felana","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Fulgence","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Jean Léon","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Lahatra","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Lalao Yolande","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Lantolalao","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Marcellin","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°02","anarana":"Nirina","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Rolland","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Shayah","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°02","anarana":"T. Olivia","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°02","anarana":"Tiana Pauline","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Tsafa","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Vanilia","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Viviane","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Vololona","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Yvon","sokajy":"Mpitory"},{"andiany":"N°02","anarana":"Zo","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Elisoa","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°03","anarana":"Fernando","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°03","anarana":"Fitahiana","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Harisoa","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Helinivo","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Heriniaina","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°03","anarana":"Jean Louis","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Joëlle","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Lantosoa Isabelle","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Luisa","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Marthe","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Mialy","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°03","anarana":"Mirado","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°03","anarana":"Mirasoa","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°03","anarana":"Murielle","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Nantenaina","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Nestor","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Pierre","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Saholy Ravomanantsoa","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°03","anarana":"Saholy Victorine","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Sahondra","sokajy":"Mpitory"},{"andiany":"N°03","anarana":"Tsiandry","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Alfred","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Celestine","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Claudia","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Elissa","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"eric","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Eulaliane","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Ezekiela","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Fitahiana k","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Harena","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Hasina","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Jocelyn","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"joeline","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Justin","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Kanto","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Laureat","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Mialy","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Mifalia","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°04","anarana":"Miora","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Nie","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Odette","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Odile","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Olga","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Olivier","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°04","anarana":"Ravo","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Rojo","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Santonie","sokajy":"Mpitory"},{"andiany":"N°04","anarana":"Tsiry","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"ANDRIAMBAO SETRA","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"ANDRIVOLA","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"ANGELOT","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"ANILOT","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"ARNYAH","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"CÉLINE","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"Domoina","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"EZRA","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"FAFINAH","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"Jossi","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"K'ILAH","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"LALATIANA","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"LUCIENNE","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°05","anarana":"LYDIA RASON","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°05","anarana":"MARIE","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"NICOLE","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°05","anarana":"NICOLE SEVERINE","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"NORO SEHENO","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"RADO","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°05","anarana":"RINA","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°05","anarana":"SAMBA","sokajy":"Mpitory"},{"andiany":"N°05","anarana":"Setra","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°05","anarana":"STÉPHANIE","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°05","anarana":"TOULIAH","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"diary","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"feno","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°06","anarana":"fidy","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"francia","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"hanta Odette","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°06","anarana":"hanta vololona","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"heritiana","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°06","anarana":"jacky","sokajy":"Mpisava lalana mpanampy"},{"andiany":"N°06","anarana":"jaiash","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"joshua","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°06","anarana":"Lalandy","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"leon","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"leonie","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"Léon","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"Mamitiana","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"natacha","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"nosy","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°06","anarana":"rashminah","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"rashminalh","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"rasoanambinina","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"rosette","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°06","anarana":"Sandy","sokajy":"Mpitory"},{"andiany":"N°06","anarana":"simone","sokajy":"Mpisava lalana maharitra"},{"andiany":"N°06","anarana":"tina vololona","sokajy":"Mpitory"}];
+const storageKey = "citeHubDemoReports";
+const $ = id => document.getElementById(id);
+function getReports(){try{return JSON.parse(localStorage.getItem(storageKey)||"[]")}catch{return []}}
+function esc(v){return String(v??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))}
+function peopleForGroup(group){return roster.filter(p=>p.andiany===group).sort((a,b)=>a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}))}
+function renderPeople(){
+ const group=$("group").value, month=$("month").value, list=$("peopleList"), status=$("rosterStatus");
+ $("message").textContent="";
+ if(!group){list.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';status.style.display="none";return}
+ const people=peopleForGroup(group);
+ if(!people.length){list.innerHTML='<p class="hint">Tsy mbola misy lisitra voaomana ho an’ity andiany ity.</p>';status.textContent="Tsy hita tao amin'ny rakitra nampiasaina ny lisitry ny N°07.";status.style.display="block";return}
+ status.style.display="none";
+ const existing=getReports().filter(r=>r.volana===month&&r.andiany===group);
+ list.innerHTML=people.map((p,i)=>{
+   const old=existing.find(r=>r.anarana.toLocaleLowerCase()===p.anarana.toLocaleLowerCase()&&r.sokajy===p.sokajy)||{};
+   let fields='';
+   if(p.sokajy==="Mpitory"){
+     fields+='<div><label for="part-'+i+'">Nandray anjara</label><select id="part-'+i+'" data-field="participation"><option value="">-- Safidio --</option><option value="Eny" '+(old.fandraisana_anjara==="Eny"?"selected":"")+'>Eny</option><option value="Tsia" '+(old.fandraisana_anjara==="Tsia"?"selected":"")+'>Tsia</option></select></div>';
+   } else {
+     fields+='<div><label for="hours-'+i+'">Ora (1–70)</label><select id="hours-'+i+'" data-field="hours"><option value="">-- Safidio --</option>'+Array.from({length:70},(_,n)=>'<option value="'+(n+1)+'" '+(Number(old.ora)===n+1?"selected":"")+'>'+(n+1)+' ora</option>').join("")+'</select></div>';
+   }
+   fields+='<div><label for="studies-'+i+'">Isan’ny fampianarana Baiboly (0–15)</label><select id="studies-'+i+'" data-field="studies"><option value="0">0</option>'+Array.from({length:15},(_,n)=>'<option value="'+(n+1)+'" '+(Number(old.fampianarana_baiboly)===n+1?"selected":"")+'>'+(n+1)+'</option>').join("")+'</select></div>';
+   return '<div class="person" data-name="'+esc(p.anarana)+'" data-role="'+esc(p.sokajy)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><span class="role">'+esc(p.sokajy)+'</span></div>'+fields+'</div>';
+ }).join("");
+}
+function refreshDashboard(){
+ const month=$("filterMonth").value,group=$("filterGroup").value;
+ const rows=getReports().filter(r=>(!month||r.volana===month)&&(group==="all"||r.andiany===group));
+ const sum=(arr,key)=>arr.reduce((n,r)=>n+(Number(r[key])||0),0);
+ const people=arr=>new Set(arr.map(r=>r.andiany+"::"+r.anarana+"::"+r.sokajy)).size;
+ const publishers=rows.filter(r=>r.sokajy==="Mpitory"), assistants=rows.filter(r=>r.sokajy==="Mpisava lalana mpanampy"), regular=rows.filter(r=>r.sokajy==="Mpisava lalana maharitra");
+ const card=(title,metrics)=>'<div class="stat"><h3>'+title+'</h3>'+metrics.map(m=>'<div><span class="hint">'+m[0]+'</span><div class="big">'+m[1]+'</div></div>').join("")+'</div>';
+ $("monthlyCards").innerHTML=card("Mpitory", [["Olona voarakitra",people(publishers)],["Nandray anjara: Eny",publishers.filter(r=>r.fandraisana_anjara==="Eny").length],["Fampianarana Baiboly",sum(publishers,"fampianarana_baiboly")]])+card("Mpisava lalana mpanampy",[["Olona voarakitra",people(assistants)],["Ora",sum(assistants,"ora")],["Fampianarana Baiboly",sum(assistants,"fampianarana_baiboly")]])+card("Mpisava lalana maharitra",[["Olona voarakitra",people(regular)],["Ora",sum(regular,"ora")],["Fampianarana Baiboly",sum(regular,"fampianarana_baiboly")]]);
+ $("monthlyTable").innerHTML=rows.length?'<table><thead><tr><th>Volana</th><th>Andiany</th><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.volana)+'</td><td>'+esc(r.andiany)+'</td><td>'+esc(r.anarana)+'</td><td>'+esc(r.sokajy)+'</td><td>'+esc(r.fandraisana_anjara||"—")+'</td><td>'+esc(r.ora||"—")+'</td><td>'+esc(r.fampianarana_baiboly??0)+'</td></tr>').join("")+'</tbody></table>':'<p class="hint">Mbola tsy misy tatitra mifanaraka amin’ity sivana ity.</p>';
+ $("count").textContent=getReports().length+" andalana tatitra voatahiry amin'ity navigateur ity.";
+}
+$("group").addEventListener("change",renderPeople);
+$("month").addEventListener("change",renderPeople);
+$("saveAll").addEventListener("click",()=>{
+ const month=$("month").value,group=$("group").value;
+ if(!month||!group){$("message").textContent="Safidio aloha ny volana sy ny andiany.";return}
+ const people=peopleForGroup(group);
+ if(!people.length){$("message").textContent="Tsy misy lisitra ho an’ity andiany ity.";return}
+ const reports=getReports();
+ const entries=[];
+ document.querySelectorAll(".person").forEach(el=>{
+   const role=el.dataset.role, name=el.dataset.name;
+   const participation=el.querySelector('[data-field="participation"]')?.value||"";
+   const hours=el.querySelector('[data-field="hours"]')?.value||"";
+   const studies=el.querySelector('[data-field="studies"]')?.value??"0";
+   if(role==="Mpitory"&&!participation){entries.push({missing:name,field:"fandraisana anjara"});return}
+   if(role!=="Mpitory"&&!hours){entries.push({missing:name,field:"ora"});return}
+   entries.push({volana:month,andiany:group,anarana:name,sokajy:role,fandraisana_anjara:participation,ora:hours,fampianarana_baiboly:studies});
+ });
+ const missing=entries.filter(e=>e.missing);
+ if(missing.length){$("message").textContent="Mbola misy saha tsy feno: "+missing.slice(0,4).map(e=>e.missing+" ("+e.field+")").join(", ")+(missing.length>4?"…":"");return}
+ const clean=entries;
+ const retained=reports.filter(r=>!(r.volana===month&&r.andiany===group));
+ try{localStorage.setItem(storageKey,JSON.stringify(retained.concat(clean)));$("message").textContent="Voatahiry ny tatitra "+clean.length+" ho an’ny "+group+" ("+month+").";$("message").style.color="#166534";refreshDashboard()}
+ catch{$("message").textContent="Tsy voatahiry. Mety feno ny toerana fitahirizana."; $("message").style.color="#b91c1c"}
+});
+$("resetRows").addEventListener("click",()=>{renderPeople();$("message").textContent="Naverina ho amin’ny safidy voalohany ny saha."});
+$("filterMonth").value=new Date().toISOString().slice(0,7);
+$("filterMonth").addEventListener("change",refreshDashboard);$("filterGroup").addEventListener("change",refreshDashboard);
+$("exportBtn").addEventListener("click",()=>{
+ const data=getReports();if(!data.length){alert("Mbola tsy misy tatitra azo alaina.");return}
+ const cols=["volana","andiany","anarana","sokajy","fandraisana_anjara","ora","fampianarana_baiboly"];
+ const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+ const csv=[cols.join(";"),...data.map(r=>cols.map(k=>q(r[k])).join(";"))].join("\r\n");
+ const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"}));
+ const a=document.createElement("a");a.href=url;a.download="cite-hub-tatitra.csv";a.click();URL.revokeObjectURL(url);
+});
+$("clearBtn").addEventListener("click",()=>{if(confirm("Tena hofafana ve ny tatitra andrana rehetra amin'ity navigateur ity?")){localStorage.removeItem(storageKey);refreshDashboard();renderPeople();$("message").textContent="Voafafa ny tatitra andrana."}});
+refreshDashboard();
+</script>
+</body></html>
