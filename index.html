@@ -20,6 +20,31 @@
       text-align: center;
     }
     header h1 { margin: 0 0 8px; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #dbe4f0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    nav a {
+      display: inline-block;
+      padding: 10px 14px;
+      color: #173b68;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 7px;
+    }
+    nav a:hover, nav a:focus {
+      background: #e8f1fc;
+      outline: 2px solid #1769aa;
+      outline-offset: 1px;
+    }
     main {
       max-width: 900px;
       margin: 24px auto;
@@ -80,8 +105,15 @@
     <p>Fitantanana tatitra isam-bolana sy isan-taona</p>
   </header>
 
+  <nav aria-label="Menu lehibe">
+    <a href="#accueil">Fandraisana</a>
+    <a href="#fampidirana">Fampidirana tatitra</a>
+    <a href="#tatitra">Tatitra isam-bolana</a>
+    <a href="#voatahiry">Tatitra voatahiry</a>
+  </nav>
+
   <main>
-    <section class="card">
+    <section class="card" id="accueil">
       <h2>Fandraisana</h2>
       <p>Tongasoa eto amin'ny CITE HUB.</p>
       <p>Toerana iray hanomanana sy hitantanana ny tatitry ny andiany 7.</p>
@@ -91,7 +123,7 @@
       </p>
     </section>
 
-    <section class="card">
+    <section class="card" id="fampidirana">
       <h2>Fampidirana tatitra isam-bolana</h2>
       <form id="reportForm">
         <div class="grid">
@@ -147,14 +179,14 @@
       </form>
     </section>
 
-    <section class="card">
+    <section class="card" id="tatitra">
       <h2>Tatitra isam-bolana</h2>
       <p>Famintinana araka ny volana sy ny andiany, amin’ny endrika karatra.</p>
       <div class="grid"><div><label for="filterMonth">Volana</label><input id="filterMonth" type="month"></div><div><label for="filterGroup">Andiany</label><select id="filterGroup"><option value="all">Andiany rehetra</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div></div>
       <div class="grid" id="monthlyCards"></div><h3>Lisitra sy tarehimarika voatahiry</h3><div class="table-wrap" id="monthlyTable"></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="voatahiry">
       <h2>Tatitra voatahiry amin'ity navigateur ity</h2>
       <p id="count">Mbola tsy misy tatitra.</p>
       <button id="exportBtn" type="button">Haka tatitra CSV</button>
