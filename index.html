@@ -85,8 +85,8 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 </section>
 <section class="card" id="voatahiry">
 <h2>Tatitra voatahiry</h2><p id="count">Mbola tsy misy tatitra.</p>
-<div class="toolbar"><button id="exportBtn" type="button">Haka tatitra CSV</button><button class="secondary" id="clearBtn" type="button">Fafao ny tatitra andrana</button></div>
-<p class="hint">Ny angona eto dia amin'ity navigateur ity ihany. Raha manova solosaina na navigateur ianao dia tsy hifindra ho azy ny tatitra.</p>
+<div class="toolbar"><button id="backupBtn" type="button">Misintona backup</button><button id="exportBtn" type="button">Haka tatitra CSV</button><button class="secondary" id="clearBtn" type="button">Fafao ny tatitra andrana</button></div>
+<p class="hint">Ny angona eto dia amin'ity navigateur ity ihany. Raha manova solosaina na navigateur ianao dia tsy hifindra ho azy ny tatitra. Ampiasao matetika ny “Misintona backup” ary tehirizo amin'ny toerana azo antoka ilay rakitra JSON.</p>
 </section>
 </main>
 <footer>CITE HUB — Dika andrana nohavaozina</footer>
@@ -201,6 +201,55 @@ $("saveAll").addEventListener("click",()=>{
 $("resetRows").addEventListener("click",()=>{renderPeople();$("message").textContent="Naverina ho amin’ny safidy voalohany ny saha."});
 $("filterMonth").value=new Date().toISOString().slice(0,7);
 $("filterMonth").addEventListener("change",refreshDashboard);$("filterGroup").addEventListener("change",refreshDashboard);
+$("backupBtn").addEventListener("click",()=>{
+ try{
+   const reportsRaw=localStorage.getItem(storageKey);
+   const editsRaw=localStorage.getItem(rosterEditsKey);
+   const historyRaw=localStorage.getItem(roleHistoryKey);
+   const reports=reportsRaw?JSON.parse(reportsRaw):[];
+   const edits=editsRaw?JSON.parse(editsRaw):{};
+   const history=historyRaw?JSON.parse(historyRaw):[];
+   if(!Array.isArray(reports)||!Array.isArray(history)||!edits||typeof edits!=="object"||Array.isArray(edits)){
+     throw new Error("Tsy mifanaraka amin'ny endrika andrasana ny angona sasany.");
+   }
+   const allStorage={};
+   for(let i=0;i<localStorage.length;i++){
+     const key=localStorage.key(i);
+     if(key!==null) allStorage[key]=localStorage.getItem(key);
+   }
+   const backup={
+     format:"CITE-HUB-BACKUP",
+     formatVersion:1,
+     createdAt:new Date().toISOString(),
+     app:{name:"CITE HUB",language:"mg",source:"localStorage navigateur"},
+     counts:{rosterBase:baseRoster.length,rosterCurrent:getRoster().length,rosterEdits:Object.keys(edits).length,reports:reports.length,roleHistory:history.length,localStorageKeys:Object.keys(allStorage).length},
+     rosterBase:baseRoster,
+     rosterCurrent:getRoster(),
+     rosterEdits:edits,
+     roleHistory:history,
+     reports:reports,
+     localStorage:allStorage,
+     note:"Backup famakiana sy fitahirizana fotsiny. Tsy manova na mamafa angona. Tafiditra ny lisitra fototra, ny fanovana, ny tatitra ary ny localStorage rehetra."
+   };
+   const json=JSON.stringify(backup,null,2);
+   const check=JSON.parse(json);
+   if(check.format!=="CITE-HUB-BACKUP"||!Array.isArray(check.rosterBase)||!Array.isArray(check.rosterCurrent)||!Array.isArray(check.reports)||!Array.isArray(check.roleHistory)||!check.localStorage){
+     throw new Error("Tsy nahomby ny fanamarinana ny backup.");
+   }
+   const blob=new Blob([json],{type:"application/json;charset=utf-8"});
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement("a");
+   const stamp=new Date().toISOString().replace(/[:.]/g,"-");
+   a.href=url;a.download="cite-hub-backup-"+stamp+".json";
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1000);
+   $("message").style.color="#166534";
+   $("message").textContent="Vita ny backup: lisitra "+check.counts.rosterCurrent+", fanovana sokajy "+check.counts.roleHistory+", tatitra "+check.counts.reports+". Tehirizo amin'ny toerana azo antoka ilay rakitra JSON.";
+ }catch(err){
+   $("message").style.color="#b91c1c";
+   $("message").textContent="Tsy vita ny backup. Tsy nisy angona nofafana. Andramo indray. "+(err&&err.message?err.message:"");
+ }
+});
 $("exportBtn").addEventListener("click",()=>{
  const data=getReports();if(!data.length){alert("Mbola tsy misy tatitra azo alaina.");return}
  const cols=["volana","andiany","anarana","sokajy","fandraisana_anjara","ora","fampianarana_baiboly"];
