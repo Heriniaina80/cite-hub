@@ -43,8 +43,12 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 <main>
 <section class="card" id="fidirana-kaonty">
 <h2>Fidirana amin'ny CITE HUB</h2>
-<p class="hint">Midira amin'ny kaonty Google nomen'ny Administration alalana. Ny tatitra sy ny lisitra dia avy amin'ny tahiry iombonana.</p>
-<div class="toolbar"><button id="googleLogin" type="button">Hiditra amin'ny Google</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin'ny Supabase ny lisitra N°01–N°06</button></div>
+<p class="hint">Ampidiro ny adiresy Gmail sy ny tenimiafinao ho an’ny CITE HUB. Tsy mitovy amin’ny tenimiafina Gmail-nao izany. Ny tatitra sy ny lisitra dia avy amin’ny tahiry iombonana.</p>
+<div class="grid">
+<div><label for="loginEmail">Adiresy Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="anarana@gmail.com"></div>
+<div><label for="loginPassword">Tenimiafina CITE HUB</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tenimiafina"></div>
+</div>
+<div class="toolbar"><button id="emailLogin" type="button">Hiditra</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin’ny Supabase ny lisitra N°01–N°06</button></div>
 <div id="authStatus" class="notice" role="status" aria-live="polite">Miandry fidirana...</div>
 </section>
 <section class="card" id="accueil">
@@ -130,17 +134,17 @@ async function loadAllData(){
  configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();
 }
 function showRoleUI(){
- $("googleLogin").style.display=currentUser?"none":"inline-block";
+ $("emailLogin").style.display=currentUser?"none":"inline-block";
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
  $("syncRosterBtn").style.display=currentProfile?.role==="admin"?"inline-block":"none";
  document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"inline-block")});
 }
 async function loadProfile(){
- if(!currentUser){currentProfile=null;showRoleUI();setStatus("Midira amin'ny Google aloha vao afaka mampiasa ny tatitra.");return}
+ if(!currentUser){currentProfile=null;showRoleUI();setStatus("Midira amin’ny Gmail sy tenimiafina CITE HUB aloha vao afaka mampiasa ny tatitra.");return}
  const p=await supabase.from("profils_acces").select("user_id,role,andiany_id").eq("user_id",currentUser.id).maybeSingle();
  if(p.error)throw p.error;
  currentProfile=p.data;
- if(!currentProfile){showRoleUI();setStatus("Tsy mbola nomen'ny Administration andraikitra ity kaonty Google ity.",true);return}
+ if(!currentProfile){showRoleUI();setStatus("Tsy mbola nomen’ny Administration andraikitra ity kaonty ity.",true);return}
  showRoleUI();await loadAllData();
  setStatus("Tafiditra: "+currentUser.email+" · Andraikitra: "+currentProfile.role+(currentProfile.andiany_id?" · "+groupCode(currentProfile.andiany_id):""));
 }
@@ -148,16 +152,20 @@ async function startAuth(){
  const {data:{session}}=await supabase.auth.getSession();currentUser=session?.user||null;
  try{await loadProfile()}catch(e){setStatus("Tsy afaka namaky ny tahiry iombonana: "+(e.message||e),true)}
 }
-$("googleLogin").addEventListener("click",async()=>{
- const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.href}});
- if(error)setStatus("Tsy tafiditra amin'ny Google: "+error.message,true);
+$("emailLogin").addEventListener("click",async()=>{
+ const email=$("loginEmail").value.trim();
+ const password=$("loginPassword").value;
+ if(!email||!password){setStatus("Ampidiro ny Gmail sy ny tenimiafina CITE HUB.",true);return}
+ setStatus("Eo am-panamarinana ny kaonty...");
+ const {error}=await supabase.auth.signInWithPassword({email,password});
+ if(error)setStatus("Tsy tafiditra: "+error.message,true);
 });
 $("logoutBtn").addEventListener("click",async()=>{const {error}=await supabase.auth.signOut();if(error){setStatus(error.message,true);return}currentUser=null;currentProfile=null;roster=[];reports=[];showRoleUI();setStatus("Nivoaka soa aman-tsara.");});
 supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;setTimeout(()=>loadProfile().catch(e=>setStatus(e.message,true)),0)});
 function renderPeople(){
  const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus");
  $("message").textContent="";
- if(!currentUser||!currentProfile){list.innerHTML='<p class="hint">Midira amin’ny Google aloha.</p>';status.style.display="none";return}
+ if(!currentUser||!currentProfile){list.innerHTML='<p class="hint">Midira amin’ny Gmail sy tenimiafina CITE HUB aloha.</p>';status.style.display="none";return}
  if(!group){list.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';status.style.display="none";return}
  if(!canSeeGroup(group)){list.innerHTML='<p class="hint">Tsy nahazo alalana hijery ity andiany ity ianao.</p>';return}
  const people=peopleForGroup(group);
