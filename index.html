@@ -168,15 +168,17 @@ $("emailLogin").addEventListener("click",async()=>{
  if(error)setStatus("Tsy tafiditra: "+error.message,true);
 });
 $("forgotPasswordBtn").addEventListener("click",async()=>{
- const email=$("loginEmail").value.trim();
  $("resetPasswordBox").style.display="block";
  $("resetPasswordBox").scrollIntoView({behavior:"smooth",block:"center"});
+ const email=$("loginEmail").value.trim();
  if(!email){setStatus("Ampidiro ao amin’ny saha Adiresy Gmail aloha ny adiresinao, dia tsindrio indray ny Adinoko ny tenimiafina.",true);$("loginEmail").focus();return}
  setStatus("Mandefa rohy fanovana tenimiafina any amin’ny "+email+"...");
- const redirectTo=window.location.origin+window.location.pathname;
- const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});
- if(error)setStatus("Tsy afaka nandefa mailaka: "+error.message,true);
- else setStatus("Nalefa ny rohy fanovana tenimiafina any amin’ny "+email+". Jereo ny Inbox sy Spam.");
+ try{
+  const redirectTo="https://heriniaina80.github.io/cite-hub/";
+  const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});
+  if(error){setStatus("Tsy afaka nandefa mailaka: "+error.message,true);return}
+  setStatus("Nalefa ny rohy fanovana tenimiafina any amin’ny "+email+". Jereo ny Inbox sy Spam.");
+ }catch(e){setStatus("Nisy olana tamin’ny fangatahana fanovana tenimiafina: "+(e.message||e),true)}
 });
 $("saveNewPassword").addEventListener("click",async()=>{
  const password=$("newPassword").value,confirmPassword=$("confirmNewPassword").value;
