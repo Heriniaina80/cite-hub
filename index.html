@@ -48,7 +48,7 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 <div><label for="loginEmail">Adiresy Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="anarana@gmail.com"></div>
 <div><label for="loginPassword">Tenimiafina CITE HUB</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tenimiafina"></div>
 </div>
-<div class="toolbar"><button id="emailLogin" type="button">Hiditra</button><button id="forgotPasswordBtn" class="secondary" type="button">Adinoko ny tenimiafina</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin’ny Supabase ny lisitra N°01–N°06</button></div>
+<div class="toolbar"><button id="emailLogin" type="button">Hiditra</button><button id="signUpBtn" class="secondary" type="button">Hisoratra anarana</button><button id="forgotPasswordBtn" class="secondary" type="button">Adinoko ny tenimiafina</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin’ny Supabase ny lisitra N°01–N°06</button></div>
 <div id="resetPasswordBox" class="notice" style="display:none">
 <h3>Fanovana tenimiafina</h3>
 <p class="hint">Ampidiro ny tenimiafina vaovao ho an’ny CITE HUB.</p>
@@ -155,6 +155,19 @@ async function loadProfile(){
  showRoleUI();await loadAllData();
  setStatus("Tafiditra: "+currentUser.email+" · Andraikitra: "+currentProfile.role+(currentProfile.andiany_id?" · "+groupCode(currentProfile.andiany_id):""));
 }
+$("signUpBtn").addEventListener("click",async()=>{
+ const email=$("loginEmail").value.trim();
+ const password=$("loginPassword").value;
+ if(!email||!password){setStatus("Ampidiro ny adiresy Gmail sy tenimiafina tianao hampiasaina.",true);return}
+ if(password.length<6){setStatus("Tokony ho 6 tarehintsoratra farafahakeliny ny tenimiafina.",true);return}
+ setStatus("Mamorona kaonty CITE HUB...");
+ try{
+  const {data,error}=await sbClient.auth.signUp({email,password,options:{emailRedirectTo:"https://heriniaina80.github.io/cite-hub/"}});
+  if(error){setStatus("Tsy vita ny fisoratana anarana: "+error.message,true);return}
+  if(data.session){setStatus("Vita ny fisoratana anarana. Raha mbola tsy nomena andraikitra ianao dia mila anendren’ny Administration.");await loadProfile()}
+  else setStatus("Voaray ny fisoratana anarana. Jereo ny mailakao hanamafisana ny kaonty (code na rohy), dia miverena eto hiditra. Tsy miditra ho azy ny kaonty raha mbola tsy voamarina.");
+ }catch(e){setStatus("Nisy olana tamin’ny fisoratana anarana: "+(e.message||e),true)}
+});
 async function startAuth(){
  try{
   const callbackUrl=new URL(window.location.href);
