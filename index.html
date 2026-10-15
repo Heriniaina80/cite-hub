@@ -156,8 +156,18 @@ async function loadProfile(){
  setStatus("Tafiditra: "+currentUser.email+" · Andraikitra: "+currentProfile.role+(currentProfile.andiany_id?" · "+groupCode(currentProfile.andiany_id):""));
 }
 async function startAuth(){
- const {data:{session}}=await sbClient.auth.getSession();currentUser=session?.user||null;
- try{await loadProfile()}catch(e){setStatus("Tsy afaka namaky ny tahiry iombonana: "+(e.message||e),true)}
+ try{
+  const callbackUrl=new URL(window.location.href);
+  const recoveryCode=callbackUrl.searchParams.get("code");
+  if(recoveryCode){
+   const {error}=await sbClient.auth.exchangeCodeForSession(recoveryCode);
+   if(error)throw error;
+   callbackUrl.searchParams.delete("code");
+   window.history.replaceState({},document.title,callbackUrl.pathname+callbackUrl.search+callbackUrl.hash);
+  }
+  const {data:{session}}=await sbClient.auth.getSession();currentUser=session?.user||null;
+  await loadProfile();
+ }catch(e){setStatus("Tsy afaka nanokatra ny session fanarenana na namaky ny tahiry: "+(e.message||e),true)}
 }
 $("emailLogin").addEventListener("click",async()=>{
  const email=$("loginEmail").value.trim();
