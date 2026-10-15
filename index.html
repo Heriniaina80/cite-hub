@@ -48,7 +48,14 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 <div><label for="loginEmail">Adiresy Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="anarana@gmail.com"></div>
 <div><label for="loginPassword">Tenimiafina CITE HUB</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tenimiafina"></div>
 </div>
-<div class="toolbar"><button id="emailLogin" type="button">Hiditra</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin’ny Supabase ny lisitra N°01–N°06</button></div>
+<div class="toolbar"><button id="emailLogin" type="button">Hiditra</button><button id="forgotPasswordBtn" class="secondary" type="button">Adinoko ny tenimiafina</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin’ny Supabase ny lisitra N°01–N°06</button></div>
+<div id="resetPasswordBox" class="notice" style="display:none">
+<h3>Fanovana tenimiafina</h3>
+<p class="hint">Ampidiro ny tenimiafina vaovao ho an’ny CITE HUB.</p>
+<label for="newPassword">Tenimiafina vaovao</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="Tenimiafina vaovao">
+<label for="confirmNewPassword" style="margin-top:10px">Avereno ny tenimiafina vaovao</label><input id="confirmNewPassword" type="password" autocomplete="new-password" placeholder="Avereno ny tenimiafina">
+<div class="toolbar"><button id="saveNewPassword" type="button">Tehirizo ny tenimiafina vaovao</button></div>
+</div>
 <div id="authStatus" class="notice" role="status" aria-live="polite">Miandry fidirana...</div>
 </section>
 <section class="card" id="accueil">
@@ -160,8 +167,37 @@ $("emailLogin").addEventListener("click",async()=>{
  const {error}=await supabase.auth.signInWithPassword({email,password});
  if(error)setStatus("Tsy tafiditra: "+error.message,true);
 });
+$("forgotPasswordBtn").addEventListener("click",async()=>{
+ const email=$("loginEmail").value.trim();
+ if(!email){setStatus("Ampidiro aloha ny adiresy Gmail dia tsindrio indray ny Adinoko ny tenimiafina.",true);return}
+ setStatus("Mandefa rohy fanovana tenimiafina...");
+ const redirectTo=window.location.origin+window.location.pathname;
+ const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});
+ if(error)setStatus("Tsy afaka nandefa mailaka: "+error.message,true);
+ else setStatus("Nalefa ny rohy fanovana tenimiafina. Jereo ny Gmail-nao.");
+});
+$("saveNewPassword").addEventListener("click",async()=>{
+ const password=$("newPassword").value,confirmPassword=$("confirmNewPassword").value;
+ if(password.length<6){setStatus("Tokony ho 6 tarehintsoratra farafahakeliny ny tenimiafina.",true);return}
+ if(password!==confirmPassword){setStatus("Tsy mitovy ireo tenimiafina roa.",true);return}
+ setStatus("Mitahiry tenimiafina vaovao...");
+ const {error}=await supabase.auth.updateUser({password});
+ if(error){setStatus("Tsy voatahiry ny tenimiafina: "+error.message,true);return}
+ $("resetPasswordBox").style.display="none";
+ $("newPassword").value="";$("confirmNewPassword").value="";
+ setStatus("Vita ny fanovana tenimiafina. Afaka miditra amin’ny CITE HUB ianao.");
+ await loadProfile();
+});
 $("logoutBtn").addEventListener("click",async()=>{const {error}=await supabase.auth.signOut();if(error){setStatus(error.message,true);return}currentUser=null;currentProfile=null;roster=[];reports=[];showRoleUI();setStatus("Nivoaka soa aman-tsara.");});
-supabase.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;setTimeout(()=>loadProfile().catch(e=>setStatus(e.message,true)),0)});
+supabase.auth.onAuthStateChange((event,session)=>{
+ currentUser=session?.user||null;
+ if(event==="PASSWORD_RECOVERY"){
+  $("resetPasswordBox").style.display="block";
+  setStatus("Sokafy eto ny fanovana: mametraha tenimiafina vaovao ho an’ny CITE HUB.");
+  return;
+ }
+ setTimeout(()=>loadProfile().catch(e=>setStatus(e.message,true)),0);
+});
 function renderPeople(){
  const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus");
  $("message").textContent="";
