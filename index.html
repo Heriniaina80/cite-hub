@@ -383,21 +383,21 @@ $("syncRosterBtn").addEventListener("click",async()=>{
 });
 
 function csvImportCells(line,delimiter){const out=[];let cell="",quoted=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'&&quoted&&line[i+1]==='"'){cell+='"';i++}else if(ch==='"'){quoted=!quoted}else if(ch===delimiter&&!quoted){out.push(cell.trim());cell=""}else cell+=ch}out.push(cell.trim());return out}
-function normalizeImportCategory(value){const v=String(value||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"");if(v.includes("maharitra"))return "Mpisava lalana maharitra";if(v.includes("mpanampy")||v==="mpanampy")return "Mpanampy";return "Mpitory"}
+function normalizeImportCategory(value){const v=String(value||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");if(v.includes("maharitra"))return "Mpisava lalana maharitra";if(v.includes("mpanampy")||v==="mpanampy")return "Mpanampy";return "Mpitory"}
 $("importReportCsv").addEventListener("click",async()=>{
  if(currentProfile?.role!=="admin"){setStatus("Administration ihany no mahazo mampiditra tatitra.",true);return}
  const file=$("reportCsvFile").files[0];if(!file){$("reportCsvStatus").textContent="Safidio aloha ny rakitra CSV.";return}
  const button=$("importReportCsv");button.disabled=true;$("reportCsvStatus").textContent="Mamaky sy mampiditra ny tatitra...";
  try{
-  const raw=(await file.text()).replace(/^\\uFEFF/,"");const lines=raw.split(/\\r?\\n/).filter(x=>x.trim());if(lines.length<2)throw new Error("Tsy ampy ny andalana ao amin'ny CSV.");
+  const raw=(await file.text()).replace(/^\uFEFF/,"");const lines=raw.split(/\r?\n/).filter(x=>x.trim());if(lines.length<2)throw new Error("Tsy ampy ny andalana ao amin'ny CSV.");
   const delimiter=lines[0].split(";").length>lines[0].split(",").length?";":",";const headers=csvImportCells(lines[0],delimiter).map(x=>x.toLowerCase().trim());const col=k=>headers.indexOf(k);
   const required=["month","team","name","category"];if(required.some(k=>col(k)<0))throw new Error("Ilaina ny tsanganana Month, Team, Name ary Category.");
   const grouped=new Map();let skipped=0;
   for(const line of lines.slice(1)){
    const c=csvImportCells(line,delimiter),month=(c[col("month")]||"").trim(),rawTeam=(c[col("team")]||"").trim(),name=(c[col("name")]||"").trim(),category=normalizeImportCategory(c[col("category")]);
    if(!month||!rawTeam||!name){skipped++;continue}
-   if(!/^\\d{4}-\\d{2}$/.test(month))throw new Error("Tsy mety ny volana: "+month);
-   const digits=(rawTeam.match(/[1-7]/)||[])[0],code=digits?"N°"+String(digits).padStart(2,"0"):"",g=groups.find(x=>x.kaody===rawTeam.replace(/\\s/g,"")||x.kaody===code);if(!g){skipped++;continue}
+   if(!/^\d{4}-\d{2}$/.test(month))throw new Error("Tsy mety ny volana: "+month);
+   const digits=(rawTeam.match(/[1-7]/)||[])[0],code=digits?"N°"+String(digits).padStart(2,"0"):"",g=groups.find(x=>x.kaody===rawTeam.replace(/\s/g,"")||x.kaody===code);if(!g){skipped++;continue}
    const key=g.id+"|"+name.toLocaleLowerCase();let member=roster.find(x=>x.andiany_id===g.id&&x.anarana.toLocaleLowerCase()===name.toLocaleLowerCase());
    if(!member){const ins=await sbClient.from("mpikambana").insert({anarana:name,andiany_id:g.id,sokajy:category,mavitrika:true}).select("id,anarana,andiany_id,sokajy,mavitrika").single();if(ins.error)throw ins.error;member=ins.data;roster.push(member)}else if(member.sokajy!==category){const upd=await sbClient.from("mpikambana").update({sokajy:category,mavitrika:true}).eq("id",member.id).select("id,anarana,andiany_id,sokajy,mavitrika").single();if(upd.error)throw upd.error;Object.assign(member,upd.data)}
    const presence=(c[col("presence")]||"").trim().toLowerCase(),hoursRaw=(c[col("hours")]||"").trim(),bibleRaw=(c[col("bible")]||"").trim(),note=col("note")>=0?(c[col("note")]||"").trim():"";
