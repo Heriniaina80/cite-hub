@@ -146,6 +146,7 @@ function showRoleUI(){
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
  $("syncRosterBtn").style.display=currentProfile?.role==="admin"?"inline-block":"none";
  document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"inline-block")});
+ $("fangatahana").style.display=currentProfile?.role==="admin"?"block":"none";
 }
 async function loadAccessRequests(){
  if(currentProfile?.role!=="admin")return;
