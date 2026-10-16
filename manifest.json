@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "CITE HUB — Fitantanana tatitra",
+  "short_name": "CITE HUB",
+  "description": "Fitantanana tatitra isam-bolana sy isan-taona ho an'ny andiany 7.",
+  "lang": "mg",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f6fb",
+  "theme_color": "#173b68",
+  "icons": [
+    {
+      "src": "./icons/cite-hub.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
