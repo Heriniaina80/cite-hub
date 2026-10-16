@@ -392,11 +392,12 @@ $("importReportCsv").addEventListener("click",async()=>{
  const button=$("importReportCsv");button.disabled=true;$("reportCsvStatus").textContent="Mamaky sy mampiditra ny tatitra...";
  try{
   const raw=(await file.text()).replace(/^\uFEFF/,"");const lines=raw.split(/\r?\n/).filter(x=>x.trim());if(lines.length<2)throw new Error("Tsy ampy ny andalana ao amin'ny CSV.");
-  const delimiter=lines[0].split(";").length>=lines[0].split(",").length?";":",";const headers=csvImportCells(lines[0],delimiter).map(normalizeImportText);const col=k=>findImportColumn(headers,k);
-  const monthCol=col(["month","volana","volana tatitra","date","daty"]),teamCol=col(["team","andiany","groupe","group"]),nameCol=col(["name","anarana","anarana feno","nom","nom complet"]),categoryCol=col(["category","categorie","sokajy","sokajy olona"]),presenceCol=col(["presence","nandray anjara","fandraisana anjara","fanatrehana"]),hoursCol=col(["hours","ora","ora isam bolana"]),bibleCol=col(["bible","fampianarana baiboly","mpianatra baiboly"]),noteCol=col(["note","fanamarihana","fanamarihana ankapobeny"]);
-  if([monthCol,teamCol,nameCol,categoryCol].some(i=>i<0))throw new Error("Tsy hita ireo tsanganana ilaina. Mila Month/Volana, Team/Andiany, Name/Anarana ary Category/Sokajy. Tsanganana hita: "+headers.join(", "));
+  const aliases={month:["month","volana","volana tatitra","date","daty"],team:["team","andiany","groupe","group"],name:["name","anarana","anarana feno","nom","nom complet"],category:["category","categorie","sokajy","sokajy olona"],presence:["presence","nandray anjara","fandraisana anjara","fanatrehana"],hours:["hours","ora","ora isam bolana"],bible:["bible","fampianarana baiboly","mpianatra baiboly"],note:["note","fanamarihana","fanamarihana ankapobeny"]};
+  let headerIndex=-1,delimiter=",",headers=[];for(let ri=0;ri<Math.min(lines.length,40);ri++){for(const d of [",",";"]){const hs=csvImportCells(lines[ri],d).map(normalizeImportText);const score=["month","team","name","category"].filter(k=>hs.some(h=>aliases[k].includes(h))).length;if(score===4){headerIndex=ri;delimiter=d;headers=hs;break}}if(headerIndex>=0)break}
+  if(headerIndex<0)throw new Error("Tsy hita ny lohatenin'ny tsanganana Month/Volana, Team/Andiany, Name/Anarana ary Category/Sokajy. Tadiavo ny andalana misy ireo lohateny ireo ao amin'ny CSV.");
+  const col=k=>findImportColumn(headers,aliases[k]);const monthCol=col("month"),teamCol=col("team"),nameCol=col("name"),categoryCol=col("category"),presenceCol=col("presence"),hoursCol=col("hours"),bibleCol=col("bible"),noteCol=col("note");
   const grouped=new Map();let skipped=0,added=0;
-  for(const line of lines.slice(1)){
+  for(const line of lines.slice(headerIndex+1)){
    const c=csvImportCells(line,delimiter),monthRaw=(c[monthCol]||"").trim(),rawTeam=(c[teamCol]||"").trim(),name=(c[nameCol]||"").trim(),category=normalizeImportCategory(c[categoryCol]);
    if(!monthRaw||!rawTeam||!name){skipped++;continue}
    const dm=monthRaw.match(/^(\d{4})[-/](\d{1,2})/);if(!dm)throw new Error("Tsy mety ny volana: "+monthRaw+" (ampiasao YYYY-MM).");const month=dm[1]+"-"+String(Number(dm[2])).padStart(2,"0");if(Number(dm[2])<1||Number(dm[2])>12)throw new Error("Tsy mety ny volana: "+monthRaw);
