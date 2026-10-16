@@ -410,7 +410,7 @@ $("importReportCsv").addEventListener("click",async()=>{
   }
   const incoming=[...grouped.values()];if(!incoming.length)throw new Error("Tsy nahitana andalana azo ampidirina. Hamarino ny anaran'ny andiany sy ny tsanganana.");
   const saved=await sbClient.from("tatitra").upsert(incoming,{onConflict:"mpikambana_id,volana"});if(saved.error)throw saved.error;
-  await loadAllData();$("reportYear").value="2026";$("reportMonth").value="09";$("reportTeam").value="all";renderReports();setStatus("Vita ny fampidirana: "+incoming.length+" tatitra nampidirina na nohavaozina. Andalana tsy nampidirina: "+skipped+".");
+  await loadAllData();$("filterMonth").value="2026-09";$("filterGroup").value="all";refreshDashboard();setStatus("Vita ny fampidirana: "+incoming.length+" tatitra nampidirina na nohavaozina. Andalana tsy nampidirina: "+skipped+".");
   $("reportCsvStatus").textContent="Vita ny fampidirana. Hita ao amin'ny Tatitra isam-bolana sy Tatitra voatahiry ny angona.";
  }catch(e){$("reportCsvStatus").textContent="Tsy tafiditra ilay CSV: "+(e.message||String(e));setStatus("Tsy tafiditra ilay CSV: "+(e.message||String(e)),true)}
  finally{button.disabled=false}
