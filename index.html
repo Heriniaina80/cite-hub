@@ -38,7 +38,7 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 <body>
 <header><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></header>
 <nav aria-label="Menu lehibe">
-<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
+<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
 </nav>
 <main>
 <section class="card" id="fidirana-kaonty">
@@ -75,6 +75,7 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 <div class="toolbar"><button id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div>
 <div id="message" role="status" aria-live="polite"></div>
 </section>
+<section class="card" id="fangatahana" style="display:none"><h2>Fangatahana fidirana</h2><p class="hint">Ireo kaonty vao nisoratra anarana nefa mbola miandry fankatoavana. Omeo andraikitra sy andiany vao afaka mampiditra tatitra izy ireo.</p><div id="accessRequests" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="accessRequestStatus" role="status" aria-live="polite"></div></section>
 <section class="card" id="fitantanana">
 <h2>Fitantanana ny lisitry ny olona</h2>
 <p>Ovay eto ny sokajin’ny olona rehefa misy fiovana. Voatahiry ny sokajy taloha, ny sokajy vaovao ary ny daty nanovana azy. Tsy ovaina ny tatitra efa voatahiry.</p>
@@ -132,7 +133,7 @@ function configureGroups(){
 }
 async function loadAllData(){
  const g=await sbClient.from("andiany").select("id,kaody,anarana").order("id");
- if(g.error)throw g.error;groups=(g.data||[]).filter(x=>["N°01","N°02","N°03","N°04","N°05","N°06"].includes(x.kaody));
+ if(g.error)throw g.error;groups=(g.data||[]).filter(x=>["N°01","N°02","N°03","N°04","N°05","N°06","N°07"].includes(x.kaody));
  const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika").eq("mavitrika",true).order("anarana");
  if(m.error)throw m.error;roster=m.data||[];
  const r=await sbClient.from("tatitra").select("id,mpikambana_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
@@ -144,15 +145,39 @@ function showRoleUI(){
  $("emailLogin").style.display=currentUser?"none":"inline-block";
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
  $("syncRosterBtn").style.display=currentProfile?.role==="admin"?"inline-block":"none";
- document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"inline-block")});
+ document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"inline-block")});
 }
+async function loadAccessRequests(){
+ if(currentProfile?.role!=="admin")return;
+ const host=$("accessRequests");
+ host.innerHTML='<p class="hint">Eo am-pakana ny fangatahana...</p>';
+ const {data,error}=await sbClient.from("profils_acces").select("user_id,email,role,andiany_id,created_at").eq("role","attente").order("created_at",{ascending:true});
+ if(error){host.innerHTML='<p class="hint">Tsy afaka namaky ny fangatahana: '+esc(error.message)+'</p>';return}
+ if(!data?.length){host.innerHTML='<p class="hint">Tsy misy fangatahana miandry amin’izao.</p>';return}
+ host.innerHTML='<table><thead><tr><th>Adiresy mailaka</th><th>Daty</th><th>Andiany homena</th><th>Hetsika</th></tr></thead><tbody>'+data.map(p=>'<tr data-user-id="'+esc(p.user_id)+'"><td>'+esc(p.email||p.user_id)+'</td><td>'+esc(p.created_at?new Date(p.created_at).toLocaleDateString('fr-FR'):'—')+'</td><td><select class="request-team" aria-label="Andiany homena">'+groups.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.kaody+' — '+g.anarana)+'</option>').join('')+'</select></td><td><button type="button" data-approve>Hankatoavina</button> <button type="button" class="secondary" data-reject>Lavina</button></td></tr>').join('')+'</tbody></table>';
+}
+async function handleAccessRequest(userId,approve,groupIdValue){
+ if(currentProfile?.role!=="admin"){setStatus("Administration ihany no afaka manapa-kevitra amin’ny fangatahana.",true);return}
+ const status=$("accessRequestStatus");
+ const patch=approve?{role:"responsable",andiany_id:Number(groupIdValue)}:{role:"refuse",andiany_id:null};
+ const {error}=await sbClient.from("profils_acces").update(patch).eq("user_id",userId).eq("role","attente");
+ if(error){status.textContent="Tsy voatahiry ny fanapahan-kevitra: "+error.message;status.style.color="#b91c1c";return}
+ status.textContent=approve?"Nankatoavina sy nomena andiany ny kaonty.":"Nolavina ny fangatahana.";
+ status.style.color="#166534";
+ await loadAccessRequests();
+}
+$("accessRequests").addEventListener("click",event=>{
+ const row=event.target.closest("tr[data-user-id]");if(!row)return;
+ if(event.target.closest("[data-approve]"))handleAccessRequest(row.dataset.userId,true,row.querySelector(".request-team").value);
+ if(event.target.closest("[data-reject]"))handleAccessRequest(row.dataset.userId,false,null);
+});
 async function loadProfile(){
  if(!currentUser){currentProfile=null;showRoleUI();setStatus("Midira amin’ny Gmail sy tenimiafina CITE HUB aloha vao afaka mampiasa ny tatitra.");return}
  const p=await sbClient.from("profils_acces").select("user_id,role,andiany_id").eq("user_id",currentUser.id).maybeSingle();
  if(p.error)throw p.error;
  currentProfile=p.data;
- if(!currentProfile){showRoleUI();setStatus("Tsy mbola nomen’ny Administration andraikitra ity kaonty ity.",true);return}
- showRoleUI();await loadAllData();
+ if(!currentProfile){showRoleUI();setStatus("Miandry ny fankatoavan’ny Administration ity kaonty ity.",true);return}
+ showRoleUI();await loadAllData();if(currentProfile.role==="admin")await loadAccessRequests();
  setStatus("Tafiditra: "+currentUser.email+" · Andraikitra: "+currentProfile.role+(currentProfile.andiany_id?" · "+groupCode(currentProfile.andiany_id):""));
 }
 $("signUpBtn").addEventListener("click",async()=>{
