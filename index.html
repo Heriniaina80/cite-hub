@@ -40,8 +40,8 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 
 /* Navigation latérale CITE HUB */
 body{display:grid;grid-template-columns:220px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100vh}
-body>header{grid-column:1/-1;grid-row:1}
-body>nav{grid-column:1;grid-row:2;display:flex;flex-direction:column;align-items:stretch;gap:8px;width:220px;min-height:calc(100vh - 76px);height:100%;margin:0;padding:18px 12px;border-radius:0;position:sticky;top:0;align-self:start;background:#171747;overflow-y:auto}
+body>header{grid-column:2;grid-row:1}
+body>nav{grid-column:1;grid-row:1 / span 2;display:flex;flex-direction:column;align-items:stretch;gap:8px;width:220px;min-height:100vh;height:100%;margin:0;padding:18px 12px;border-radius:0;position:sticky;top:0;align-self:start;background:#171747;overflow-y:auto}
 body>nav a{display:block;width:100%;padding:11px 12px;border-radius:10px;color:#dbe6ff;text-decoration:none}
 body>nav a:hover,body>nav a:focus{background:#29295c}
 body>main{grid-column:2;grid-row:2;min-width:0;width:100%;max-width:none;margin:0;padding:22px 24px 40px}
