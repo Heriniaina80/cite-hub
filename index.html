@@ -170,7 +170,7 @@ function showRoleUI(){
  $("emailLogin").style.display=currentUser?"none":"inline-block";
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
  $("syncRosterBtn").style.display=currentProfile?.role==="admin"?"inline-block":"none";
- document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"inline-block")});
+ document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"block")});
  $("fangatahana").style.display=currentProfile?.role==="admin"?"block":"none";
  $("reportCsvImport").style.display=currentProfile?.role==="admin"?"block":"none";
 }
