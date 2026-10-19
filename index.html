@@ -56,7 +56,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <body>
 <header><button id="menuToggle" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Sokafy ny menu">☰ Menu</button><div><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></div></header>
 <nav id="mainMenu" aria-label="Menu lehibe">
-<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#firaketana">Firaketana isan-taona</a><a href="#firaketana">Firaketana isan-taona</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
+<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#firaketana">Firaketana isan-taona</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
 </nav>
 <main>
 <section class="card" id="fidirana-kaonty">
@@ -123,7 +123,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div id="annualRecordStatus" class="notice" role="status" aria-live="polite" style="display:none"></div>
 <div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona, dia tsindrio “Asehoy ny firaketana”.</p></div>
 </section>
-<section class="card" id="firaketana"><h2>Firaketana isan-taona — olona iray</h2><p class="hint">Fenoy isam-bolana ny firaketana Septambra ka hatramin’ny Aogositra ho an’ny olona iray. Tehirizina ao amin’ny tahiry iombonana izany.</p><div class="grid"><div><label for="annualGroup">Andiany</label><select id="annualGroup"></select></div><div><label for="annualPerson">Anarana</label><select id="annualPerson"></select></div><div><label for="annualYear">Taom-panompoana</label><select id="annualYear"></select></div></div><div class="toolbar"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" class="secondary" id="downloadAnnualPdf">Misintona PDF</button></div><div id="annualRecordStatus" class="notice" style="display:none" role="status" aria-live="polite"></div><div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona.</p></div></section>
+
 <section class="card" id="tatitra">
 <h2>Tatitra isam-bolana</h2>
 <div class="grid">
@@ -484,7 +484,7 @@ function configureAnnualRecord(){
  const groupEl=$("annualGroup"),personEl=$("annualPerson"),yearEl=$("annualYear");if(!groupEl||!personEl||!yearEl)return;
  const allowed=visibleGroups();groupEl.innerHTML=allowed.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join("");
  const currentYear=new Date().getMonth()+1>=9?new Date().getFullYear():new Date().getFullYear()-1;
- const years=new Set([currentYear,...reports.map(r=>reportingYear(r.volana))]);yearEl.innerHTML=[...years].sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
+ const years=new Set([currentYear,...reports.map(r=>r.volana).filter(m=>typeof m==="string"&&/^\\d{4}-\\d{2}$/.test(m)).map(reportingYear)]);yearEl.innerHTML=[...years].sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
  const fillPeople=()=>{const ps=peopleForGroup(groupEl.value);personEl.innerHTML=ps.map(p=>'<option value="'+p.id+'">'+esc(p.anarana)+' — '+esc(p.sokajy)+'</option>').join("")||'<option value="">Tsy misy olona</option>'};
  groupEl.addEventListener("change",fillPeople);fillPeople();
 }
