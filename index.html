@@ -484,7 +484,8 @@ function configureAnnualRecord(){
  const groupEl=$("annualGroup"),personEl=$("annualPerson"),yearEl=$("annualYear");if(!groupEl||!personEl||!yearEl)return;
  const allowed=visibleGroups();
  const previousGroup=groupEl.value;
- groupEl.innerHTML='<option value="all">Andiany rehetra</option>'+allowed.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join("");
+ const allGroupsOption=currentProfile?.role==="admin"?'<option value="all">Andiany rehetra</option>':"";
+ groupEl.innerHTML=allGroupsOption+allowed.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join("");
  if(previousGroup&&allowed.some(g=>String(g.id)===String(previousGroup)))groupEl.value=previousGroup;
  const currentYear=new Date().getMonth()+1>=9?new Date().getFullYear():new Date().getFullYear()-1;
  const years=new Set([currentYear,...reports.map(r=>r.volana).filter(m=>typeof m==="string"&&/^\d{4}-\d{2}$/.test(m)).map(reportingYear)]);
