@@ -482,11 +482,16 @@ document.addEventListener("click",event=>{if(document.body.classList.contains("m
 function annualMonths(year){return [9,10,11,12,1,2,3,4,5,6,7,8].map(m=>({month:`${m>=9?year:year+1}-${String(m).padStart(2,"0")}`,label:new Date(m>=9?year:year+1,m-1,1).toLocaleString("fr-FR",{month:"long"})}))}
 function configureAnnualRecord(){
  const groupEl=$("annualGroup"),personEl=$("annualPerson"),yearEl=$("annualYear");if(!groupEl||!personEl||!yearEl)return;
- const allowed=visibleGroups();groupEl.innerHTML=allowed.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join("");
+ const allowed=visibleGroups();
+ const previousGroup=groupEl.value;
+ groupEl.innerHTML=allowed.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join("");
+ if(previousGroup&&allowed.some(g=>g.kaody===previousGroup))groupEl.value=previousGroup;
  const currentYear=new Date().getMonth()+1>=9?new Date().getFullYear():new Date().getFullYear()-1;
- const years=new Set([currentYear,...reports.map(r=>r.volana).filter(m=>typeof m==="string"&&/^\\d{4}-\\d{2}$/.test(m)).map(reportingYear)]);yearEl.innerHTML=[...years].sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
- const fillPeople=()=>{const ps=peopleForGroup(groupEl.value);personEl.innerHTML=ps.map(p=>'<option value="'+p.id+'">'+esc(p.anarana)+' — '+esc(p.sokajy)+'</option>').join("")||'<option value="">Tsy misy olona</option>'};
- groupEl.addEventListener("change",fillPeople);fillPeople();
+ const years=new Set([currentYear,...reports.map(r=>r.volana).filter(m=>typeof m==="string"&&/^\d{4}-\d{2}$/.test(m)).map(reportingYear)]);
+ yearEl.innerHTML=[...years].sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
+ if(!yearEl.value)yearEl.value=String(currentYear);
+ const fillPeople=()=>{const ps=peopleForGroup(groupEl.value);const oldPerson=personEl.value;personEl.innerHTML=ps.map(p=>'<option value="'+p.id+'">'+esc(p.anarana)+' — '+esc(p.sokajy)+'</option>').join("")||'<option value="">Tsy misy olona</option>';if(ps.some(p=>String(p.id)===oldPerson))personEl.value=oldPerson;};
+ groupEl.onchange=fillPeople;fillPeople();
 }
 function renderAnnualRecord(){
  const group=$("annualGroup").value,personId=$("annualPerson").value,year=Number($("annualYear").value),person=roster.find(p=>String(p.id)===String(personId));
