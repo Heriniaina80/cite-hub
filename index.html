@@ -163,7 +163,7 @@ function groupId(code){return groups.find(g=>g.kaody===code)?.id}
 function canSeeGroup(code){return currentProfile?.role==="admin" || (currentProfile?.role==="responsable" && String(currentProfile.andiany_id)===String(groupId(code)))}
 function visibleGroups(){return currentProfile?.role==="admin"?groups:groups.filter(g=>String(g.id)===String(currentProfile?.andiany_id))}
 function getRoster(){return roster.map(p=>({andiany:groupCode(p.andiany_id),anarana:p.anarana,sokajy:p.sokajy||"Mpitory",id:p.id,andiany_id:p.andiany_id}));}
-function peopleForGroup(group){return getRoster().filter(p=>p.andiany===group).sort((a,b)=>roleRank(a.sokajy)-roleRank(b.sokajy)||a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}))}
+function peopleForGroup(group){const selected=groups.find(g=>String(g.kaody)===String(group));if(!selected)return [];return getRoster().filter(p=>String(p.andiany_id)===String(selected.id)).sort((a,b)=>roleRank(a.sokajy)-roleRank(b.sokajy)||a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}))}
 function getReports(){return reports}
 function setOptions(id,items,allLabel){const el=$(id);el.innerHTML=(allLabel?'<option value="all">'+allLabel+'</option>':'<option value="">-- Safidio ny andiany --</option>')+items.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join('')}
 function configureGroups(){
