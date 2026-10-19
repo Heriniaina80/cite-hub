@@ -56,7 +56,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <body>
 <header><button id="menuToggle" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Sokafy ny menu">☰ Menu</button><div><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></div></header>
 <nav id="mainMenu" aria-label="Menu lehibe">
-<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
+<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#firaketana">Firaketana isan-taona</a><a href="#firaketana">Firaketana isan-taona</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
 </nav>
 <main>
 <section class="card" id="fidirana-kaonty">
@@ -115,6 +115,15 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 </div></div>
 <h3>Tantaran’ny fanovana sokajy</h3><div id="roleHistory"><p class="hint">Mbola tsy misy fanovana voatahiry.</p></div>
 </section>
+<section class="card" id="firaketana">
+<h2>Firaketana isan-taona — olona iray</h2>
+<p class="hint">Safidio ny andiany sy ny olona iray, dia fenoy isam-bolana ny firaketana manomboka Septambra ka hatramin’ny Aogositra. Tehirizina ao amin’ny tahiry iombonana ny volana tsirairay.</p>
+<div class="grid"><div><label for="annualGroup">Andiany</label><select id="annualGroup"></select></div><div><label for="annualPerson">Anarana</label><select id="annualPerson"></select></div><div><label for="annualYear">Taom-panompoana</label><select id="annualYear"></select></div></div>
+<div class="toolbar"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" id="downloadAnnualPdf" class="secondary">Misintona PDF</button></div>
+<div id="annualRecordStatus" class="notice" role="status" aria-live="polite" style="display:none"></div>
+<div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona, dia tsindrio “Asehoy ny firaketana”.</p></div>
+</section>
+<section class="card" id="firaketana"><h2>Firaketana isan-taona — olona iray</h2><p class="hint">Fenoy isam-bolana ny firaketana Septambra ka hatramin’ny Aogositra ho an’ny olona iray. Tehirizina ao amin’ny tahiry iombonana izany.</p><div class="grid"><div><label for="annualGroup">Andiany</label><select id="annualGroup"></select></div><div><label for="annualPerson">Anarana</label><select id="annualPerson"></select></div><div><label for="annualYear">Taom-panompoana</label><select id="annualYear"></select></div></div><div class="toolbar"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" class="secondary" id="downloadAnnualPdf">Misintona PDF</button></div><div id="annualRecordStatus" class="notice" style="display:none" role="status" aria-live="polite"></div><div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona.</p></div></section>
 <section class="card" id="tatitra">
 <h2>Tatitra isam-bolana</h2>
 <div class="grid">
@@ -470,10 +479,36 @@ menuToggle.addEventListener("click",()=>{const open=document.body.classList.togg
 mainMenu.querySelectorAll("a").forEach(link=>link.addEventListener("click",closeMainMenu));
 document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMainMenu()});
 document.addEventListener("click",event=>{if(document.body.classList.contains("menu-open")&&!mainMenu.contains(event.target)&&!menuToggle.contains(event.target))closeMainMenu()});
+function annualMonths(year){return [9,10,11,12,1,2,3,4,5,6,7,8].map(m=>({month:`${m>=9?year:year+1}-${String(m).padStart(2,"0")}`,label:new Date(m>=9?year:year+1,m-1,1).toLocaleString("fr-FR",{month:"long"})}))}
+function configureAnnualRecord(){
+ const groupEl=$("annualGroup"),personEl=$("annualPerson"),yearEl=$("annualYear");if(!groupEl||!personEl||!yearEl)return;
+ const allowed=visibleGroups();groupEl.innerHTML=allowed.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join("");
+ const currentYear=new Date().getMonth()+1>=9?new Date().getFullYear():new Date().getFullYear()-1;
+ const years=new Set([currentYear,...reports.map(r=>reportingYear(r.volana))]);yearEl.innerHTML=[...years].sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
+ const fillPeople=()=>{const ps=peopleForGroup(groupEl.value);personEl.innerHTML=ps.map(p=>'<option value="'+p.id+'">'+esc(p.anarana)+' — '+esc(p.sokajy)+'</option>').join("")||'<option value="">Tsy misy olona</option>'};
+ groupEl.addEventListener("change",fillPeople);fillPeople();
+}
+function renderAnnualRecord(){
+ const group=$("annualGroup").value,personId=$("annualPerson").value,year=Number($("annualYear").value),person=roster.find(p=>String(p.id)===String(personId));
+ if(!person){$("annualRecordTable").innerHTML='<p class="hint">Tsy misy olona voafidy.</p>';return}
+ const months=annualMonths(year),existing=reports.filter(r=>String(r.mpikambana_id)===String(person.id));
+ $("annualRecordTable").innerHTML='<table><thead><tr><th>Volana</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th><th>Fanamarihana</th></tr></thead><tbody>'+months.map(m=>{const r=existing.find(x=>x.volana===m.month),role=person.sokajy;return '<tr data-month="'+m.month+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td>'+(role==="Mpitory"?'<select data-field="participation"><option value="">—</option><option '+(r?.fandraisana_anjara==="Eny"?'selected':'')+'>Eny</option><option '+(r?.fandraisana_anjara==="Tsia"?'selected':'')+'>Tsia</option></select>':'—')+'</td><td>'+(role!=="Mpitory"?'<input data-field="hours" type="number" min="0" max="70" step="0.5" value="'+(r?.ora??'')+'" placeholder="Ora">':'—')+'</td><td><input data-field="studies" type="number" min="0" step="1" value="'+(r?.fampianarana_baiboly??0)+'"></td><td><input data-field="note" value="'+esc(r?.fanamarihana||'')+'" placeholder="Fanamarihana"></td></tr>'}).join("")+'</tbody></table>';
+}
+async function saveAnnualRecord(){
+ if(currentProfile?.role!=="admin"&&currentProfile?.role!=="responsable"){setStatus("Tsy mahazo alalana hitahiry firaketana ianao.",true);return}
+ const person=roster.find(p=>String(p.id)===String($("annualPerson").value)),group=$("annualGroup").value,year=Number($("annualYear").value);if(!person||!group){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Safidio ny andiany sy ny olona.";return}
+ const entries=[];for(const tr of document.querySelectorAll("#annualRecordTable tbody tr")){const month=tr.dataset.month,part=tr.querySelector('[data-field="participation"]')?.value||"",hoursRaw=tr.querySelector('[data-field="hours"]')?.value??"",studiesRaw=tr.querySelector('[data-field="studies"]').value,note=tr.querySelector('[data-field="note"]').value.trim();if(person.sokajy==="Mpitory"&&!part){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Fenoy Eny/Tsia ny fandraisana anjara isaky ny volana ho an’ny Mpitory.";return}if(person.sokajy!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Fenoy ny ora (0–70) isaky ny volana ho an’ny Mpisavalalana.";return}if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Ampidiro isa 0 na mihoatra ny fampianarana Baiboly isaky ny volana.";return}entries.push({mpikambana_id:person.id,andiany_id:groupId(group),volana:month+"-01",fandraisana_anjara:person.sokajy==="Mpitory"?(part==="Eny"):null,ora:person.sokajy==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note})}
+ const {error}=await sbClient.from("tatitra").upsert(entries,{onConflict:"mpikambana_id,volana"});if(error){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy voatahiry: "+error.message;return}await loadAllData();configureAnnualRecord();renderAnnualRecord();$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Voatahiry ny firaketana isan-taona ho an’i "+person.anarana+".";
+}
+function downloadAnnualRecordPdf(){
+ const person=roster.find(p=>String(p.id)===String($("annualPerson").value)),year=Number($("annualYear").value);if(!person){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Safidio aloha ny olona.";return}if(!window.jspdf?.jsPDF){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy afaka mamorona PDF. Jereo ny fifandraisana Internet.";return}
+ const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});doc.setFont("helvetica","bold");doc.setFontSize(15);doc.text("CITE HUB — FIRAKETANA ISAN-TAONA",12,14);doc.setFont("helvetica","normal");doc.setFontSize(10);doc.text("Anarana: "+person.anarana+" | Sokajy: "+person.sokajy+" | Taom-panompoana: "+year+"-"+(year+1),12,21);let y=30;const months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id));const widths=[38,34,28,40,130],heads=["Volana","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"];const draw=(vals,header=false)=>{const wraps=vals.map((v,i)=>doc.splitTextToSize(String(v??"—"),widths[i]-3)),h=Math.max(7,...wraps.map(w=>w.length*4+2));if(y+h>195){doc.addPage();y=15}let x=12;wraps.forEach((w,i)=>{if(header){doc.setFillColor(232,241,251);doc.rect(x,y,widths[i],h,"F")}doc.setDrawColor(180,195,210);doc.rect(x,y,widths[i],h);doc.setFont("helvetica",header?"bold":"normal");doc.setFontSize(8);doc.text(w,x+1.5,y+4.5);x+=widths[i]});y+=h};draw(heads,true);for(const m of months){const r=rows.find(x=>x.volana===m.month),part=r?.fandraisana_anjara==="Eny"?"Eny":r?.fandraisana_anjara===false?"Tsia":"—";draw([m.label+" "+m.month.slice(0,4),part,r?.ora??"—",r?.fampianarana_baiboly??0,r?.fanamarihana||""])}doc.save("CITE-HUB-"+person.anarana.replace(/[^a-z0-9]+/gi,"-")+"-"+year+"-"+(year+1)+".pdf")
+}
+$("loadAnnualRecord").addEventListener("click",renderAnnualRecord);$("saveAnnualRecord").addEventListener("click",saveAnnualRecord);$("downloadAnnualPdf").addEventListener("click",downloadAnnualRecordPdf);
 async function boot(){
  $("filterMonth").value=new Date().toISOString().slice(0,7);
  const {data:{session}}=await sbClient.auth.getSession();currentUser=session?.user||null;
- try{await loadProfile()}catch(e){setStatus("Hadisoana: "+e.message,true)}
+ try{await loadProfile();configureAnnualRecord()}catch(e){setStatus("Hadisoana: "+e.message,true)}
 }
 boot();
 
