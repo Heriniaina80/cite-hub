@@ -81,8 +81,11 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 </section>
 <section class="card" id="fangatahana" style="display:none"><h2>Fangatahana fidirana</h2><p class="hint">Ireo kaonty vao nisoratra anarana nefa mbola miandry fankatoavana. Omeo andraikitra sy andiany vao afaka mampiditra tatitra izy ireo.</p><div id="accessRequests" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="accessRequestStatus" role="status" aria-live="polite"></div></section>
 <section class="card" id="fitantanana">
-<h2>Fitantanana ny lisitry ny olona</h2>
-<p>Ovay eto ny sokajin’ny olona rehefa misy fiovana. Voatahiry ny sokajy taloha, ny sokajy vaovao ary ny daty nanovana azy. Tsy ovaina ny tatitra efa voatahiry.</p>
+<h2>Fitantanana ny lisitry ny olona sy ny andiany</h2>
+<p>Ampio andiany vaovao rehefa mitombo ny isan’ny andiany, ampio olona vaovao, ary ovay ny sokajy na ny andiany misy azy. Mariho fa mety hiova ny andiany aseho amin’ny tatitra taloha rehefa afindra ny mpikambana, satria mifandray amin’ny mombamomba azy ireo tatitra.</p>
+<div class="card" style="background:#f8fbff;border-color:#bfdbfe;margin:14px 0">
+<h3>Manampy andiany vaovao</h3><div class="grid"><div><label for="newGroupCode">Kaody andiany</label><input id="newGroupCode" placeholder="N°08"></div><div><label for="newGroupName">Anaran’ny andiany</label><input id="newGroupName" placeholder="Andiany vaovao"></div></div><div class="toolbar"><button type="button" id="addGroupBtn">＋ Ampio andiany</button></div><div id="groupManageStatus" class="hint" role="status" aria-live="polite"></div>
+</div>
 <div class="grid"><div><label for="manageGroup">Andiany hotantanana</label><select id="manageGroup"><option value="">-- Safidio ny andiany --</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div></div>
 <div id="managePeople" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 <div class="profile-box" id="personProfile" style="margin:16px 0;padding:18px;border:1px solid #bfdbfe;border-radius:12px;background:#f8fbff">
@@ -144,7 +147,7 @@ function configureGroups(){
 }
 async function loadAllData(){
  const g=await sbClient.from("andiany").select("id,kaody,anarana").order("id");
- if(g.error)throw g.error;groups=(g.data||[]).filter(x=>["N°01","N°02","N°03","N°04","N°05","N°06","N°07"].includes(x.kaody));
+ if(g.error)throw g.error;groups=(g.data||[]).sort((a,b)=>String(a.kaody).localeCompare(String(b.kaody),"fr",{numeric:true}));
  const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika").eq("mavitrika",true).order("anarana");
  if(m.error)throw m.error;roster=m.data||[];
  const r=await sbClient.from("tatitra").select("id,mpikambana_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
@@ -311,13 +314,14 @@ function renderPersonProfile(){
  const p=peopleForGroup(group).find(x=>x.anarana===name);
  if(!p){$("profileDetails").style.display="none";return}
  $("profileDetails").style.display="block";$("profileName").textContent="Anarana: "+p.anarana+" — "+p.andiany;$("profileCurrent").textContent=p.sokajy;$("profileNewRole").value=p.sokajy;
+ const target=$("profileNewGroup");if(target)target.value=String(p.andiany_id);
 }
 function renderRoleHistory(){$("roleHistory").innerHTML='<p class="hint">Ny tantaran’ny fanovana sokajy dia tantanana ao amin’ny tahiry iombonana amin’ny kinova manaraka.</p>'}
 async function saveProfileRole(){
  if(currentProfile?.role!=="admin"){alert("Administration ihany no afaka manova sokajy.");return}
- const group=$("manageGroup").value,name=$("profilePerson").value,newRole=$("profileNewRole").value;
+ const group=$("manageGroup").value,name=$("profilePerson").value,newRole=normalizeImportCategory($("profileNewRole").value);
  const p=peopleForGroup(group).find(x=>x.anarana===name);if(!p)return;
- const {error}=await sbClient.from("mpikambana").update({sokajy:newRole}).eq("id",p.id);
+ const patch={sokajy:newRole};const newGroupId=$("profileNewGroup")?.value;if(newGroupId&&String(newGroupId)!==String(p.andiany_id))patch.andiany_id=Number(newGroupId);const {error}=await sbClient.from("mpikambana").update(patch).eq("id",p.id);
  if(error){setStatus("Tsy voatahiry ny sokajy: "+error.message,true);return}
  await loadAllData();$("profilePerson").value=name;renderPersonProfile();setStatus("Voatahiry ny sokajin’i "+name+".");
 }
@@ -370,13 +374,22 @@ $("exportBtn").addEventListener("click",()=>{
  const a=document.createElement("a");a.href=url;a.download="cite-hub-tatitra.csv";a.click();URL.revokeObjectURL(url);
 });
 $("clearBtn").addEventListener("click",()=>{if(currentProfile?.role!=="admin"){alert("Administration ihany.");return}alert("Tsy misy famafana betsaka amin'ity kinova ity.")});
+$("addGroupBtn").addEventListener("click",async()=>{
+ if(currentProfile?.role!=="admin"){setStatus("Administration ihany no afaka manampy andiany.",true);return}
+ const kaody=normalizeGroupCode($("newGroupCode").value),anarana=$("newGroupName").value.trim();
+ if(!kaody||!anarana){$("groupManageStatus").textContent="Fenoy ny kaody sy ny anaran’ny andiany.";return}
+ if(groups.some(g=>normalizeGroupCode(g.kaody)===kaody)){$("groupManageStatus").textContent="Efa misy io kaody andiany io.";return}
+ const {error}=await sbClient.from("andiany").insert({kaody,anarana}).select("id").single();
+ if(error){$("groupManageStatus").textContent="Tsy tafiditra ny andiany: "+error.message;return}
+ $("newGroupCode").value="";$("newGroupName").value="";await loadAllData();$("groupManageStatus").textContent="Voatahiry ny andiany "+kaody+".";
+});
 $("syncRosterBtn").addEventListener("click",async()=>{
  if(currentProfile?.role!=="admin")return;
  setStatus("Ampidirina ao amin’ny Supabase ny lisitra...");
  try{
   let added=0,updated=0;
   for(const p of baseRoster){
-   const andiany_id=groupId(p.andiany);
+   const andiany_id=groupId(normalizeGroupCode(p.andiany));
    if(!andiany_id)throw new Error("Tsy hita ny andiany "+p.andiany);
    const existing=roster.find(m=>m.andiany_id===andiany_id&&m.anarana.toLocaleLowerCase()===p.anarana.toLocaleLowerCase());
    const sokajy=normalizeImportCategory(p.sokajy);
