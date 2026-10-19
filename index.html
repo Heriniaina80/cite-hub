@@ -170,7 +170,7 @@ function configureGroups(){
  const allowed=visibleGroups();setOptions("group",allowed);setOptions("manageGroup",allowed);setOptions("filterGroup",allowed,"Andiany rehetra");
  const profileGroup=$("profileNewGroup");if(profileGroup)profileGroup.innerHTML=allowed.map(g=>`<option value="${g.id}">${esc(g.kaody)} — ${esc(g.anarana)}</option>`).join("");
 }
-async function loadAllData(){
+async async function loadAllData(){
  const g=await sbClient.from("andiany").select("id,kaody,anarana").order("id");
  if(g.error)throw g.error;groups=(g.data||[]).sort((a,b)=>String(a.kaody).localeCompare(String(b.kaody),"fr",{numeric:true}));
  const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika").eq("mavitrika",true).order("anarana");
@@ -485,7 +485,7 @@ function configureAnnualRecord(){
  const allowed=visibleGroups();
  const previousGroup=groupEl.value;
  groupEl.innerHTML=allowed.map(g=>'<option value="'+esc(g.id)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join("");
- if(previousGroup&&allowed.some(g=>g.kaody===previousGroup))groupEl.value=previousGroup;
+ if(previousGroup&&allowed.some(g=>String(g.id)===String(previousGroup)))groupEl.value=previousGroup;
  const currentYear=new Date().getMonth()+1>=9?new Date().getFullYear():new Date().getFullYear()-1;
  const years=new Set([currentYear,...reports.map(r=>r.volana).filter(m=>typeof m==="string"&&/^\d{4}-\d{2}$/.test(m)).map(reportingYear)]);
  yearEl.innerHTML=[...years].sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
