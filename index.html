@@ -178,7 +178,7 @@ async function loadAllData(){
  const r=await sbClient.from("tatitra").select("id,mpikambana_id,andiany_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
  if(r.error)throw r.error;
  reports=(r.data||[]).map(x=>({id:x.id,mpikambana_id:x.mpikambana_id,andiany:groupCode(x.andiany_id??x.mpikambana?.andiany_id),andiany_id:x.andiany_id??x.mpikambana?.andiany_id,volana:x.volana?.slice(0,7),anarana:x.mpikambana?.anarana||"",sokajy:x.mpikambana?.sokajy||"",fandraisana_anjara:x.fandraisana_anjara===true?"Eny":x.fandraisana_anjara===false?"Tsia":"",ora:x.ora,fampianarana_baiboly:x.fampianarana_baiboly??0,fanamarihana:x.fanamarihana||"",created_at:x.created_at}));
- configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();
+ configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();if(typeof configureAnnualRecord==="function")configureAnnualRecord();
 }
 function showRoleUI(){
  $("emailLogin").style.display=currentUser?"none":"inline-block";
@@ -491,7 +491,7 @@ function configureAnnualRecord(){
  const years=new Set([currentYear,...reports.map(r=>r.volana).filter(m=>typeof m==="string"&&/^\d{4}-\d{2}$/.test(m)).map(reportingYear)]);
  yearEl.innerHTML=[...years].sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
  if(!yearEl.value)yearEl.value=String(currentYear);
- const fillPeople=()=>{const ps=peopleForGroup(groupEl.value);const oldPerson=personEl.value;personEl.innerHTML=ps.map(p=>'<option value="'+p.id+'">'+esc(p.anarana)+' — '+esc(p.sokajy)+'</option>').join("")||'<option value="">Tsy misy olona</option>';if(ps.some(p=>String(p.id)===oldPerson))personEl.value=oldPerson;};
+ const fillPeople=()=>{const ps=peopleForGroup(groupEl.value);const oldPerson=personEl.value;personEl.innerHTML=ps.map(p=>'<option value="'+p.id+'">'+esc(p.anarana)+' — '+esc(p.sokajy)+'</option>').join("")||'<option value="">Tsy misy olona</option>';if(ps.some(p=>String(p.id)===oldPerson))personEl.value=oldPerson;const status=$("annualRecordStatus");if(status&&!ps.length){status.style.display="block";status.textContent="Tsy nahita olona mavitrika ho an’ity andiany ity. Hamarino ao amin’ny Supabase ny mpikambana.mavitrika=true sy ny andiany_id. (Andiany hita: "+groups.length+"; olona mavitrika voaray: "+roster.length+")";}else if(status){status.style.display="none";status.textContent="";}};
  groupEl.onchange=fillPeople;fillPeople();
 }
 function renderAnnualRecord(){
