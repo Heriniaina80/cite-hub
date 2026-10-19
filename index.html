@@ -170,7 +170,7 @@ function configureGroups(){
  const allowed=visibleGroups();setOptions("group",allowed);setOptions("manageGroup",allowed);setOptions("filterGroup",allowed,"Andiany rehetra");
  const profileGroup=$("profileNewGroup");if(profileGroup)profileGroup.innerHTML=allowed.map(g=>`<option value="${g.id}">${esc(g.kaody)} — ${esc(g.anarana)}</option>`).join("");
 }
-async async function loadAllData(){
+async function loadAllData(){
  const g=await sbClient.from("andiany").select("id,kaody,anarana").order("id");
  if(g.error)throw g.error;groups=(g.data||[]).sort((a,b)=>String(a.kaody).localeCompare(String(b.kaody),"fr",{numeric:true}));
  const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika").eq("mavitrika",true).order("anarana");
