@@ -116,7 +116,7 @@ body>main{grid-column:2;grid-row:2;min-width:0;width:100%;max-width:none;margin:
 <div><label for="filterMonth">Volana</label><input id="filterMonth" type="month"></div>
 <div><label for="filterGroup">Andiany</label><select id="filterGroup"><option value="all">Andiany rehetra</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div>
 </div>
-<div class="statgrid" id="monthlyCards" style="margin-top:14px"></div><h3>Antsipirihan'ny tatitra</h3><div class="table-wrap" id="monthlyTable"></div>
+<div class="toolbar" style="margin-top:14px"><button type="button" id="printMonthlyReport">Manonta / Misintona PDF</button><button type="button" class="secondary" id="downloadMonthlyCsv">Misintona CSV</button><span class="hint" id="monthlyExportStatus" role="status" aria-live="polite"></span></div><div class="statgrid" id="monthlyCards" style="margin-top:14px"></div><h3>Antsipirihan'ny tatitra</h3><div class="table-wrap" id="monthlyTable"></div>
 <div class="card" id="reportCsvImport" style="display:none;margin-top:18px;background:#f8fbff;border-color:#bfdbfe">
 <h3>Fampidirana tatitra avy amin'ny Excel/CSV</h3>
 <p class="hint">Ho an'ny Administration ihany. Raisina ny tsanganana Month, Team, Name, Category, Presence, Hours, Bible, Note. Hotehirizina ao amin'ny Supabase ny tatitra sy ny olona tsy mbola ao anaty lisitra.</p>
@@ -300,6 +300,20 @@ function renderPeople(){
    return '<div class="person" data-member-id="'+p.id+'" data-name="'+esc(p.anarana)+'" data-role="'+esc(p.sokajy)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><span class="role">'+esc(p.sokajy)+'</span></div>'+fields+'</div>';
  }).join("");
 }
+function monthlyReportRows(){const month=$("filterMonth").value,group=$("filterGroup").value;return reports.filter(r=>(!month||r.volana===month)&&(group==="all"||r.andiany===group)&&canSeeGroup(r.andiany))}
+function exportMonthlyReport(printMode){
+ const month=$("filterMonth").value,group=$("filterGroup").value,rows=monthlyReportRows();
+ if(!month){$("monthlyExportStatus").textContent="Safidio aloha ny volana.";return}
+ if(group==="all"){$("monthlyExportStatus").textContent="Safidio ny andiany iray mba hamoronana tatitra misaraka.";return}
+ if(!rows.length){$("monthlyExportStatus").textContent="Tsy mbola misy tatitra amin'ity volana sy andiany ity.";return}
+ const safe=s=>String(s??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+ const categories=[["Mpitory",rows.filter(r=>r.sokajy==="Mpitory")],["Mpisavalalana mpanampy",rows.filter(r=>r.sokajy==="Mpanampy"||r.sokajy==="Mpisava lalana mpanampy")],["Mpisavalalana maharitra",rows.filter(r=>r.sokajy==="Mpisava lalana maharitra")]];
+ const tableRows=categories.map(([label,list])=>'<tr class="category"><th colspan="6">'+label+'</th></tr>'+list.map(r=>'<tr><td>'+safe(r.anarana)+'</td><td>'+safe(r.sokajy)+'</td><td>'+safe(r.fandraisana_anjara||"—")+'</td><td>'+safe(r.ora??"—")+'</td><td>'+safe(r.fampianarana_baiboly??0)+'</td><td>'+safe(r.fanamarihana||"")+'</td></tr>').join("")).join("");
+ const html='<!doctype html><html lang="mg"><head><meta charset="utf-8"><title>CITE HUB - '+safe(group)+' - '+safe(month)+'</title><style>body{font:12px Arial,sans-serif;color:#17233b;margin:24px}h1{font-size:20px;margin:0 0 6px;color:#17375e}p{margin:4px 0 18px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #b8c5d6;padding:7px;text-align:left}thead th,.category th{background:#eaf1fb}.category th{color:#17375e;padding:8px}footer{margin-top:24px;font-size:10px;color:#64748b}@media print{body{margin:10mm}}</style></head><body><h1>CITE HUB — Tatitra isam-bolana</h1><p><b>Andiany:</b> '+safe(group)+' &nbsp; <b>Volana:</b> '+safe(month)+'<br><b>Isan’ny olona:</b> '+rows.length+'</p><table><thead><tr><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th><th>Fanamarihana</th></tr></thead><tbody>'+tableRows+'</tbody></table><footer>CITE HUB · Tatitra novokarina avy amin’ny angona voatahiry</footer></body></html>';
+ if(printMode){const w=window.open("","_blank");if(!w){$("monthlyExportStatus").textContent="Voasakana ny varavarankely vaovao. Avelao ny pop-up ho an’ny CITE HUB.";return}w.document.open();w.document.write(html);w.document.close();w.onload=()=>w.print();$("monthlyExportStatus").textContent="Misokatra ny tatitra; fidio Save as PDF na Print."}
+ else {const data=[["Volana","Andiany","Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"],...rows.map(r=>[month,group,r.anarana,r.sokajy,r.fandraisana_anjara,r.ora,r.fampianarana_baiboly,r.fanamarihana])];const csv=data.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".csv";a.click();URL.revokeObjectURL(url);$("monthlyExportStatus").textContent="Voasintona ny CSV."}
+}
+$("printMonthlyReport").addEventListener("click",()=>exportMonthlyReport(true));$("downloadMonthlyCsv").addEventListener("click",()=>exportMonthlyReport(false));
 function refreshDashboard(){
  const month=$("filterMonth").value,group=$("filterGroup").value;
  const rows=reports.filter(r=>(!month||r.volana===month)&&(group==="all"||r.andiany===group)&&canSeeGroup(r.andiany));
