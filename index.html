@@ -91,7 +91,7 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 <div id="profileDetails" style="display:none;margin-top:16px">
 <h3 id="profileName">—</h3>
 <div style="padding:12px;border-radius:9px;background:#e8f1fc;margin:8px 0 14px"><span class="hint">Sokajy ankehitriny</span><strong id="profileCurrent" style="display:block;color:#173b68;font-size:17px">—</strong></div>
-<div><label for="profileNewRole">Sokajy vaovao voafidy</label><select id="profileNewRole"><option value="Mpitory">Mpitory</option><option value="Mpisava lalana maharitra">Mpisava lalana maharitra</option><option value="Mpanampy">Mpanampy</option></select></div>
+<div><label for="profileNewRole">Sokajy vaovao voafidy</label><select id="profileNewRole"><option value="Mpitory">Mpitory</option><option value="Mpisavalalana maharitra">Mpisavalalana maharitra</option><option value="Mpisavalalana mpanampy">Mpisavalalana mpanampy</option></select></div>
 <div class="toolbar"><button type="button" id="saveProfileRole">Tehirizo ny fanovana</button><button type="button" class="secondary" id="cancelProfileRole">Aoka ihany</button></div>
 <p class="hint">Ohatra: RAKOTO — N°01 · Sokajy ankehitriny: Mpitory · Sokajy vaovao voafidy: Mpisava lalana maharitra.</p>
 </div></div>
@@ -379,8 +379,9 @@ $("syncRosterBtn").addEventListener("click",async()=>{
    const andiany_id=groupId(p.andiany);
    if(!andiany_id)throw new Error("Tsy hita ny andiany "+p.andiany);
    const existing=roster.find(m=>m.andiany_id===andiany_id&&m.anarana.toLocaleLowerCase()===p.anarana.toLocaleLowerCase());
-   if(existing){const q=await sbClient.from("mpikambana").update({sokajy:p.sokajy,mavitrika:true}).eq("id",existing.id);if(q.error)throw q.error;updated++}
-   else{const q=await sbClient.from("mpikambana").insert({anarana:p.anarana,andiany_id,sokajy:p.sokajy,mavitrika:true});if(q.error)throw q.error;added++}
+   const sokajy=normalizeImportCategory(p.sokajy);
+   if(existing){const q=await sbClient.from("mpikambana").update({sokajy,mavitrika:true}).eq("id",existing.id);if(q.error)throw q.error;updated++}
+   else{const q=await sbClient.from("mpikambana").insert({anarana:p.anarana,andiany_id,sokajy,mavitrika:true});if(q.error)throw q.error;added++}
   }
   await loadAllData();setStatus("Vita ny fampidirana lisitra. Vaovao: "+added+" · Nohavaozina: "+updated+".");
  }catch(e){setStatus("Nisy olana tamin’ny fampidirana lisitra: "+e.message,true)}
