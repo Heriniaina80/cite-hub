@@ -425,19 +425,30 @@ $("addGroupBtn").addEventListener("click",async()=>{
 });
 $("syncRosterBtn").addEventListener("click",async()=>{
  if(currentProfile?.role!=="admin")return;
- setStatus("Ampidirina ao amin’ny Supabase ny lisitra...");
+ const button=$("syncRosterBtn");button.disabled=true;setStatus("Manomana ny lisitra...");
  try{
-  let added=0,updated=0;
+  const inserts=[],updates=[];let added=0,updated=0;
   for(const p of baseRoster){
    const andiany_id=groupId(normalizeGroupCode(p.andiany));
    if(!andiany_id)throw new Error("Tsy hita ny andiany "+p.andiany);
-   const existing=roster.find(m=>m.andiany_id===andiany_id&&m.anarana.toLocaleLowerCase()===p.anarana.toLocaleLowerCase());
    const sokajy=normalizeImportCategory(p.sokajy);
-   if(existing){const q=await sbClient.from("mpikambana").update({sokajy,mavitrika:true}).eq("id",existing.id);if(q.error)throw q.error;updated++}
-   else{const q=await sbClient.from("mpikambana").insert({anarana:p.anarana,andiany_id,sokajy,mavitrika:true});if(q.error)throw q.error;added++}
+   const existing=roster.find(m=>String(m.andiany_id)===String(andiany_id)&&m.anarana.toLocaleLowerCase()===p.anarana.toLocaleLowerCase());
+   if(existing)updates.push({id:existing.id,sokajy});
+   else inserts.push({anarana:p.anarana,andiany_id,sokajy,mavitrika:true});
+  }
+  for(let i=0;i<updates.length;i+=10){
+   const batch=updates.slice(i,i+10);
+   const results=await Promise.all(batch.map(x=>sbClient.from("mpikambana").update({sokajy:x.sokajy,mavitrika:true}).eq("id",x.id)));
+   const failed=results.find(x=>x.error);if(failed)throw failed.error;updated+=batch.length;
+   setStatus("Manavao ny lisitra... "+(i+batch.length)+"/"+updates.length);
+  }
+  for(let i=0;i<inserts.length;i+=50){
+   const batch=inserts.slice(i,i+50);const q=await sbClient.from("mpikambana").insert(batch);if(q.error)throw q.error;added+=batch.length;
+   setStatus("Mampiditra olona vaovao... "+added+"/"+inserts.length);
   }
   await loadAllData();setStatus("Vita ny fampidirana lisitra. Vaovao: "+added+" · Nohavaozina: "+updated+".");
- }catch(e){setStatus("Nisy olana tamin’ny fampidirana lisitra: "+e.message,true)}
+ }catch(e){setStatus("Nisy olana tamin’ny fampidirana lisitra: "+(e?.message||String(e)),true)}
+ finally{button.disabled=false}
 });
 
 function csvImportCells(line,delimiter){const out=[];let cell="",quoted=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'&&quoted&&line[i+1]==='"'){cell+='"';i++}else if(ch==='"'){quoted=!quoted}else if(ch===delimiter&&!quoted){out.push(cell.trim());cell=""}else cell+=ch}out.push(cell.trim());return out}
