@@ -158,6 +158,7 @@ let currentUser = null, currentProfile = null, groups = [], roster = [], reports
 function roleRank(role){return roleOrder[role]??99}
 function esc(v){return String(v??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))}
 function setStatus(text,error=false){$("authStatus").textContent=text;$("authStatus").style.background=error?"#fef2f2":"#fff7ed";$("authStatus").style.color=error?"#991b1b":"#9a3412"}
+function normalizeGroupCode(value){return String(value||"").toUpperCase().replace(/N\s*[°º]?\s*/g,"N°").replace(/\s+/g,"").trim()}
 function groupCode(id){return groups.find(g=>String(g.id)===String(id))?.kaody||""}
 function groupId(code){return groups.find(g=>g.kaody===code)?.id}
 function canSeeGroup(code){return currentProfile?.role==="admin" || (currentProfile?.role==="responsable" && String(currentProfile.andiany_id)===String(groupId(code)))}
