@@ -110,6 +110,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div style="padding:12px;border-radius:9px;background:#e8f1fc;margin:8px 0 14px"><span class="hint">Sokajy ankehitriny</span><strong id="profileCurrent" style="display:block;color:#173b68;font-size:17px">—</strong></div>
 <div><label for="profileNewRole">Sokajy vaovao voafidy</label><select id="profileNewRole"><option value="Mpitory">Mpitory</option><option value="Mpisavalalana mpanampy">Mpisavalalana mpanampy</option><option value="Mpisavalalana maharitra">Mpisavalalana maharitra</option></select></div>
 <div style="margin-top:12px"><label for="profileNewGroup">Andiany vaovao</label><select id="profileNewGroup"></select></div>
+<div class="grid" style="margin-top:12px"><div><label for="profileBirthDate">Daty nahaterahana</label><input id="profileBirthDate" type="date"></div><div><label for="profileBaptismDate">Datin’ny batisa</label><input id="profileBaptismDate" type="date"></div><div><label for="profileGender">Lahy / Vavy</label><select id="profileGender"><option value="">— Safidio —</option><option value="Lahy">Lahy</option><option value="Vavy">Vavy</option></select></div><div><label for="profileServiceStatus">Sata ara-panompoana</label><select id="profileServiceStatus"><option value="">— Safidio —</option><option>Mpitory vita batisa</option><option>Mpitory tsy vita batisa</option><option>Mpisava lalana maharitra</option><option>Mpisava lalana mpanampy</option><option>Misionera</option><option>Hafa</option></select></div></div><div style="margin-top:12px"><label for="profileNotes">Fanazavana hafa ho an’ny S-21</label><textarea id="profileNotes" rows="3" placeholder="Fanazavana fanampiny (tsy voatery)"></textarea></div>
 <div class="toolbar"><button type="button" id="saveProfileRole">Tehirizo ny fanovana</button><button type="button" class="secondary" id="cancelProfileRole">Aoka ihany</button></div>
 <p class="hint">Ohatra: RAKOTO — N°01 · Sokajy ankehitriny: Mpitory · Sokajy vaovao voafidy: Mpisava lalana maharitra.</p>
 </div></div>
@@ -163,7 +164,7 @@ function groupCode(id){return groups.find(g=>String(g.id)===String(id))?.kaody||
 function groupId(code){return groups.find(g=>g.kaody===code)?.id}
 function canSeeGroup(code){return currentProfile?.role==="admin" || (currentProfile?.role==="responsable" && String(currentProfile.andiany_id)===String(groupId(code)))}
 function visibleGroups(){return currentProfile?.role==="admin"?groups:groups.filter(g=>String(g.id)===String(currentProfile?.andiany_id))}
-function getRoster(){return roster.map(p=>({andiany:groupCode(p.andiany_id),anarana:p.anarana,sokajy:p.sokajy||"Mpitory",id:p.id,andiany_id:p.andiany_id}));}
+function getRoster(){return roster.map(p=>({andiany:groupCode(p.andiany_id),anarana:p.anarana,sokajy:p.sokajy||"Mpitory",id:p.id,andiany_id:p.andiany_id,daty_nahaterahana:p.daty_nahaterahana||"",daty_batisa:p.daty_batisa||"",lahy_vavy:p.lahy_vavy||"",sata_fanompoana:p.sata_fanompoana||"",fanazavana_s21:p.fanazavana_s21||""}));}
 function peopleForGroup(group){return getRoster().filter(p=>group==="all"||String(p.andiany_id)===String(group)||normalizeGroupCode(p.andiany)===normalizeGroupCode(group)).sort((a,b)=>roleRank(a.sokajy)-roleRank(b.sokajy)||a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}))}
 function getReports(){return reports}
 function setOptions(id,items,allLabel){const el=$(id);el.innerHTML=(allLabel?'<option value="all">'+allLabel+'</option>':'<option value="">-- Safidio ny andiany --</option>')+items.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join('')}
@@ -174,7 +175,7 @@ function configureGroups(){
 async function loadAllData(){
  const g=await sbClient.from("andiany").select("id,kaody,anarana").order("id");
  if(g.error)throw g.error;groups=(g.data||[]).sort((a,b)=>String(a.kaody).localeCompare(String(b.kaody),"fr",{numeric:true}));
- const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika").eq("mavitrika",true).order("anarana");
+ const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika,daty_nahaterahana,daty_batisa,lahy_vavy,sata_fanompoana,fanazavana_s21").eq("mavitrika",true).order("anarana");
  if(m.error)throw m.error;roster=m.data||[];
  const r=await sbClient.from("tatitra").select("id,mpikambana_id,andiany_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
  if(r.error)throw r.error;
@@ -353,7 +354,7 @@ function renderPersonProfile(){
  const group=$("manageGroup").value,name=$("profilePerson").value;
  const p=peopleForGroup(group).find(x=>x.anarana===name);
  if(!p){$("profileDetails").style.display="none";return}
- $("profileDetails").style.display="block";$("profileName").textContent="Anarana: "+p.anarana+" — "+p.andiany;$("profileCurrent").textContent=p.sokajy;$("profileNewRole").value=p.sokajy;
+ $("profileDetails").style.display="block";$("profileName").textContent="Anarana: "+p.anarana+" — "+p.andiany;$("profileCurrent").textContent=p.sokajy;$("profileNewRole").value=p.sokajy;$("profileBirthDate").value=p.daty_nahaterahana||"";$("profileBaptismDate").value=p.daty_batisa||"";$("profileGender").value=p.lahy_vavy||"";$("profileServiceStatus").value=p.sata_fanompoana||"";$("profileNotes").value=p.fanazavana_s21||"";
  const target=$("profileNewGroup");if(target)target.value=String(p.andiany_id);
 }
 function renderRoleHistory(){$("roleHistory").innerHTML='<p class="hint">Ny tantaran’ny fanovana sokajy dia tantanana ao amin’ny tahiry iombonana amin’ny kinova manaraka.</p>'}
@@ -361,7 +362,7 @@ async function saveProfileRole(){
  if(currentProfile?.role!=="admin"){alert("Administration ihany no afaka manova sokajy.");return}
  const group=$("manageGroup").value,name=$("profilePerson").value,newRole=normalizeImportCategory($("profileNewRole").value);
  const p=peopleForGroup(group).find(x=>x.anarana===name);if(!p)return;
- const patch={sokajy:newRole};const newGroupId=$("profileNewGroup")?.value;if(newGroupId&&String(newGroupId)!==String(p.andiany_id))patch.andiany_id=Number(newGroupId);const {error}=await sbClient.from("mpikambana").update(patch).eq("id",p.id);
+ const patch={sokajy:newRole,daty_nahaterahana:$("profileBirthDate").value||null,daty_batisa:$("profileBaptismDate").value||null,lahy_vavy:$("profileGender").value||null,sata_fanompoana:$("profileServiceStatus").value||null,fanazavana_s21:$("profileNotes").value.trim()||null};const newGroupId=$("profileNewGroup")?.value;if(newGroupId&&String(newGroupId)!==String(p.andiany_id))patch.andiany_id=Number(newGroupId);const {error}=await sbClient.from("mpikambana").update(patch).eq("id",p.id);
  if(error){setStatus("Tsy voatahiry ny sokajy: "+error.message,true);return}
  await loadAllData();if(newGroupId&&String(newGroupId)!==String(p.andiany_id))$("manageGroup").value=groupCode(newGroupId);renderManagePeople();$("profilePerson").value=name;renderPersonProfile();setStatus("Voatahiry ny sokajy sy ny andiany an’i "+name+".");
 }
