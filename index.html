@@ -28,7 +28,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #93c5fd;border-color:v
 button{padding:11px 15px;background:var(--blue);color:white;border:0;border-radius:8px;cursor:pointer;font-weight:700;font:inherit}
 button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--navy)}button.secondary:hover{background:#dbe7f5}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
-.toolbar button{flex:0 0 auto}.hint{font-size:13px;color:var(--muted)}.notice{padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;color:#9a3412;font-size:14px}
+.toolbar button{flex:0 0 auto}.hint{font-size:13px;color:var(--muted)}.danger{background:#b91c1c;color:#fff}.danger:hover{background:#991b1b}.notice{padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;color:#9a3412;font-size:14px}
 .people-list{display:grid;gap:10px;margin-top:14px}
 .person{border:1px solid var(--line);border-radius:11px;padding:14px;background:#fff;display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(2,minmax(150px,1fr));gap:13px;align-items:center}
 .person-name{font-weight:700}.role{display:inline-block;font-size:12px;color:#1d4ed8;background:#eff6ff;border-radius:20px;padding:4px 8px;margin-top:5px}
@@ -101,7 +101,14 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <h3>Manampy andiany vaovao</h3><div class="grid"><div><label for="newGroupCode">Kaody andiany</label><input id="newGroupCode" placeholder="N°08"></div><div><label for="newGroupName">Anaran’ny andiany</label><input id="newGroupName" placeholder="Andiany vaovao"></div></div><div class="toolbar"><button type="button" id="addGroupBtn">＋ Ampio andiany</button></div><div id="groupManageStatus" class="hint" role="status" aria-live="polite"></div>
 </div>
 <div class="grid"><div><label for="manageGroup">Andiany hotantanana</label><select id="manageGroup"><option value="">-- Safidio ny andiany --</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div></div>
+<div class="card" style="background:#f8fbff;border-color:#bfdbfe;margin:14px 0">
+<h3>Manampy olona mivantana</h3><p class="hint">Safidio aloha ny andiany etsy ambony, dia ampidiro ny anarana sy sokajy. Hiseho ny fampitandremana raha misy anarana mitovy ao amin’ilay andiany.</p>
+<div class="grid"><div><label for="newPersonName">Anarana feno</label><input id="newPersonName" autocomplete="off" placeholder="Ohatra: Rakoto Jean"></div><div><label for="newPersonCategory">Sokajy</label><select id="newPersonCategory"><option value="Mpitory">Mpitory</option><option value="Mpisavalalana mpanampy">Mpisavalalana mpanampy</option><option value="Mpisavalalana maharitra">Mpisavalalana maharitra</option></select></div></div>
+<div class="toolbar"><button type="button" id="addPersonBtn">＋ Ampio olona</button></div><div id="memberManageStatus" class="hint" role="status" aria-live="polite"></div>
+</div>
 <div id="managePeople" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
+<h3 style="margin-top:22px">Olona nesorina amin’ny lisitra</h3><p class="hint">Tsy voafafa ny mombamomba azy na ny tatitra taloha. Azonao averina ao amin’ny lisitra ny olona iray eto.</p>
+<div id="inactivePeople" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 <div class="profile-box" id="personProfile" style="margin:16px 0;padding:18px;border:1px solid #bfdbfe;border-radius:12px;background:#f8fbff">
 <h3>Mombamomba ny olona</h3><p class="hint">Safidio ny olona iray mba hijerena sy hanovana ny sokajiny.</p>
 <div><label for="profilePerson">Anarana — Andiany</label><select id="profilePerson" disabled><option value="">-- Safidio ny olona --</option></select></div>
@@ -155,7 +162,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_adOLLnzo6nOQ_sM6a7JT_g_R3jxfvN7";
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 const roleOrder = {"Mpitory":0,"Mpanampy":1,"Mpisava lalana maharitra":2};
-let currentUser = null, currentProfile = null, groups = [], roster = [], reports = [];
+let currentUser = null, currentProfile = null, groups = [], roster = [], inactiveRoster = [], reports = [];
 function roleRank(role){return roleOrder[role]??99}
 function esc(v){return String(v??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))}
 function setStatus(text,error=false){$("authStatus").textContent=text;$("authStatus").style.background=error?"#fef2f2":"#fff7ed";$("authStatus").style.color=error?"#991b1b":"#9a3412"}
@@ -175,8 +182,8 @@ function configureGroups(){
 async function loadAllData(){
  const g=await sbClient.from("andiany").select("id,kaody,anarana").order("id");
  if(g.error)throw g.error;groups=(g.data||[]).sort((a,b)=>String(a.kaody).localeCompare(String(b.kaody),"fr",{numeric:true}));
- const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika,daty_nahaterahana,daty_batisa,lahy_vavy,sata_fanompoana,fanazavana_s21").eq("mavitrika",true).order("anarana");
- if(m.error)throw m.error;roster=m.data||[];
+ const m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika,daty_nahaterahana,daty_batisa,lahy_vavy,sata_fanompoana,fanazavana_s21").order("anarana");
+ if(m.error)throw m.error;roster=(m.data||[]).filter(p=>p.mavitrika===true);inactiveRoster=(m.data||[]).filter(p=>p.mavitrika===false);
  const r=await sbClient.from("tatitra").select("id,mpikambana_id,andiany_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
  if(r.error)throw r.error;
  reports=(r.data||[]).map(x=>({id:x.id,mpikambana_id:x.mpikambana_id,andiany:groupCode(x.andiany_id??x.mpikambana?.andiany_id),andiany_id:x.andiany_id??x.mpikambana?.andiany_id,volana:x.volana?.slice(0,7),anarana:x.mpikambana?.anarana||"",sokajy:x.mpikambana?.sokajy||"",fandraisana_anjara:x.fandraisana_anjara===true?"Eny":x.fandraisana_anjara===false?"Tsia":"",ora:x.ora,fampianarana_baiboly:x.fampianarana_baiboly??0,fanamarihana:x.fanamarihana||"",created_at:x.created_at}));
@@ -342,17 +349,18 @@ function refreshDashboard(){
  $("count").textContent=reports.length+" andalana tatitra ao amin'ny tahiry iombonana.";
 }
 function renderManagePeople(){
- const group=$("manageGroup").value,container=$("managePeople"),sel=$("profilePerson");
- if(currentProfile?.role!=="admin"){container.innerHTML='<p class="hint">Ho an’ny Administration ihany ity fizarana ity.</p>';sel.innerHTML='<option value="">-- Safidio ny olona --</option>';sel.disabled=true;$("profileDetails").style.display="none";return}
- if(!group){container.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';sel.innerHTML='<option value="">-- Safidio ny olona --</option>';sel.disabled=true;$("profileDetails").style.display="none";return}
- const people=peopleForGroup(group);
- sel.disabled=!people.length;sel.innerHTML='<option value="">-- Safidio ny olona --</option>'+people.map(p=>'<option value="'+esc(p.anarana)+'">'+esc(p.anarana)+' — '+esc(p.andiany)+'</option>').join("");
- container.innerHTML=people.length?people.map((p,i)=>'<div class="person"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><span class="role">'+esc(p.sokajy)+'</span></div><div class="hint">Sokajy ankehitriny</div><div><button type="button" class="secondary" data-open-profile="'+esc(p.anarana)+'">Mombamomba / Hanova</button></div></div>').join(""):'<p class="hint">Tsy misy olona voatanisa amin’ity andiany ity.</p>';
+ const group=$("manageGroup").value,container=$("managePeople"),archived=$("inactivePeople"),sel=$("profilePerson");
+ if(currentProfile?.role!=="admin"){container.innerHTML='<p class="hint">Ho an’ny Administration ihany ity fizarana ity.</p>';archived.innerHTML="";sel.innerHTML='<option value="">-- Safidio ny olona --</option>';sel.disabled=true;$("profileDetails").style.display="none";return}
+ if(!group){container.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';archived.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';sel.innerHTML='<option value="">-- Safidio ny olona --</option>';sel.disabled=true;$("profileDetails").style.display="none";return}
+ const people=peopleForGroup(group),oldPeople=inactiveRoster.filter(p=>String(p.andiany_id)===String(groupId(group))).sort((a,b)=>a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}));
+ sel.disabled=!people.length;sel.innerHTML='<option value="">-- Safidio ny olona --</option>'+people.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.anarana)+' — '+esc(p.andiany)+'</option>').join("");
+ container.innerHTML=people.length?people.map((p,i)=>'<div class="person"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><span class="role">'+esc(p.sokajy)+'</span></div><div class="hint">Sokajy ankehitriny</div><div class="toolbar"><button type="button" class="secondary" data-open-profile="'+esc(p.id)+'">Mombamomba / Hanova</button><button type="button" class="danger" data-deactivate-member="'+esc(p.id)+'">Esory amin’ny lisitra</button></div></div>').join(""):'<p class="hint">Tsy misy olona mavitrika voatanisa amin’ity andiany ity.</p>';
+ archived.innerHTML=oldPeople.length?oldPeople.map(p=>'<div class="person"><div class="person-main"><div class="person-name">'+esc(p.anarana)+'</div><span class="role">Nesorina · '+esc(p.sokajy)+'</span></div><div class="hint">Tsy miseho amin’ny lisitra mavitrika</div><div><button type="button" data-reactivate-member="'+esc(p.id)+'">↻ Avereno ao amin’ny lisitra</button></div></div>').join(""):'<p class="hint">Tsy misy olona nesorina amin’ity andiany ity.</p>';
  $("profileDetails").style.display="none";
 }
 function renderPersonProfile(){
- const group=$("manageGroup").value,name=$("profilePerson").value;
- const p=peopleForGroup(group).find(x=>x.anarana===name);
+ const group=$("manageGroup").value,personId=$("profilePerson").value;
+ const p=peopleForGroup(group).find(x=>String(x.id)===String(personId));
  if(!p){$("profileDetails").style.display="none";return}
  $("profileDetails").style.display="block";$("profileName").textContent="Anarana: "+p.anarana+" — "+p.andiany;$("profileCurrent").textContent=p.sokajy;$("profileNewRole").value=p.sokajy;$("profileBirthDate").value=p.daty_nahaterahana||"";$("profileBaptismDate").value=p.daty_batisa||"";$("profileGender").value=p.lahy_vavy||"";$("profileServiceStatus").value=p.sata_fanompoana||"";$("profileNotes").value=p.fanazavana_s21||"";
  const target=$("profileNewGroup");if(target)target.value=String(p.andiany_id);
@@ -360,15 +368,52 @@ function renderPersonProfile(){
 function renderRoleHistory(){$("roleHistory").innerHTML='<p class="hint">Ny tantaran’ny fanovana sokajy dia tantanana ao amin’ny tahiry iombonana amin’ny kinova manaraka.</p>'}
 async function saveProfileRole(){
  if(currentProfile?.role!=="admin"){alert("Administration ihany no afaka manova sokajy.");return}
- const group=$("manageGroup").value,name=$("profilePerson").value,newRole=normalizeImportCategory($("profileNewRole").value);
- const p=peopleForGroup(group).find(x=>x.anarana===name);if(!p)return;
+ const group=$("manageGroup").value,personId=$("profilePerson").value,newRole=normalizeImportCategory($("profileNewRole").value);
+ const p=peopleForGroup(group).find(x=>String(x.id)===String(personId));if(!p)return;
  const patch={sokajy:newRole,daty_nahaterahana:$("profileBirthDate").value||null,daty_batisa:$("profileBaptismDate").value||null,lahy_vavy:$("profileGender").value||null,sata_fanompoana:$("profileServiceStatus").value||null,fanazavana_s21:$("profileNotes").value.trim()||null};const newGroupId=$("profileNewGroup")?.value;if(newGroupId&&String(newGroupId)!==String(p.andiany_id))patch.andiany_id=Number(newGroupId);const {error}=await sbClient.from("mpikambana").update(patch).eq("id",p.id);
  if(error){setStatus("Tsy voatahiry ny sokajy: "+error.message,true);return}
- await loadAllData();if(newGroupId&&String(newGroupId)!==String(p.andiany_id))$("manageGroup").value=groupCode(newGroupId);renderManagePeople();$("profilePerson").value=name;renderPersonProfile();setStatus("Voatahiry ny sokajy sy ny andiany an’i "+name+".");
+ await loadAllData();if(newGroupId&&String(newGroupId)!==String(p.andiany_id))$("manageGroup").value=groupCode(newGroupId);renderManagePeople();$("profilePerson").value=String(p.id);renderPersonProfile();setStatus("Voatahiry ny sokajy sy ny andiany an’i "+p.anarana+".");
 }
 $("manageGroup").addEventListener("change",renderManagePeople);
 $("profilePerson").addEventListener("change",renderPersonProfile);
 $("managePeople").addEventListener("click",event=>{const b=event.target.closest("[data-open-profile]");if(!b)return;$("profilePerson").value=b.dataset.openProfile;renderPersonProfile();$("personProfile").scrollIntoView({behavior:"smooth",block:"center"});});
+$("addPersonBtn").addEventListener("click",async()=>{
+ if(currentProfile?.role!=="admin"){ $("memberManageStatus").textContent="Administration ihany no afaka manampy olona.";return; }
+ const groupCodeSelected=$("manageGroup").value,group=groups.find(g=>normalizeGroupCode(g.kaody)===normalizeGroupCode(groupCodeSelected));
+ const name=$("newPersonName").value.trim(),category=normalizeImportCategory($("newPersonCategory").value),status=$("memberManageStatus"),button=$("addPersonBtn");
+ if(!group){status.textContent="Safidio aloha ny andiany hotohizana.";return;}
+ if(!name){status.textContent="Ampidiro aloha ny anaran’ilay olona.";return;}
+ const key=normalizeImportText(name),sameName=roster.filter(p=>String(p.andiany_id)===String(group.id)&&normalizeImportText(p.anarana)===key);
+ if(sameName.length){
+  const names=sameName.map(p=>p.anarana+" ("+p.sokajy+")").join(", ");
+  const proceed=window.confirm("FAMPITANDREMANA: Efa misy olona mitovy anarana na mitovitovy anarana ao amin’ny "+group.kaody+": "+names+".\n\nRaha ilay olona efa voatanisa ihany no tianao, tsindrio Cancel ary fidio ao amin’ny lisitra.\n\nRaha olona hafa manana anarana mitovy ity, tsindrio OK hanampiana azy ho olona misaraka.");
+  if(!proceed){status.textContent="Nofoanana ny fampidirana. Tsy nisy angona novaina.";return;}
+ }
+ button.disabled=true;status.textContent="Mitahiry ilay olona...";
+ try{
+  const {error}=await sbClient.from("mpikambana").insert({anarana:name,andiany_id:group.id,sokajy:category,mavitrika:true});
+  if(error)throw error;
+  $("newPersonName").value="";await loadAllData();$("manageGroup").value=group.kaody;renderManagePeople();status.textContent="Voatahiry i "+name+" ao amin’ny "+group.kaody+".";status.style.color="#166534";
+ }catch(e){status.textContent="Tsy tafiditra ilay olona: "+(e?.message||String(e));status.style.color="#b91c1c";}
+ finally{button.disabled=false;}
+});
+$("fitantanana").addEventListener("click",async event=>{
+ const removeBtn=event.target.closest("[data-deactivate-member]"),restoreBtn=event.target.closest("[data-reactivate-member]");
+ if(!removeBtn&&!restoreBtn)return;
+ if(currentProfile?.role!=="admin"){setStatus("Administration ihany no afaka manova ny lisitry ny olona.",true);return;}
+ const id=(removeBtn||restoreBtn).dataset.deactivateMember||(removeBtn||restoreBtn).dataset.reactivateMember;
+ const member=[...roster,...inactiveRoster].find(p=>String(p.id)===String(id));if(!member)return;
+ if(removeBtn){
+  const reportCount=reports.filter(r=>String(r.mpikambana_id)===String(member.id)).length;
+  const ok=window.confirm("Esorina amin’ny lisitra mavitrika ve i "+member.anarana+"?"+(reportCount?"\n\nMisy tatitra "+reportCount+" mifandray aminy. TSY ho voafafa ireo tatitra ireo.":"\n\nTsy ho voafafa ny mombamomba azy. Raha misy tatitra taloha dia hotazonina.")+"\n\nAzonao averina eto amin’ny lisitra izy any aoriana.");
+  if(!ok)return;
+  const {error}=await sbClient.from("mpikambana").update({mavitrika:false}).eq("id",member.id);if(error){setStatus("Tsy nesorina i "+member.anarana+": "+error.message,true);return;}
+  await loadAllData();$("manageGroup").value=groupCode(member.andiany_id);renderManagePeople();$("memberManageStatus").textContent="Nesorina tamin’ny lisitra mavitrika i "+member.anarana+". Voatahiry ny tatitra taloha.";return;
+ }
+ const ok=window.confirm("Averina ao amin’ny lisitra mavitrika ve i "+member.anarana+" ao amin’ny "+groupCode(member.andiany_id)+"?");if(!ok)return;
+ const {error}=await sbClient.from("mpikambana").update({mavitrika:true}).eq("id",member.id);if(error){setStatus("Tsy tafaverina i "+member.anarana+": "+error.message,true);return;}
+ await loadAllData();$("manageGroup").value=groupCode(member.andiany_id);renderManagePeople();$("memberManageStatus").textContent="Naverina tao amin’ny lisitra mavitrika i "+member.anarana+".";
+});
 $("saveProfileRole").addEventListener("click",saveProfileRole);
 $("cancelProfileRole").addEventListener("click",renderPersonProfile);
 $("group").addEventListener("change",renderPeople);
@@ -433,7 +478,7 @@ $("syncRosterBtn").addEventListener("click",async()=>{
    const andiany_id=groupId(normalizeGroupCode(p.andiany));
    if(!andiany_id)throw new Error("Tsy hita ny andiany "+p.andiany);
    const sokajy=normalizeImportCategory(p.sokajy);
-   const existing=roster.find(m=>String(m.andiany_id)===String(andiany_id)&&m.anarana.toLocaleLowerCase()===p.anarana.toLocaleLowerCase());
+   const existing=roster.find(m=>String(m.andiany_id)===String(andiany_id)&&normalizeImportText(m.anarana)===normalizeImportText(p.anarana));
    if(existing)updates.push({id:existing.id,sokajy});
    else inserts.push({anarana:p.anarana,andiany_id,sokajy,mavitrika:true});
   }
