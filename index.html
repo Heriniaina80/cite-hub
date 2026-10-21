@@ -101,7 +101,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <h3>Manampy andiany vaovao</h3><div class="grid"><div><label for="newGroupCode">Kaody andiany</label><input id="newGroupCode" placeholder="N°08"></div><div><label for="newGroupName">Anaran’ny andiany</label><input id="newGroupName" placeholder="Andiany vaovao"></div></div><div class="toolbar"><button type="button" id="addGroupBtn">＋ Ampio andiany</button></div><div id="groupManageStatus" class="hint" role="status" aria-live="polite"></div>
 </div>
 <div class="grid"><div><label for="manageGroup">Andiany hotantanana</label><select id="manageGroup"><option value="">-- Safidio ny andiany --</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div></div>
-<div class="card" style="background:#f8fbff;border-color:#bfdbfe;margin:14px 0">
+<div class="card" id="memberDirectAdd" style="background:#f8fbff;border-color:#bfdbfe;margin:14px 0">
 <h3>Manampy olona mivantana</h3><p class="hint">Safidio aloha ny andiany etsy ambony, dia ampidiro ny anarana sy sokajy. Hiseho ny fampitandremana raha misy anarana mitovy ao amin’ilay andiany.</p>
 <div class="grid"><div><label for="newPersonName">Anarana feno</label><input id="newPersonName" autocomplete="off" placeholder="Ohatra: Rakoto Jean"></div><div><label for="newPersonCategory">Sokajy</label><select id="newPersonCategory"><option value="Mpitory">Mpitory</option><option value="Mpisavalalana mpanampy">Mpisavalalana mpanampy</option><option value="Mpisavalalana maharitra">Mpisavalalana maharitra</option></select></div></div>
 <div class="toolbar"><button type="button" id="addPersonBtn">＋ Ampio olona</button></div><div id="memberManageStatus" class="hint" role="status" aria-live="polite"></div>
@@ -193,6 +193,7 @@ function showRoleUI(){
  $("emailLogin").style.display=currentUser?"none":"inline-block";
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
  $("syncRosterBtn").style.display=currentProfile?.role==="admin"?"inline-block":"none";
+ $("memberDirectAdd").style.display=currentProfile?.role==="admin"?"block":"none";
  document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"block")});
  $("fangatahana").style.display=currentProfile?.role==="admin"?"block":"none";
  $("reportCsvImport").style.display=currentProfile?.role==="admin"?"block":"none";
@@ -372,7 +373,7 @@ async function saveProfileRole(){
  const p=peopleForGroup(group).find(x=>String(x.id)===String(personId));if(!p)return;
  const patch={sokajy:newRole,daty_nahaterahana:$("profileBirthDate").value||null,daty_batisa:$("profileBaptismDate").value||null,lahy_vavy:$("profileGender").value||null,sata_fanompoana:$("profileServiceStatus").value||null,fanazavana_s21:$("profileNotes").value.trim()||null};const newGroupId=$("profileNewGroup")?.value;if(newGroupId&&String(newGroupId)!==String(p.andiany_id))patch.andiany_id=Number(newGroupId);const {error}=await sbClient.from("mpikambana").update(patch).eq("id",p.id);
  if(error){setStatus("Tsy voatahiry ny sokajy: "+error.message,true);return}
- await loadAllData();if(newGroupId&&String(newGroupId)!==String(p.andiany_id))$("manageGroup").value=groupCode(newGroupId);renderManagePeople();$("profilePerson").value=String(p.id);renderPersonProfile();setStatus("Voatahiry ny sokajy sy ny andiany an’i "+p.anarana+".");
+ await loadAllData();$("manageGroup").value=groupCode(newGroupId||p.andiany_id);renderManagePeople();$("profilePerson").value=String(p.id);renderPersonProfile();setStatus("Voatahiry ny sokajy sy ny andiany an’i "+p.anarana+".");
 }
 $("manageGroup").addEventListener("change",renderManagePeople);
 $("profilePerson").addEventListener("change",renderPersonProfile);
