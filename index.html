@@ -56,7 +56,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <body>
 <header><button id="menuToggle" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Sokafy ny menu">☰ Menu</button><div><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></div></header>
 <nav id="mainMenu" aria-label="Menu lehibe">
-<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#firaketana">Firaketana isan-taona</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
+<a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#firaketana">Firaketana isan-taona</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tomponandraikitra" id="responsiblesNav" style="display:none">Tompon’andraikitra</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
 </nav>
 <main>
 <section class="card" id="fidirana-kaonty">
@@ -94,9 +94,8 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div id="message" role="status" aria-live="polite"></div>
 </section>
 <section class="card" id="fangatahana" style="display:none"><h2>Fangatahana fidirana</h2><p class="hint">Ireo kaonty vao nisoratra anarana nefa mbola miandry fankatoavana. Omeo andraikitra sy andiany vao afaka mampiditra tatitra izy ireo.</p><div id="accessRequests" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="accessRequestStatus" role="status" aria-live="polite"></div>
-<div class="divider" style="border-top:1px solid var(--line);margin:24px 0"></div>
-<h2>Tompon’andraikitra nekena isaky ny andiany</h2><p class="hint">Ireo kaonty manana andraikitra “responsable” sy nekena hampiasa ny CITE HUB. Azonao ovaina eto ny andiany iandraiketany, na esorina ny andraikiny nefa tsy mamafa ny kaontiny.</p>
-<div id="approvedResponsibilities" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="approvedResponsibilityStatus" role="status" aria-live="polite"></div></section>
+</section>
+<section class="card" id="tomponandraikitra" style="display:none"><h2>Tompon’andraikitra nekena isaky ny andiany</h2><p class="hint">Ireo kaonty manana andraikitra “responsable” sy nekena hampiasa ny CITE HUB. Azonao ovaina eto ny andiany iandraiketany, na esorina ny andraikiny nefa tsy mamafa ny kaontiny na ny tatitra taloha.</p><div id="approvedResponsibilities" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="approvedResponsibilityStatus" role="status" aria-live="polite"></div></section>
 <section class="card" id="fitantanana">
 <h2>Fitantanana ny lisitry ny olona sy ny andiany</h2>
 <p>Ampio andiany vaovao rehefa mitombo ny isan’ny andiany, ampio olona vaovao, ary ovay ny sokajy na ny andiany misy azy. Mariho fa mety hiova ny andiany aseho amin’ny tatitra taloha rehefa afindra ny mpikambana, satria mifandray amin’ny mombamomba azy ireo tatitra.</p>
@@ -197,8 +196,9 @@ function showRoleUI(){
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
  $("syncRosterBtn").style.display=currentProfile?.role==="admin"?"inline-block":"none";
  $("memberDirectAdd").style.display=currentProfile?.role==="admin"?"block":"none";
- document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"block")});
+ document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"block")});
  $("fangatahana").style.display=currentProfile?.role==="admin"?"block":"none";
+ $("tomponandraikitra").style.display=currentProfile?.role==="admin"?"block":"none";
  $("reportCsvImport").style.display=currentProfile?.role==="admin"?"block":"none";
 }
 async function loadAccessRequests(){
