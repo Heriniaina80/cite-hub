@@ -571,8 +571,8 @@ function refreshDashboard(){
  const publishers=rows.filter(r=>r.sokajy==="Mpitory"), assistants=rows.filter(r=>r.sokajy==="Mpanampy"||r.sokajy==="Mpisava lalana mpanampy"), regular=rows.filter(r=>r.sokajy==="Mpisava lalana maharitra");
  const card=(title,metrics)=>'<div class="stat"><h3>'+title+'</h3>'+metrics.map(m=>'<div><span class="hint">'+m[0]+'</span><div class="big">'+m[1]+'</div></div>').join("")+'</div>';
  $("monthlyCards").innerHTML=card("Mpitory",[["Olona voarakitra",people(publishers)],["Nandray anjara: Eny",publishers.filter(r=>r.fandraisana_anjara==="Eny").length],["Fampianarana Baiboly",sum(publishers,"fampianarana_baiboly")]])+card("Mpanampy",[["Olona voarakitra",people(assistants)],["Ora",sum(assistants,"ora")],["Fampianarana Baiboly",sum(assistants,"fampianarana_baiboly")]])+card("Mpisava lalana maharitra",[["Olona voarakitra",people(regular)],["Ora",sum(regular,"ora")],["Fampianarana Baiboly",sum(regular,"fampianarana_baiboly")]])+card("Fitambarany",[["Olona tsy miverina",people(rows)],["Nandray anjara: Eny",rows.filter(r=>r.fandraisana_anjara==="Eny").length],["Ora rehetra",sum(rows,"ora")],["Fampianarana Baiboly rehetra",sum(rows,"fampianarana_baiboly")]]);
- $("monthlyTable").innerHTML=rows.length?'<table><thead><tr><th>Volana</th><th>Andiany</th><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.volana)+'</td><td>'+esc(r.andiany)+'</td><td>'+esc(r.anarana)+'</td><td>'+esc(r.sokajy)+'</td><td>'+esc(r.fandraisana_anjara||"—")+'</td><td>'+esc(r.ora??"—")+'</td><td>'+esc(r.fampianarana_baiboly??0)+'</td></tr>').join("")+'</tbody></table>':'<p class="hint">Mbola tsy misy tatitra mifanaraka amin’ity sivana ity.</p>';
- $("count").textContent=reports.length+" andalana tatitra ao amin'ny tahiry iombonana.";
+ $("monthlyTable").innerHTML=rows.length?'<table><thead><tr><th>Volana</th><th>Andiany</th><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th><th>Toe-javatra</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.volana)+'</td><td>'+esc(r.andiany)+'</td><td>'+esc(r.anarana)+'</td><td>'+esc(r.sokajy)+'</td><td>'+esc(r.fandraisana_anjara||"—")+'</td><td>'+esc(r.ora??"—")+'</td><td>'+esc(r.fampianarana_baiboly??0)+'</td><td>'+(r.local_pending?'<span style="color:#b45309;font-weight:bold">Eto amin’ny fitaovana</span>':'Voatahiry iombonana')+'</td></tr>').join("")+'</tbody></table>':'<p class="hint">Mbola tsy misy tatitra mifanaraka amin’ity sivana ity.</p>';
+ $("count").textContent=reports.filter(r=>!r.local_pending).length+" tatitra ao amin’ny tahiry iombonana · "+pendingReportCount()+" mbola miandry fampifanarahana.";
 }
 function renderManagePeople(){
  const group=$("manageGroup").value,container=$("managePeople"),archived=$("inactivePeople"),sel=$("profilePerson");
@@ -850,8 +850,14 @@ function downloadAnnualRecordPdf(){
 $("loadAnnualRecord").addEventListener("click",renderAnnualRecord);$("saveAnnualRecord").addEventListener("click",saveAnnualRecord);$("downloadAnnualPdf").addEventListener("click",downloadAnnualRecordPdf);
 async function boot(){
  $("filterMonth").value=new Date().toISOString().slice(0,7);
- const {data:{session}}=await sbClient.auth.getSession();currentUser=session?.user||null;
- try{await loadProfile();configureAnnualRecord()}catch(e){setStatus("Hadisoana: "+e.message,true)}
+ try{
+  const {data:{session}}=await sbClient.auth.getSession();currentUser=session?.user||null;
+  await loadProfile();configureAnnualRecord();updateOfflineStatus();
+ }catch(e){
+  if(currentUser&&isNetworkFailure(e)&&restoreOfflineSnapshot(currentUser.id)){
+   showRoleUI();configureAnnualRecord();setStatus("Mampiasa ny tahiry farany voatahiry eto amin’ity fitaovana ity ianao. Rehefa miverina ny Internet dia halefa ho azy ny tatitra miandry.",false);updateOfflineStatus();
+  }else setStatus("Hadisoana: "+(e?.message||String(e)),true);
+ }
 }
 boot();
 
