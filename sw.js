@@ -1,4 +1,4 @@
-const CACHE_NAME = "cite-hub-shell-v3";
+const CACHE_NAME = "cite-hub-shell-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -25,11 +25,38 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+const OFFLINE_SCRIPT_URLS = new Set([
+  "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+]);
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Cache only this site's static shell; never cache Supabase/auth/API requests.
+  // Cache only the two read-only JavaScript libraries needed to open the app offline.
+  // Never cache Supabase API/auth responses or any private user data in the service worker cache.
+  if (request.method === "GET" && OFFLINE_SCRIPT_URLS.has(request.url)) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      try {
+        const response = await fetch(request);
+        if (response && (response.ok || response.type === "opaque")) {
+          try { await cache.put(request, response.clone()); } catch (cacheError) {}
+        }
+        return response;
+      } catch (error) {
+        const fallback = await cache.match(request);
+        if (fallback) return fallback;
+        throw error;
+      }
+    })());
+    return;
+  }
+
+  // Cache this site's static shell only; never cache Supabase/auth/API responses.
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
   if (url.pathname.includes("/rest/v1/") || url.pathname.includes("/auth/") || url.pathname.includes("/functions/")) return;
 
