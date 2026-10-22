@@ -89,8 +89,9 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 </div>
 <p class="hint">Rehefa misafidy andiany ianao dia miseho eto ambany ny lisitry ny olona sy ny saha mifanaraka amin'ny andraikiny.</p>
 <div id="rosterStatus" class="notice" style="display:none"></div>
+<div id="offlineStatus" class="notice" role="status" aria-live="polite" style="margin:12px 0">Ny CITE HUB dia afaka mitahiry drafitra eto amin’ity fitaovana ity. Rehefa misy connexion dia azo alefa any amin’ny tahiry iombonana.</div>
 <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
-<div class="toolbar"><button id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div>
+<div class="toolbar"><button id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div>
 <div id="message" role="status" aria-live="polite"></div>
 </section>
 <section class="card" id="fangatahana" style="display:none"><h2>Fangatahana fidirana</h2><p class="hint">Ireo kaonty vao nisoratra anarana nefa mbola miandry fankatoavana. Omeo andraikitra sy andiany vao afaka mampiditra tatitra izy ireo.</p><div id="accessRequests" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="accessRequestStatus" role="status" aria-live="polite"></div>
@@ -166,6 +167,171 @@ const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 const roleOrder = {"Mpitory":0,"Mpanampy":1,"Mpisava lalana maharitra":2};
 let currentUser = null, currentProfile = null, groups = [], roster = [], inactiveRoster = [], reports = [];
+
+function userStoreKey(kind,userId=currentUser?.id){return userId?("cite-hub-"+kind+"-v1:"+userId):null}
+function readUserStore(kind,fallback={},userId=currentUser?.id){
+ const key=userStoreKey(kind,userId);if(!key)return fallback;
+ try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){return fallback}
+}
+function writeUserStore(kind,value,userId=currentUser?.id){
+ const key=userStoreKey(kind,userId);if(!key)return false;
+ try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){return false}
+}
+function reportDraftKey(group,month){return String(group||"")+"|"+String(month||"")}
+function readReportDrafts(){return readUserStore("report-drafts",{})}
+function readPendingReportQueue(){return readUserStore("pending-reports",{})}
+function pendingReportCount(){return Object.keys(readPendingReportQueue()).length}
+function draftGroupCount(){return Object.keys(readReportDrafts()).length}
+function currentReportDraft(group=$("group").value,month=$("month").value){
+ return readReportDrafts()[reportDraftKey(group,month)]||null;
+}
+function saveCurrentReportDraft(){
+ if(!currentUser||!currentProfile)return;
+ const group=$("group").value,month=$("month").value;
+ if(!group||!month)return;
+ const members={};
+ document.querySelectorAll("#peopleList .person[data-member-id]").forEach(el=>{
+  members[String(el.dataset.memberId)]={
+   participation:el.querySelector('[data-field="participation"]')?.value||"",
+   hours:el.querySelector('[data-field="hours"]')?.value??"",
+   studies:el.querySelector('[data-field="studies"]')?.value??"0",
+   note:el.querySelector('[data-field="note"]')?.value||""
+  };
+ });
+ const drafts=readReportDrafts();
+ drafts[reportDraftKey(group,month)]={group,month,updatedAt:Date.now(),members};
+ writeUserStore("report-drafts",drafts);
+ updateOfflineStatus();
+}
+function clearReportDraft(group,month){
+ const drafts=readReportDrafts(),key=reportDraftKey(group,month);
+ if(drafts[key]){delete drafts[key];writeUserStore("report-drafts",drafts)}
+ updateOfflineStatus();
+}
+function saveEntriesAsPending(entries,group,month){
+ const queue=readPendingReportQueue(),queuedAt=new Date().toISOString();
+ for(const entry of entries){
+  const key=String(entry.mpikambana_id)+"|"+String(entry.volana);
+  queue[key]={record:{...entry},queued_at:queuedAt,group,month};
+ }
+ writeUserStore("pending-reports",queue);
+ mergePendingReports();
+ refreshDashboard();
+ saveOfflineSnapshot();
+ updateOfflineStatus();
+}
+function isNetworkFailure(error){
+ if(!navigator.onLine)return true;
+ const message=String(error?.message||error||"").toLowerCase();
+ return message.includes("failed to fetch")||message.includes("networkerror")||message.includes("network request failed")||message.includes("fetch failed")||message.includes("load failed")||message.includes("connection")||message.includes("timeout");
+}
+function mergePendingReports(){
+ reports=reports.filter(r=>!r.local_pending);
+ const queue=readPendingReportQueue();
+ for(const item of Object.values(queue)){
+  const rec=item?.record||item;
+  if(!rec?.mpikambana_id||!rec?.volana)continue;
+  const member=[...roster,...inactiveRoster].find(p=>String(p.id)===String(rec.mpikambana_id));
+  const month=String(rec.volana).slice(0,7);
+  const groupIdValue=rec.andiany_id??member?.andiany_id;
+  const row={
+   id:"local-pending-"+rec.mpikambana_id+"-"+month,
+   mpikambana_id:rec.mpikambana_id,
+   andiany_id:groupIdValue,
+   andiany:groupCode(groupIdValue),
+   volana:month,
+   anarana:member?.anarana||"",
+   sokajy:member?.sokajy||"",
+   fandraisana_anjara:rec.fandraisana_anjara===true?"Eny":rec.fandraisana_anjara===false?"Tsia":"",
+   ora:rec.ora,
+   fampianarana_baiboly:rec.fampianarana_baiboly??0,
+   fanamarihana:rec.fanamarihana||"",
+   local_pending:true
+  };
+  const idx=reports.findIndex(r=>String(r.mpikambana_id)===String(row.mpikambana_id)&&String(r.volana).slice(0,7)===month);
+  if(idx>=0)reports[idx]=row;else reports.push(row);
+ }
+}
+function saveOfflineSnapshot(){
+ if(!currentUser||!currentProfile)return;
+ writeUserStore("app-cache",{
+  savedAt:new Date().toISOString(),
+  profile:currentProfile,
+  groups,roster,inactiveRoster,
+  reports
+ });
+}
+function restoreOfflineSnapshot(userId){
+ try{
+  const snapshot=readUserStore("app-cache",null,userId);
+  if(!snapshot||!snapshot.profile||!Array.isArray(snapshot.groups)||!Array.isArray(snapshot.roster))return false;
+  currentProfile=snapshot.profile;groups=snapshot.groups;roster=snapshot.roster;inactiveRoster=snapshot.inactiveRoster||[];reports=snapshot.reports||[];
+  mergePendingReports();
+  configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();
+  if(typeof configureAnnualRecord==="function")configureAnnualRecord();
+  return true;
+ }catch(e){return false}
+}
+function updateOfflineStatus(){
+ const host=$("offlineStatus");if(!host)return;
+ const pending=pendingReportCount(),drafts=draftGroupCount(),online=navigator.onLine;
+ if(!online){
+  host.textContent=pending
+   ?"Tsy misy connexion Internet. Misy tatitra "+pending+" voatahiry eto amin’ity fitaovana ity, mbola halefa any amin’ny tahiry iombonana rehefa miverina ny connexion."
+   :drafts
+    ?"Tsy misy connexion Internet. Voatahiry vetivety eto amin’ity fitaovana ity ny fanovana "+drafts+" volana/andiany. Tsindrio “Tehirizo ny tatitra rehetra” rehefa vonona mba hilaharana halefa any amin’ny Admin rehefa miverina ny connexion."
+    :"Tsy misy connexion Internet. Ny fanovana soratanao dia tehirizina ho drafitra eto amin’ity fitaovana ity.";
+  host.style.background="#fff7ed";host.style.borderColor="#fed7aa";
+ }else if(pending){
+  host.textContent="Misy tatitra "+pending+" mbola voatahiry eto amin’ity fitaovana ity fa tsy mbola tafiditra ao amin’ny tahiry iombonana. Tsindrio “Alefaso any amin’ny tahiry iombonana” na miandrasa ny fampifanarahana mandeha ho azy.";
+  host.style.background="#fff7ed";host.style.borderColor="#fed7aa";
+ }else if(drafts){
+  host.textContent="Voatahiry eto amin’ity fitaovana ity ny drafitra "+drafts+" volana/andiany. Raha tianao ho hitan’ny Admin, tsindrio “Tehirizo ny tatitra rehetra” rehefa feno.";
+  host.style.background="#eff6ff";host.style.borderColor="#bfdbfe";
+ }else{
+  host.textContent="Mifandray amin’ny Internet. Ny tatitra voatahiry ao amin’ny tahiry iombonana dia azon’ny olona nahazo alalana jerena.";
+  host.style.background="#eff6ff";host.style.borderColor="#bfdbfe";
+ }
+ const button=$("syncPendingBtn");if(button){button.disabled=!online||pending===0;button.textContent=pending?"Alefaso any amin’ny tahiry iombonana ("+pending+")":"Tsy misy tatitra miandry";}
+}
+function removeSyncedDraftRows(items){
+ const drafts=readReportDrafts();
+ for(const item of items){
+  const rec=item.record||item,month=String(rec.volana).slice(0,7),group=item.group||groupCode(rec.andiany_id),key=reportDraftKey(group,month),bucket=drafts[key];
+  const memberKey=String(rec.mpikambana_id),draftRow=bucket?.members?.[memberKey];
+  if(!draftRow)continue;
+  const expectedPart=rec.fandraisana_anjara===true?"Eny":rec.fandraisana_anjara===false?"Tsia":"";
+  const same=String(draftRow.participation||"")===expectedPart
+   &&String(draftRow.hours??"")===String(rec.ora??"")
+   &&String(draftRow.studies??"0")===String(rec.fampianarana_baiboly??0)
+   &&String(draftRow.note||"")===String(rec.fanamarihana||"");
+  if(same)delete bucket.members[memberKey];
+  if(bucket&&Object.keys(bucket.members||{}).length===0)delete drafts[key];
+ }
+ writeUserStore("report-drafts",drafts);
+}
+async function syncPendingReports(showFeedback=true){
+ if(!currentUser||!currentProfile)return;
+ const queue=readPendingReportQueue(),items=Object.entries(queue);
+ if(!items.length){updateOfflineStatus();return}
+ if(!navigator.onLine){updateOfflineStatus();if(showFeedback)$("message").textContent="Mbola tsy misy connexion. Voatahiry eto amin’ity fitaovana ity ny tatitra.";return}
+ const status=$("message"),button=$("syncPendingBtn");
+ if(button)button.disabled=true;
+ try{
+  const rows=items.map(([,item])=>{const r=item.record||item;return {mpikambana_id:r.mpikambana_id,andiany_id:r.andiany_id,volana:r.volana,fandraisana_anjara:r.fandraisana_anjara??null,ora:r.ora??null,fampianarana_baiboly:r.fampianarana_baiboly??0,fanamarihana:r.fanamarihana||null}});
+  const {error}=await sbClient.from("tatitra").upsert(rows,{onConflict:"mpikambana_id,volana"});
+  if(error)throw error;
+  const latest=readPendingReportQueue();
+  for(const [key,item] of items){if(latest[key]?.queued_at===item.queued_at)delete latest[key]}
+  writeUserStore("pending-reports",latest);
+  removeSyncedDraftRows(items.map(([,item])=>item));
+  await loadAllData();
+  if(showFeedback){status.textContent="Vita ny fampifanarahana: nalefa tao amin’ny tahiry iombonana ny tatitra "+items.length+". Hitan’ny Admin sy ireo manana alalana izy izao.";status.style.color="#166534"}
+ }catch(e){
+  if(showFeedback){status.textContent=isNetworkFailure(e)?"Mbola tsy tafita ny connexion. Tsy voafafa ny tatitra voatahiry eto amin’ity fitaovana ity; avereno rehefa milamina ny Internet.":"Tsy tafiditra ao amin’ny tahiry iombonana ny tatitra: "+(e?.message||String(e));status.style.color="#b91c1c"}
+ }finally{if(button)button.disabled=!navigator.onLine||pendingReportCount()===0;updateOfflineStatus()}
+}
+
 function roleRank(role){return roleOrder[role]??99}
 function esc(v){return String(v??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))}
 function setStatus(text,error=false){$("authStatus").textContent=text;$("authStatus").style.background=error?"#fef2f2":"#fff7ed";$("authStatus").style.color=error?"#991b1b":"#9a3412"}
