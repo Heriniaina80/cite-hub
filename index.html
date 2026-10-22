@@ -429,13 +429,28 @@ $("accessRequests").addEventListener("click",event=>{
  if(event.target.closest("[data-reject]"))handleAccessRequest(row.dataset.userId,false,null);
 });
 async function loadProfile(){
- if(!currentUser){currentProfile=null;showRoleUI();setStatus("Midira amin’ny Gmail sy tenimiafina CITE HUB aloha vao afaka mampiasa ny tatitra.");return}
+ if(!currentUser){currentProfile=null;showRoleUI();setStatus("Midira amin’ny Gmail sy tenimiafina CITE HUB aloha vao afaka mampiasa ny tatitra.");updateOfflineStatus();return}
  const p=await sbClient.from("profils_acces").select("user_id,role,andiany_id").eq("user_id",currentUser.id).maybeSingle();
- if(p.error)throw p.error;
+ if(p.error){
+  if(isNetworkFailure(p.error)&&restoreOfflineSnapshot(currentUser.id)){
+   showRoleUI();setStatus("Tsy misy connexion azo ampiasaina amin’izao. Nohidiana amin’ny tahiry voatahiry amin’ity fitaovana ity ny CITE HUB; azonao fenoiny ny tatitra ary ampifanarahana rehefa tafaverina ny Internet.",false);updateOfflineStatus();return;
+  }
+  throw p.error;
+ }
  currentProfile=p.data;
  if(!currentProfile){showRoleUI();setStatus("Miandry ny fankatoavan’ny Administration ity kaonty ity.",true);return}
- showRoleUI();await loadAllData();if(currentProfile.role==="admin"){await loadAccessRequests();await loadApprovedResponsibilities();}
+ showRoleUI();
+ try{await loadAllData()}
+ catch(e){
+  if(isNetworkFailure(e)&&restoreOfflineSnapshot(currentUser.id)){
+   showRoleUI();setStatus("Tsy afaka nifandray tamin’ny Supabase. Mampiasa ny tahiry farany voatahiry eto amin’ity fitaovana ity ianao; hitahiry eto an-toerana ny fanovana mandra-piverin’ny connexion.",false);updateOfflineStatus();return;
+  }
+  throw e;
+ }
+ if(currentProfile.role==="admin"&&navigator.onLine){await loadAccessRequests();await loadApprovedResponsibilities()}
  setStatus("Tafiditra: "+currentUser.email+" · Andraikitra: "+currentProfile.role+(currentProfile.andiany_id?" · "+groupCode(currentProfile.andiany_id):""));
+ updateOfflineStatus();
+ if(navigator.onLine)await syncPendingReports(false);
 }
 $("signUpBtn").addEventListener("click",async()=>{
  const email=$("loginEmail").value.trim();
