@@ -79,6 +79,16 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 .cite-toast.error{background:#fef2f2;color:#991b1b;border-color:#fca5a5}
 .cite-toast.warning{background:#fffbeb;color:#92400e;border-color:#fcd34d}
 .cite-toast.info{background:#eff6ff;color:#1d4ed8;border-color:#93c5fd}
+.s21-modal{position:fixed;inset:0;z-index:1200;background:#0f172a99;align-items:center;justify-content:center;padding:16px}
+.s21-modal-panel{width:min(1180px,calc(100vw - 32px));height:min(94vh,1100px);background:#f8fafc;border-radius:14px;box-shadow:0 18px 60px #02061766;display:flex;flex-direction:column;overflow:hidden}
+.s21-modal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#173b68;color:#fff}
+.s21-modal-header h2{margin:0;color:#fff;font-size:18px}
+.s21-modal-header p{margin:3px 0 0;color:#dbeafe;font-size:12px}
+.s21-modal-body{flex:1;min-height:0;padding:10px;background:#e2e8f0}
+#s21BundlePreviewFrame{display:block;width:100%;height:100%;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
+.s21-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-top:1px solid #dbe4f0}
+.s21-modal-footer p{margin:0;font-size:13px;color:#64748b}
+@media(max-width:700px){.s21-modal{padding:0}.s21-modal-panel{width:100vw;height:100vh;border-radius:0}.s21-modal-header h2{font-size:15px}.s21-modal-body{padding:4px}}
 </style>
 </head>
 <body class="public-view">
@@ -181,7 +191,8 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <h2>Firaketana isan-taona — olona iray</h2>
 <p class="hint">Safidio ny andiany sy ny olona iray, dia fenoy isam-bolana ny firaketana manomboka Septambra ka hatramin’ny Aogositra. Tehirizina ao amin’ny tahiry iombonana ny volana tsirairay.</p>
 <div class="grid"><div><label for="annualGroup">Andiany</label><select id="annualGroup"></select></div><div><label for="annualPerson">Anarana</label><select id="annualPerson"></select></div><div><label for="annualYear">Taom-panompoana</label><select id="annualYear"></select></div></div>
-<div class="toolbar"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" id="downloadAnnualPdf" class="secondary">Misintona PDF</button></div>
+<div class="toolbar"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" id="downloadAnnualPdf" class="secondary">Misintona PDF</button><button type="button" id="previewAnnualS21Bundle">Hijery S-21 rehetra</button></div>
+<p class="hint">Ny bokotra “Hijery S-21 rehetra” dia mamorona PDF mitambatra ho an’ny olona mavitrika ao amin’ny andiany sy taom-panompoana voafidy. Azonao jerena eto aloha ny pejy rehetra, dia vao misintona azy.</p>
 <div id="annualRecordStatus" class="notice" role="status" aria-live="polite" style="display:none"></div>
 <div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona, dia tsindrio “Asehoy ny firaketana”.</p></div>
 </section>
@@ -207,6 +218,19 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <p class="hint">Ny angona eto dia amin'ity navigateur ity ihany. Raha manova solosaina na navigateur ianao dia tsy hifindra ho azy ny tatitra. Ampiasao matetika ny “Misintona backup” ary tehirizo amin'ny toerana azo antoka ilay rakitra JSON.</p>
 </section>
 </main>
+<div id="s21BundleModal" class="s21-modal" role="dialog" aria-modal="true" aria-labelledby="s21BundleTitle" style="display:none">
+ <div class="s21-modal-panel">
+  <div class="s21-modal-header">
+   <div><h2 id="s21BundleTitle">Fijerena S-21</h2><p id="s21BundleSubtitle">Hamarino ny pejy rehetra alohan’ny hisintonana PDF.</p></div>
+   <button type="button" id="closeS21Bundle" class="secondary">Akatona ✕</button>
+  </div>
+  <div class="s21-modal-body"><iframe id="s21BundlePreviewFrame" title="Fijerena ny PDF S-21 rehetra"></iframe></div>
+  <div class="s21-modal-footer">
+   <p>Jereo ny anarana sy ny pejy rehetra. Rehefa vonona dia tsindrio “Télécharger PDF”.</p>
+   <div class="toolbar" style="margin:0"><button type="button" id="downloadS21Bundle">Télécharger PDF</button><button type="button" id="closeS21BundleBottom" class="secondary">Akatona</button></div>
+  </div>
+ </div>
+</div>
 <footer>CITE HUB — Dika andrana nohavaozina</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -968,9 +992,8 @@ async function saveAnnualRecord(){
  const entries=[];for(const tr of document.querySelectorAll("#annualRecordTable tbody tr")){const month=tr.dataset.month,part=tr.querySelector('[data-field="participation"]')?.value||"",hoursRaw=tr.querySelector('[data-field="hours"]')?.value??"",studiesRaw=tr.querySelector('[data-field="studies"]').value,note=tr.querySelector('[data-field="note"]').value.trim();if(person.sokajy==="Mpitory"&&!part){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Fenoy Eny/Tsia ny fandraisana anjara isaky ny volana ho an’ny Mpitory.";return}if(person.sokajy!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Fenoy ny ora (0–70) isaky ny volana ho an’ny Mpisavalalana.";return}if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Ampidiro isa 0 na mihoatra ny fampianarana Baiboly isaky ny volana.";return}entries.push({mpikambana_id:person.id,andiany_id:Number(person.andiany_id),volana:month+"-01",fandraisana_anjara:person.sokajy==="Mpitory"?(part==="Eny"):null,ora:person.sokajy==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note})}
  const {error}=await sbClient.from("tatitra").upsert(entries,{onConflict:"mpikambana_id,volana"});if(error){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy voatahiry: "+error.message;return}await loadAllData();configureAnnualRecord();renderAnnualRecord();$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Voatahiry ny firaketana isan-taona ho an’i "+person.anarana+".";
 }
-function downloadAnnualRecordPdf(){
- const person=roster.find(p=>String(p.id)===String($("annualPerson").value)),year=Number($("annualYear").value);if(!person){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Safidio aloha ny olona.";return}if(!window.jspdf?.jsPDF){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy afaka mamorona PDF. Jereo ny fifandraisana Internet.";return}
- const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});const pageW=210,left=8,right=202,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=10;
+function drawAnnualRecordPdfPage(doc,person,year){
+ const pageW=210,left=8,right=202,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=10;
  const text=(s,x,yy,size=8,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(s??""),x,yy)};
  const line=(x1,y1,x2,y2)=>{doc.setDrawColor(30,30,30);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
  const box=(x,yy,w,h,label,checked=false)=>{doc.setDrawColor(20,20,20);doc.rect(x,yy,w,h);if(checked){line(x+1,yy+1,x+w-1,yy+h-1);line(x+w-1,yy+1,x+1,yy+h-1)}if(label)text(label,x+w+1.5,yy+h-1,7)};
@@ -991,7 +1014,7 @@ function downloadAnnualRecordPdf(){
  const visibleRows=months.map(m=>{
   const saved=rows.find(x=>String(x.volana).slice(0,7)===m.month);
   const draft=drafts[reportDraftKey(personGroupCode,m.month)]?.members?.[String(person.id)];
-  const tr=document.querySelector('#annualRecordTable tbody tr[data-month="'+m.month+'"]');
+  const tr=String($("annualPerson").value)===String(person.id)?document.querySelector('#annualRecordTable tbody tr[data-month="'+m.month+'"]'):null;
   const studiesInput=tr?.querySelector('[data-field="studies"]')?.value;
   const hoursInput=tr?.querySelector('[data-field="hours"]')?.value;
   const partInput=tr?.querySelector('[data-field="participation"]')?.value;
@@ -1011,8 +1034,84 @@ function downloadAnnualRecordPdf(){
  drawRow(heads,true);
  for(const row of visibleRows){drawRow([row.month,row.part,String(row.studies),person.sokajy==="Mpisavalalana mpanampy"?"☑":"",row.hours||"",row.note||""])}
  doc.setFont("helvetica","bold");doc.setFontSize(7.5);for(let i=0;i<widths.length;i++){doc.setDrawColor(25,25,25);doc.rect(xs[i],y,widths[i],7)}text("Tontaliny",xs[0]+1,y+4.5,7.5,true);text(totalStudies,xs[2]+2,y+4.5,7.5,true);text(totalHours,xs[4]+2,y+4.5,7.5,true);
- text("S-21-MG 11/23",8,289,6);text("CITE HUB · Taom-panompoana "+year+"–"+(year+1),pageW-8,289,6,false);doc.save("S-21-MG-"+person.anarana.replace(/[^a-z0-9]+/gi,"-")+"-"+year+"-"+(year+1)+".pdf");
+ text("S-21-MG 11/23",8,289,6);text("CITE HUB · Taom-panompoana "+year+"–"+(year+1),pageW-8,289,6,false);
 }
+
+function s21SafeFilename(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"Andiany"}
+function downloadAnnualRecordPdf(){
+ const person=roster.find(p=>String(p.id)===String($("annualPerson").value)),year=Number($("annualYear").value);
+ if(!person){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Safidio aloha ny olona.";return}
+ if(!window.jspdf?.jsPDF){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy afaka mamorona PDF. Jereo ny fifandraisana Internet.";return}
+ const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+ drawAnnualRecordPdfPage(doc,person,year);
+ doc.save("S-21-MG-"+s21SafeFilename(person.anarana)+"-"+year+"-"+(year+1)+".pdf");
+}
+let activeS21BundleDoc=null,activeS21BundleUrl=null,activeS21BundleFilename="";
+async function previewAllAnnualS21(){
+ const groupValue=$("annualGroup").value,year=Number($("annualYear").value);
+ if(currentProfile?.role!=="admin"&&currentProfile?.role!=="responsable"){
+  const message="Mila miditra amin’ny kaonty nahazo alalana ianao vao afaka mijery ny S-21.";
+  $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"error");return;
+ }
+ if(!year||!Number.isFinite(year)){
+  const message="Safidio aloha ny taom-panompoana.";
+  $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"warning");return;
+ }
+ if(!window.jspdf?.jsPDF){
+  const message="Tsy afaka mamorona PDF. Hamarino ny fifandraisana Internet.";
+  $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"error");return;
+ }
+ const members=roster.filter(p=>groupValue==="all"||String(p.andiany_id)===String(groupValue));
+ if(!members.length){
+  const message="Tsy misy olona mavitrika azo anaovana S-21 amin’ity safidy ity.";
+  $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"warning");return;
+ }
+ const groupLabel=groupValue==="all"?"Andiany rehetra":(groups.find(g=>String(g.id)===String(groupValue))?.kaody||"Andiany voafidy");
+ const button=$("previewAnnualS21Bundle");button.disabled=true;button.textContent="Mamokatra PDF...";
+ try{
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  for(let i=0;i<members.length;i++){
+   if(i>0)doc.addPage();
+   drawAnnualRecordPdfPage(doc,members[i],year);
+   if(i>0&&i%12===0)await new Promise(resolve=>window.setTimeout(resolve,0));
+  }
+  if(activeS21BundleUrl){URL.revokeObjectURL(activeS21BundleUrl);activeS21BundleUrl=null;}
+  activeS21BundleDoc=doc;
+  activeS21BundleFilename="S-21-MG-"+s21SafeFilename(groupLabel)+"-"+year+"-"+(year+1)+".pdf";
+  const blob=doc.output("blob");
+  activeS21BundleUrl=URL.createObjectURL(blob);
+  $("s21BundleTitle").textContent="Fijerena S-21 — "+groupLabel;
+  $("s21BundleSubtitle").textContent=members.length+" olona · Taom-panompoana "+year+"–"+(year+1)+" · Pejy "+doc.getNumberOfPages();
+  $("s21BundlePreviewFrame").src=activeS21BundleUrl;
+  $("s21BundleModal").style.display="flex";
+  document.body.style.overflow="hidden";
+  const message="Vita ny fanomanana S-21 "+members.length+" olona. Hamarino eto aloha ny pejy rehetra.";
+  $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;
+ }catch(error){
+  const message="Tsy afaka nanomana ny PDF S-21: "+(error?.message||String(error));
+  $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"error");
+ }finally{
+  button.disabled=false;button.textContent="Hijery S-21 rehetra";
+ }
+}
+function closeS21BundlePreview(){
+ $("s21BundleModal").style.display="none";
+ $("s21BundlePreviewFrame").src="about:blank";
+ document.body.style.overflow="";
+ if(activeS21BundleUrl){URL.revokeObjectURL(activeS21BundleUrl);activeS21BundleUrl=null;}
+ activeS21BundleDoc=null;activeS21BundleFilename="";
+}
+function downloadPreviewedS21Bundle(){
+ if(!activeS21BundleDoc){showCiteToast("Mamoròna sy jereo aloha ny S-21 rehetra vao misintona.", "warning");return;}
+ activeS21BundleDoc.save(activeS21BundleFilename);
+}
+$("previewAnnualS21Bundle").addEventListener("click",previewAllAnnualS21);
+$("downloadS21Bundle").addEventListener("click",downloadPreviewedS21Bundle);
+$("closeS21Bundle").addEventListener("click",closeS21BundlePreview);
+$("closeS21BundleBottom").addEventListener("click",closeS21BundlePreview);
+$("s21BundleModal").addEventListener("click",event=>{if(event.target===$("s21BundleModal"))closeS21BundlePreview()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&$("s21BundleModal").style.display==="flex")closeS21BundlePreview()});
+
 $("loadAnnualRecord").addEventListener("click",renderAnnualRecord);$("saveAnnualRecord").addEventListener("click",saveAnnualRecord);$("downloadAnnualPdf").addEventListener("click",downloadAnnualRecordPdf);
 async function boot(){
  $("filterMonth").value=new Date().toISOString().slice(0,7);
