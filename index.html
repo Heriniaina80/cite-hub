@@ -159,8 +159,11 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <strong style="display:block;color:#173b68;margin-bottom:7px">Andraikitra haseho ao amin’ny S-21</strong>
 <label style="display:flex;align-items:center;gap:9px;font-weight:400;margin:8px 0"><input id="profileElder" type="checkbox" style="width:auto;margin:0"> Anti-panahy</label>
 <label style="display:flex;align-items:center;gap:9px;font-weight:400;margin:8px 0"><input id="profileMinisterialServant" type="checkbox" style="width:auto;margin:0"> Mpikarakara fiangonana</label>
-<p class="hint" style="margin:8px 0 0">Safidio araka ny andraikitra tena ananan’ilay olona. Tsy midika ho Anti-panahy na Mpikarakara fiangonana ny maha-lahy fotsiny; raha tsy misy amin’ireo dia avela tsy voamarika izy roa.</p>
-<div id="s21RoleColumnsNotice" class="notice" style="display:none;margin-top:10px">Mba hitahirizana ireo safidy ireo dia mila ampiana tsanganana roa ao amin’ny Supabase. Jereo ny toromarika omena miaraka amin’ity fanavaozana ity. Azo ampiasaina ihany ny CITE HUB mandra-panaovana izany.</div>
+<label style="display:flex;align-items:center;gap:9px;font-weight:400;margin:8px 0"><input id="profileRegularPioneer" type="checkbox" style="width:auto;margin:0"> Mpisava lalana maharitra</label>
+<label style="display:flex;align-items:center;gap:9px;font-weight:400;margin:8px 0"><input id="profileSpecialPioneer" type="checkbox" style="width:auto;margin:0"> Mpisava lalana manokana</label>
+<label style="display:flex;align-items:center;gap:9px;font-weight:400;margin:8px 0"><input id="profileMissionary" type="checkbox" style="width:auto;margin:0"> Misionera eny amin’ny saha</label>
+<p class="hint" style="margin:8px 0 0">Safidio araka ny andraikitra tena ananan’ilay olona. Tsy miankina amin’ny maha-lahy na maha-vavy ireo safidy ireo. Raha tsy manana andraikitra iray ilay olona dia avela tsy voamarika ilay efajoro.</p>
+<div id="s21RoleColumnsNotice" class="notice" style="display:none;margin-top:10px">Mba hitahirizana ireo safidy dimy ireo dia mila misy tsanganana dimy ao amin’ny Supabase. Jereo ny toromarika SQL eto amin’ny resaka. Azo ampiasaina ihany ny CITE HUB mandra-panaovana izany.</div>
 </div>
 <div style="margin-top:12px"><label for="profileNotes">Fanazavana hafa ho an’ny S-21</label><textarea id="profileNotes" rows="3" placeholder="Fanazavana fanampiny (tsy voatery)"></textarea></div>
 <div class="toolbar"><button type="button" id="saveProfileRole">Tehirizo ny fanovana</button><button type="button" class="secondary" id="cancelProfileRole">Aoka ihany</button></div>
@@ -383,7 +386,7 @@ function groupCode(id){return groups.find(g=>String(g.id)===String(id))?.kaody||
 function groupId(code){return groups.find(g=>g.kaody===code)?.id}
 function canSeeGroup(code){return currentProfile?.role==="admin" || (currentProfile?.role==="responsable" && String(currentProfile.andiany_id)===String(groupId(code)))}
 function visibleGroups(){return currentProfile?.role==="admin"?groups:groups.filter(g=>String(g.id)===String(currentProfile?.andiany_id))}
-function getRoster(){return roster.map(p=>({andiany:groupCode(p.andiany_id),anarana:p.anarana,sokajy:p.sokajy||"Mpitory",id:p.id,andiany_id:p.andiany_id,daty_nahaterahana:p.daty_nahaterahana||"",daty_batisa:p.daty_batisa||"",lahy_vavy:p.lahy_vavy||"",sata_fanompoana:p.sata_fanompoana||"",anti_panahy:p.anti_panahy===true,mpikarakara_fiangonana:p.mpikarakara_fiangonana===true,fanazavana_s21:p.fanazavana_s21||""}));}
+function getRoster(){return roster.map(p=>({andiany:groupCode(p.andiany_id),anarana:p.anarana,sokajy:p.sokajy||"Mpitory",id:p.id,andiany_id:p.andiany_id,daty_nahaterahana:p.daty_nahaterahana||"",daty_batisa:p.daty_batisa||"",lahy_vavy:p.lahy_vavy||"",sata_fanompoana:p.sata_fanompoana||"",anti_panahy:p.anti_panahy===true,mpikarakara_fiangonana:p.mpikarakara_fiangonana===true,mpisava_lalana_maharitra:p.mpisava_lalana_maharitra===true,mpisava_lalana_manokana:p.mpisava_lalana_manokana===true,misionera_eny_an_saha:p.misionera_eny_an_saha===true,fanazavana_s21:p.fanazavana_s21||""}));}
 function peopleForGroup(group){return getRoster().filter(p=>group==="all"||String(p.andiany_id)===String(group)||normalizeGroupCode(p.andiany)===normalizeGroupCode(group)).sort((a,b)=>roleRank(a.sokajy)-roleRank(b.sokajy)||a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}))}
 function getReports(){return reports}
 function setOptions(id,items,allLabel){const el=$(id);el.innerHTML=(allLabel?'<option value="all">'+allLabel+'</option>':'<option value="">-- Safidio ny andiany --</option>')+items.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join('')}
@@ -394,16 +397,17 @@ function configureGroups(){
 async function loadAllData(){
  const g=await sbClient.from("andiany").select("id,kaody,anarana").order("id");
  if(g.error)throw g.error;groups=(g.data||[]).sort((a,b)=>String(a.kaody).localeCompare(String(b.kaody),"fr",{numeric:true}));
- let m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika,daty_nahaterahana,daty_batisa,lahy_vavy,sata_fanompoana,fanazavana_s21,anti_panahy,mpikarakara_fiangonana").order("anarana");
+ let m=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika,daty_nahaterahana,daty_batisa,lahy_vavy,sata_fanompoana,fanazavana_s21,anti_panahy,mpikarakara_fiangonana,mpisava_lalana_maharitra,mpisava_lalana_manokana,misionera_eny_an_saha").order("anarana");
  if(m.error){
-  const roleColumnError=/anti_panahy|mpikarakara_fiangonana|column .* does not exist|schema cache/i.test(m.error.message||"");
+  const roleColumnError=/anti_panahy|mpikarakara_fiangonana|mpisava_lalana_maharitra|mpisava_lalana_manokana|misionera_eny_an_saha|column .* does not exist|schema cache/i.test(m.error.message||"");
   if(!roleColumnError)throw m.error;
   const legacy=await sbClient.from("mpikambana").select("id,anarana,andiany_id,sokajy,mavitrika,daty_nahaterahana,daty_batisa,lahy_vavy,sata_fanompoana,fanazavana_s21").order("anarana");
   if(legacy.error)throw legacy.error;
   m=legacy;s21RoleColumnsReady=false;
  }else s21RoleColumnsReady=true;
- roster=(m.data||[]).map(p=>({...p,anti_panahy:p.anti_panahy===true,mpikarakara_fiangonana:p.mpikarakara_fiangonana===true})).filter(p=>p.mavitrika===true);
- inactiveRoster=(m.data||[]).map(p=>({...p,anti_panahy:p.anti_panahy===true,mpikarakara_fiangonana:p.mpikarakara_fiangonana===true})).filter(p=>p.mavitrika===false);
+ const withS21Roles=(p)=>({...p,anti_panahy:p.anti_panahy===true,mpikarakara_fiangonana:p.mpikarakara_fiangonana===true,mpisava_lalana_maharitra:p.mpisava_lalana_maharitra===true,mpisava_lalana_manokana:p.mpisava_lalana_manokana===true,misionera_eny_an_saha:p.misionera_eny_an_saha===true});
+ roster=(m.data||[]).map(withS21Roles).filter(p=>p.mavitrika===true);
+ inactiveRoster=(m.data||[]).map(withS21Roles).filter(p=>p.mavitrika===false);
  const r=await sbClient.from("tatitra").select("id,mpikambana_id,andiany_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
  if(r.error)throw r.error;
  reports=(r.data||[]).map(x=>({id:x.id,mpikambana_id:x.mpikambana_id,andiany:groupCode(x.andiany_id??x.mpikambana?.andiany_id),andiany_id:x.andiany_id??x.mpikambana?.andiany_id,volana:x.volana?.slice(0,7),anarana:x.mpikambana?.anarana||"",sokajy:x.mpikambana?.sokajy||"",fandraisana_anjara:x.fandraisana_anjara===true?"Eny":x.fandraisana_anjara===false?"Tsia":"",ora:x.ora,fampianarana_baiboly:x.fampianarana_baiboly??0,fanamarihana:x.fanamarihana||"",created_at:x.created_at}));
@@ -688,7 +692,7 @@ function renderPersonProfile(){
  const group=$("manageGroup").value,personId=$("profilePerson").value;
  const p=peopleForGroup(group).find(x=>String(x.id)===String(personId));
  if(!p){$("profileDetails").style.display="none";return}
- $("profileDetails").style.display="block";$("profileName").textContent="Mombamomba: "+p.anarana+" — "+p.andiany;$("profileNewName").value=p.anarana;$("profileCurrent").textContent=p.sokajy;$("profileNewRole").value=p.sokajy;$("profileBirthDate").value=p.daty_nahaterahana||"";$("profileBaptismDate").value=p.daty_batisa||"";$("profileGender").value=p.lahy_vavy||"";$("profileServiceStatus").value=p.sata_fanompoana||"";$("profileElder").checked=p.anti_panahy===true;$("profileMinisterialServant").checked=p.mpikarakara_fiangonana===true;$("profileNotes").value=p.fanazavana_s21||"";
+ $("profileDetails").style.display="block";$("profileName").textContent="Mombamomba: "+p.anarana+" — "+p.andiany;$("profileNewName").value=p.anarana;$("profileCurrent").textContent=p.sokajy;$("profileNewRole").value=p.sokajy;$("profileBirthDate").value=p.daty_nahaterahana||"";$("profileBaptismDate").value=p.daty_batisa||"";$("profileGender").value=p.lahy_vavy||"";$("profileServiceStatus").value=p.sata_fanompoana||"";$("profileElder").checked=p.anti_panahy===true;$("profileMinisterialServant").checked=p.mpikarakara_fiangonana===true;$("profileRegularPioneer").checked=p.mpisava_lalana_maharitra===true;$("profileSpecialPioneer").checked=p.mpisava_lalana_manokana===true;$("profileMissionary").checked=p.misionera_eny_an_saha===true;$("profileNotes").value=p.fanazavana_s21||"";
  const roleNotice=document.getElementById("s21RoleColumnsNotice");
  if(roleNotice)roleNotice.style.display=s21RoleColumnsReady?"none":"block";
  const target=$("profileNewGroup");if(target)target.value=String(p.andiany_id);
@@ -709,7 +713,7 @@ async function saveProfileRole(){
   if(!proceed)return;
  }
  const patch={anarana:newName,sokajy:newRole,daty_nahaterahana:$("profileBirthDate").value||null,daty_batisa:$("profileBaptismDate").value||null,lahy_vavy:$("profileGender").value||null,sata_fanompoana:$("profileServiceStatus").value||null,fanazavana_s21:$("profileNotes").value.trim()||null};
- if(s21RoleColumnsReady){patch.anti_panahy=$("profileElder").checked;patch.mpikarakara_fiangonana=$("profileMinisterialServant").checked}
+ if(s21RoleColumnsReady){patch.anti_panahy=$("profileElder").checked;patch.mpikarakara_fiangonana=$("profileMinisterialServant").checked;patch.mpisava_lalana_maharitra=$("profileRegularPioneer").checked;patch.mpisava_lalana_manokana=$("profileSpecialPioneer").checked;patch.misionera_eny_an_saha=$("profileMissionary").checked}
  if(targetGroupId&&String(targetGroupId)!==String(p.andiany_id))patch.andiany_id=Number(targetGroupId);
  const {error}=await sbClient.from("mpikambana").update(patch).eq("id",p.id);
  if(error){setStatus("Tsy voatahiry ny fanovana ny mombamomba ny olona: "+error.message,true);return}
@@ -947,9 +951,15 @@ function downloadAnnualRecordPdf(){
  const formatDateDMY=value=>{if(!value)return "";const match=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return match?match[3]+"-"+match[2]+"-"+match[1]:String(value)};
  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(20,20,20);doc.text("FIRAKETANA NY FANOMPOAN’NY MPITORIN’NY FIANGONANA",pageW/2,10,{align:"center"});y=18;text("Anarana:",8,y,8,true);line(25,y+1,202,y+1);text(person.anarana,27,y,8);y+=7;text("Daty nahaterahana:",8,y,8,true);line(36,y+1,82,y+1);text(formatDateDMY(person.daty_nahaterahana),38,y,7);text("Lahy",132,y,7);box(125,y-3,3,3, "",person.lahy_vavy==="Lahy");text("Vavy",164,y,7);box(156,y-3,3,3,"",person.lahy_vavy==="Vavy");y+=7;text("Datin’ny batisa:",8,y,8,true);line(32,y+1,78,y+1);text(formatDateDMY(person.daty_batisa),34,y,7);text("Ondry hafa",132,y,7);box(121,y-3,3,3);text("Voahosotra",164,y,7);box(153,y-3,3,3);y+=6;
  // Tsy aseho amin’ny taratasy PDF ny saha Fanazavana; mijanona ao amin’ny mombamomba ny olona ny angona.
- const roleLabels=["Anti-panahy","Mpikarakara fiangonana","Mpisava lalana maharitra","Mpisava lalana manokana","Misionera eny amin’ny saha"];
- const roleSlot=(right-left)/roleLabels.length;
- roleLabels.forEach((label,i)=>{const x=left+i*roleSlot;const checked=label==="Anti-panahy"?person.anti_panahy===true:label==="Mpikarakara fiangonana"?person.mpikarakara_fiangonana===true:false;box(x,y-3,3,3,"",checked);text(label,x+4.5,y,6.5)});y+=6;
+ const roleRows=[
+  [{label:"Anti-panahy",checked:person.anti_panahy===true},{label:"Mpikarakara fiangonana",checked:person.mpikarakara_fiangonana===true},{label:"Mpisava lalana maharitra",checked:person.mpisava_lalana_maharitra===true}],
+  [{label:"Mpisava lalana manokana",checked:person.mpisava_lalana_manokana===true},{label:"Misionera eny amin’ny saha",checked:person.misionera_eny_an_saha===true}]
+ ];
+ roleRows.forEach((row,rowIndex)=>{
+  const slot=(right-left)/row.length;
+  row.forEach((item,i)=>{const x=left+i*slot;box(x,y-3,3,3,"",item.checked);text(item.label,x+4.5,y,6.2)});
+  y+=5.5;
+ });
  const widths=[28,25,28,29,31,53],heads=["Taom-panompoana","Nandray anjara tamin’ny fanompoana","Fampianarana Baiboly","Mpisava lalana mpanampy","Ora (raha mpisava lalana na misionera eny amin’ny saha)","Fanamarihana"];const xs=[left];for(const w of widths)xs.push(xs[xs.length-1]+w);
  const drawRow=(vals,isHeader=false)=>{const size=isHeader?6.2:7.2,wraps=vals.map((v,i)=>doc.splitTextToSize(String(v??""),widths[i]-2)),h=isHeader?18:7;let x=left;wraps.forEach((arr,i)=>{doc.setDrawColor(25,25,25);if(isHeader){doc.setFillColor(245,245,245);doc.rect(x,y,widths[i],h,"FD")}else doc.rect(x,y,widths[i],h);doc.setFont("helvetica",isHeader?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);const maxLines=isHeader?Math.min(arr.length,4):1;doc.text(arr.slice(0,maxLines),x+1,y+(isHeader?4:4.5));x+=widths[i]});y+=h};
  const visibleRows=months.map(m=>{
