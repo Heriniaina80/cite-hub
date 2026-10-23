@@ -145,7 +145,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 </section>
 <section class="card" id="fangatahana" style="display:none"><h2>Fangatahana fidirana</h2><p class="hint">Ireo kaonty vao nisoratra anarana nefa mbola miandry fankatoavana. Omeo andraikitra sy andiany vao afaka mampiditra tatitra izy ireo.</p><div id="accessRequests" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="accessRequestStatus" role="status" aria-live="polite"></div>
 </section>
-<section class="card" id="tomponandraikitra" style="display:none"><h2>Tompon’andraikitra nekena isaky ny andiany</h2><p class="hint">Ireo kaonty manana andraikitra “responsable” sy nekena hampiasa ny CITE HUB. Azonao ovaina eto ny andiany iandraiketany, na esorina ny andraikiny nefa tsy mamafa ny kaontiny na ny tatitra taloha.</p><div id="approvedResponsibilities" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="approvedResponsibilityStatus" role="status" aria-live="polite"></div></section>
+<section class="card" id="tomponandraikitra" style="display:none"><h2>Fitantanana ny kaonty sy andraikitra</h2><p class="hint">Hita eto ny Admin sy ny tompon’andraikitra nekena. Azonao ovaina ny andraikiny: raha tendrena ho Admin ny tompon’andraikitra iray dia hahita sy hitantana ny andiany rehetra ary ny fankatoavana kaonty izy. Admin ihany no afaka manova izany; voatahiry foana ny kaonty sy ny tatitra. Aza esorina ny Admin farany.</p><div id="approvedResponsibilities" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="approvedResponsibilityStatus" role="status" aria-live="polite"></div></section>
 <section class="card" id="fitantanana">
 <h2>Fitantanana ny lisitry ny olona sy ny andiany</h2>
 <p>Ampio andiany vaovao rehefa mitombo ny isan’ny andiany, ampio olona vaovao, ary ovay ny sokajy na ny andiany misy azy. Mariho fa mety hiova ny andiany aseho amin’ny tatitra taloha rehefa afindra ny mpikambana, satria mifandray amin’ny mombamomba azy ireo tatitra.</p>
@@ -521,37 +521,64 @@ async function loadAccessRequests(){
 async function loadApprovedResponsibilities(){
  if(currentProfile?.role!=="admin")return;
  const host=$("approvedResponsibilities");
- host.innerHTML='<p class="hint">Eo am-pakana ireo tompon’andraikitra nekena...</p>';
- const {data,error}=await sbClient.from("profils_acces").select("user_id,email,role,andiany_id,created_at").eq("role","responsable").order("created_at",{ascending:true});
- if(error){host.innerHTML='<p class="hint">Tsy afaka namaky ny tompon’andraikitra nekena: '+esc(error.message)+'</p>';return}
- if(!data?.length){host.innerHTML='<p class="hint">Mbola tsy misy tompon’andraikitra nekena.</p>';return}
- host.innerHTML='<table><thead><tr><th>Kaonty (mailaka)</th><th>Andiany iandraiketana</th><th>Hetsika</th></tr></thead><tbody>'+data.map(p=>'<tr data-approved-user-id="'+esc(p.user_id)+'"><td>'+esc(p.email||p.user_id)+'</td><td><select class="approved-team" aria-label="Andiany iandraiketan’ny kaonty">'+groups.map(g=>'<option value="'+esc(g.id)+'"'+(String(g.id)===String(p.andiany_id)?' selected':'')+'>'+esc(g.kaody+' — '+g.anarana)+'</option>').join('')+'</select></td><td><div class="toolbar" style="margin:0"><button type="button" data-save-responsibility>Tehirizo ny fanovana</button><button type="button" class="danger" data-revoke-responsibility>Esory ny andraikitra</button></div></td></tr>').join('')+'</tbody></table>';
+ host.innerHTML='<p class="hint">Eo am-pakana ny Admin sy ireo tompon’andraikitra nekena...</p>';
+ const {data,error}=await sbClient.from("profils_acces").select("user_id,email,role,andiany_id,created_at").in("role",["responsable","admin"]).order("created_at",{ascending:true});
+ if(error){host.innerHTML='<p class="hint">Tsy afaka namaky ny kaonty sy andraikitra: '+esc(error.message)+'</p>';return}
+ if(!data?.length){host.innerHTML='<p class="hint">Mbola tsy misy Admin na tompon’andraikitra nekena.</p>';return}
+ host.innerHTML='<table><thead><tr><th>Kaonty (mailaka)</th><th>Andraikitra</th><th>Andiany iandraiketana</th><th>Hetsika</th></tr></thead><tbody>'+data.map(p=>'<tr data-approved-user-id="'+esc(p.user_id)+'" data-current-role="'+esc(p.role)+'"><td>'+esc(p.email||p.user_id)+'</td><td><select class="approved-role" aria-label="Andraikitry ny kaonty"><option value="responsable"'+(p.role==="responsable"?" selected":"")+'>Tompon’andraikitra</option><option value="admin"'+(p.role==="admin"?" selected":"")+'>Admin</option></select></td><td><select class="approved-team" aria-label="Andiany iandraiketan’ny kaonty"'+(p.role==="admin"?" disabled":"")+'><option value=""'+(!p.andiany_id?' selected':'')+'>— Andiany rehetra (Admin) / Safidio ny andiany —</option>'+groups.map(g=>'<option value="'+esc(g.id)+'"'+(String(g.id)===String(p.andiany_id)?' selected':'')+'>'+esc(g.kaody+' — '+g.anarana)+'</option>').join('')+'</select></td><td><div class="toolbar" style="margin:0"><button type="button" data-save-responsibility>Tehirizo ny fanovana</button><button type="button" class="danger" data-revoke-responsibility>Esory ny andraikitra</button></div></td></tr>').join('')+'</tbody></table>';
 }
-async function saveResponsibilityAssignment(userId,groupIdValue){
+async function saveResponsibilityAssignment(userId,roleValue,groupIdValue){
  if(currentProfile?.role!=="admin"){setStatus("Administration ihany no afaka manova andraikitra.",true);return}
- const status=$("approvedResponsibilityStatus"),nextGroup=Number(groupIdValue);
- if(!groupIdValue||!Number.isFinite(nextGroup)){status.textContent="Safidio aloha ny andiany.";status.style.color="#b91c1c";return}
- const {error}=await sbClient.from("profils_acces").update({andiany_id:nextGroup}).eq("user_id",userId).eq("role","responsable");
- if(error){status.textContent="Tsy voatahiry ny andiany iandraiketana: "+error.message;status.style.color="#b91c1c";return}
- const assigned=groups.find(g=>String(g.id)===String(nextGroup));
- status.textContent="Voatahiry ny fanovana. Andiany iandraiketana vaovao: "+(assigned?assigned.kaody+" — "+assigned.anarana:"");status.style.color="#166534";
+ const status=$("approvedResponsibilityStatus");
+ const row=$("approvedResponsibilities").querySelector('tr[data-approved-user-id="'+CSS.escape(userId)+'"]');
+ if(!row){status.textContent="Tsy hita ilay kaonty.";status.style.color="#b91c1c";return}
+ const nextRole=roleValue==="admin"?"admin":"responsable";
+ const oldRole=row.dataset.currentRole||"responsable";
+ if(String(userId)===String(currentUser?.id)&&nextRole!=="admin"){
+  status.textContent="Tsy azo esorina eto ny andraikitra Admin amin’ny kaontinao ankehitriny, mba hisorohana ny fahaverezan’ny fidirana amin’ny Administration.";status.style.color="#b91c1c";showCiteToast(status.textContent,"warning");return
+ }
+ if(nextRole==="responsable"){
+  const nextGroup=Number(groupIdValue);
+  if(!groupIdValue||!Number.isFinite(nextGroup)){status.textContent="Safidio aloha ny andiany homena ilay tompon’andraikitra.";status.style.color="#b91c1c";return}
+ }
+ if(nextRole==="admin"&&oldRole!=="admin"){
+  const ok=window.confirm("Tendrena ho Admin ve ity kaonty ity?\n\n"+(row.cells[0]?.textContent||userId)+"\n\nAfaka mahita ny andiany rehetra izy, manova ny lisitra, ary mankato na manaisotra andraikitra amin’ny kaonty hafa.");
+  if(!ok)return
+ }
+ const patch=nextRole==="admin"?{role:"admin",andiany_id:null}:{role:"responsable",andiany_id:Number(groupIdValue)};
+ const {error}=await sbClient.from("profils_acces").update(patch).eq("user_id",userId).in("role",["responsable","admin"]);
+ if(error){status.textContent="Tsy voatahiry ny fanovana andraikitra: "+error.message;status.style.color="#b91c1c";showCiteToast(status.textContent,"error");return}
+ const assigned=groups.find(g=>String(g.id)===String(groupIdValue));
+ status.textContent=nextRole==="admin"?"Vita: nomena andraikitra Admin ny kaonty. Afaka mitantana ny andiany rehetra izy.":"Vita: Tompon’andraikitra amin’ny "+(assigned?assigned.kaody+" — "+assigned.anarana:"andiany voafidy")+" ilay kaonty.";
+ status.style.color="#166534";showCiteToast(status.textContent,"success");
  await loadApprovedResponsibilities();
 }
 async function revokeResponsibility(userId){
  if(currentProfile?.role!=="admin"){setStatus("Administration ihany no afaka manaisotra andraikitra.",true);return}
+ if(String(userId)===String(currentUser?.id)){const msg="Tsy azo esorina ny andraikitra Admin amin’ny kaonty ampiasainao izao, mba tsy ho very ny fidiran’ny Administration.";showCiteToast(msg,"warning");$("approvedResponsibilityStatus").textContent=msg;$("approvedResponsibilityStatus").style.color="#b91c1c";return}
  const row=$("approvedResponsibilities").querySelector('tr[data-approved-user-id="'+CSS.escape(userId)+'"]');
  const account=row?.cells?.[0]?.textContent||userId;
- const ok=window.confirm("Esorina amin’ny andraikitra tompon’andraikitra ve ity kaonty ity?\n\n"+account+"\n\nTsy ho voafafa ny kaonty na ny tatitra. Haverina ho “miandry fankatoavana” ilay kaonty ary tsy hanana andraikitra iandraiketana intsony mandra-pankatoavana azy indray.");
+ const role=row?.querySelector(".approved-role")?.value||row?.dataset.currentRole||"responsable";
+ const ok=window.confirm("Esorina ny andraikitra "+(role==="admin"?"Admin":"Tompon’andraikitra")+" amin’ity kaonty ity ve?\n\n"+account+"\n\nTsy ho voafafa ny kaonty na ny tatitra. Haverina ho “miandry fankatoavana” ilay kaonty.");
  if(!ok)return;
  const status=$("approvedResponsibilityStatus");
- const {error}=await sbClient.from("profils_acces").update({role:"attente",andiany_id:null}).eq("user_id",userId).eq("role","responsable");
- if(error){status.textContent="Tsy nesorina ny andraikitra: "+error.message;status.style.color="#b91c1c";return}
- status.textContent="Nesorina ny andraikitra. Voatahiry ny kaonty ary naverina ho miandry fankatoavana.";status.style.color="#166534";
+ const {error}=await sbClient.from("profils_acces").update({role:"attente",andiany_id:null}).eq("user_id",userId).in("role",["responsable","admin"]);
+ if(error){status.textContent="Tsy nesorina ny andraikitra: "+error.message;status.style.color="#b91c1c";showCiteToast(status.textContent,"error");return}
+ status.textContent="Nesorina ny andraikitra. Voatahiry ny kaonty sy ny tatitra ary naverina ho miandry fankatoavana.";status.style.color="#166534";showCiteToast(status.textContent,"success");
  await loadApprovedResponsibilities();await loadAccessRequests();
 }
+$("approvedResponsibilities").addEventListener("change",event=>{
+ const row=event.target.closest("tr[data-approved-user-id]");if(!row)return;
+ if(event.target.matches(".approved-role")){
+  const team=row.querySelector(".approved-team"),isAdmin=event.target.value==="admin";
+  team.disabled=isAdmin;
+  if(isAdmin)team.value="";
+  else if(!team.value&&team.options.length>1)team.selectedIndex=1;
+ }
+});
 $("approvedResponsibilities").addEventListener("click",event=>{
  const row=event.target.closest("tr[data-approved-user-id]");if(!row)return;
- if(event.target.closest("[data-save-responsibility]"))saveResponsibilityAssignment(row.dataset.approvedUserId,row.querySelector(".approved-team").value);
+ if(event.target.closest("[data-save-responsibility]"))saveResponsibilityAssignment(row.dataset.approvedUserId,row.querySelector(".approved-role").value,row.querySelector(".approved-team").value);
  if(event.target.closest("[data-revoke-responsibility]"))revokeResponsibility(row.dataset.approvedUserId);
 });
 async function handleAccessRequest(userId,approve,groupIdValue){
