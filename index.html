@@ -90,16 +90,16 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div class="landing-feature"><strong>Firaketana isan-taona</strong><span>Jereo ny fandraisana anjara sy ny ora mandritra ny taom-panompoana.</span></div>
 <div class="landing-feature"><strong>Tahiry iombonana</strong><span>Ny angona dia tehirizina araka ny fahazoan-dalana nomena ny kaontinao.</span></div>
 </div>
-<div class="landing-actions"><a class="landing-link" href="#fidirana-kaonty">Hiditra na hisoratra anarana ↓</a><p class="hint">Raha vao sambany ianao no mampiasa azy dia mamoròna kaonty aloha.</p></div>
+<div class="landing-actions"><button type="button" class="landing-link" id="landingLoginBtn">Hiditra</button><button type="button" class="secondary" id="landingSignUpBtn">Hisoratra anarana</button></div>
 </section>
-<section class="card" id="fidirana-kaonty">
+<section class="card" id="fidirana-kaonty" style="display:none">
 <h2>Mamorona kaonty na miditra</h2>
-<p class="hint">Raha mbola tsy manana kaonty CITE HUB ianao, fenoy ny adiresy mailaka sy tenimiafina dia tsindrio “Hisoratra anarana”. Raha efa manana kaonty ianao dia tsindrio “Hiditra”. Tsy mitovy amin’ny tenimiafina Gmail-nao ny tenimiafina CITE HUB.</p>
+<p class="hint">Tsy mitovy amin’ny tenimiafina Gmail-nao ny tenimiafina CITE HUB.</p>
 <div class="grid">
 <div><label for="loginEmail">Adiresy Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="anarana@gmail.com"></div>
 <div><label for="loginPassword">Tenimiafina CITE HUB</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tenimiafina"></div>
 </div>
-<div class="toolbar"><button id="emailLogin" type="button">Hiditra</button><button id="signUpBtn" class="secondary" type="button">Hisoratra anarana</button><button id="forgotPasswordBtn" class="secondary" type="button">Adinoko ny tenimiafina</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin’ny Supabase ny lisitra N°01–N°06</button></div>
+<div class="toolbar"><button id="emailLogin" type="button" style="display:none">Hiditra</button><button id="signUpBtn" class="secondary" type="button" style="display:none">Hisoratra anarana</button><button id="switchAuthModeBtn" class="secondary" type="button" style="display:none">Hisafidy fomba hafa</button><button id="backToLandingBtn" class="secondary" type="button" style="display:none">← Hiverina any amin’ny fandraisana</button><button id="forgotPasswordBtn" class="secondary" type="button" style="display:none">Adinoko ny tenimiafina</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button><button id="syncRosterBtn" type="button" style="display:none">Ampidiro ao amin’ny Supabase ny lisitra N°01–N°06</button></div>
 <div id="resetPasswordBox" class="notice" style="display:none">
 <h3>Fanovana tenimiafina</h3>
 <p class="hint">Ampidiro ny tenimiafina vaovao ho an’ny CITE HUB.</p>
@@ -200,6 +200,7 @@ const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 const roleOrder = {"Mpitory":0,"Mpanampy":1,"Mpisava lalana maharitra":2};
 let currentUser = null, currentProfile = null, groups = [], roster = [], inactiveRoster = [], reports = [];
+let authMode = null;
 
 function userStoreKey(kind,userId=currentUser?.id){return userId?("cite-hub-"+kind+"-v1:"+userId):null}
 function readUserStore(kind,fallback={},userId=currentUser?.id){
@@ -391,22 +392,45 @@ async function loadAllData(){
  reports=(r.data||[]).map(x=>({id:x.id,mpikambana_id:x.mpikambana_id,andiany:groupCode(x.andiany_id??x.mpikambana?.andiany_id),andiany_id:x.andiany_id??x.mpikambana?.andiany_id,volana:x.volana?.slice(0,7),anarana:x.mpikambana?.anarana||"",sokajy:x.mpikambana?.sokajy||"",fandraisana_anjara:x.fandraisana_anjara===true?"Eny":x.fandraisana_anjara===false?"Tsia":"",ora:x.ora,fampianarana_baiboly:x.fampianarana_baiboly??0,fanamarihana:x.fanamarihana||"",created_at:x.created_at}));
  mergePendingReports();configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();if(typeof configureAnnualRecord==="function")configureAnnualRecord();saveOfflineSnapshot();updateOfflineStatus();
 }
+function showAuthForm(mode){
+ authMode=mode==="signup"?"signup":"login";
+ $("publicLanding").style.display="none";
+ $("fidirana-kaonty").style.display="block";
+ $("fidirana-kaonty").classList.remove("session-card");
+ $("fidirana-kaonty").querySelector("h2").textContent=authMode==="signup"?"Hisoratra anarana":"Hiditra amin’ny CITE HUB";
+ $("fidirana-kaonty").querySelector(":scope > p").textContent=authMode==="signup"?"Mamoròna kaonty CITE HUB amin’ny mailaka sy tenimiafinao. Mety mbola mila fankatoavan’ny Administration ianao vao afaka mampiasa ny tatitra.":"Ampidiro ny mailaka sy tenimiafina CITE HUB. Tsy mitovy amin’ny tenimiafina Gmail-nao izany.";
+ $("emailLogin").style.display=authMode==="login"?"inline-block":"none";
+ $("signUpBtn").style.display=authMode==="signup"?"inline-block":"none";
+ $("switchAuthModeBtn").style.display="inline-block";
+ $("switchAuthModeBtn").textContent=authMode==="signup"?"Efa manana kaonty? Hiditra":"Mbola tsy manana kaonty? Hisoratra anarana";
+ $("backToLandingBtn").style.display="inline-block";
+ $("forgotPasswordBtn").style.display=authMode==="login"?"inline-block":"none";
+ $("loginEmail").closest(".grid").style.display="grid";
+ $("resetPasswordBox").style.display="none";
+ setStatus(authMode==="signup"?"Fenoy ny mailaka sy ny tenimiafina vaovao, dia tsindrio “Hisoratra anarana”.":"Ampidiro ny mailaka sy ny tenimiafinao, dia tsindrio “Hiditra”.");
+ $("fidirana-kaonty").scrollIntoView({behavior:"smooth",block:"start"});
+}
 function showRoleUI(){
  const role=currentProfile?.role;
  const hasAccess=!!currentUser&&(role==="admin"||role==="responsable");
  const isAdmin=role==="admin";
+ const showAuth=!currentUser&&!!authMode;
  document.body.classList.toggle("public-view",!currentUser);
  document.body.classList.toggle("pending-view",!!currentUser&&!hasAccess);
  document.body.classList.toggle("app-view",hasAccess);
- $("publicLanding").style.display=currentUser?"none":"block";
- $("emailLogin").style.display=currentUser?"none":"inline-block";
- $("signUpBtn").style.display=currentUser?"none":"inline-block";
- $("forgotPasswordBtn").style.display=currentUser?"none":"inline-block";
+ $("publicLanding").style.display=!currentUser&&!authMode?"block":"none";
+ $("fidirana-kaonty").style.display=currentUser||showAuth?"block":"none";
+ $("emailLogin").style.display=!currentUser&&authMode==="login"?"inline-block":"none";
+ $("signUpBtn").style.display=!currentUser&&authMode==="signup"?"inline-block":"none";
+ $("switchAuthModeBtn").style.display=showAuth?"inline-block":"none";
+ $("switchAuthModeBtn").textContent=authMode==="signup"?"Efa manana kaonty? Hiditra":"Mbola tsy manana kaonty? Hisoratra anarana";
+ $("backToLandingBtn").style.display=showAuth?"inline-block":"none";
+ $("forgotPasswordBtn").style.display=!currentUser&&authMode==="login"?"inline-block":"none";
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
  $("loginEmail").closest(".grid").style.display=currentUser?"none":"grid";
  $("fidirana-kaonty").classList.toggle("session-card",!!currentUser);
  $("fidirana-kaonty").querySelector(":scope > p").style.display=currentUser?"none":"block";
- $("fidirana-kaonty").querySelector("h2").textContent=currentUser?"Kaonty CITE HUB":"Mamorona kaonty na miditra";
+ $("fidirana-kaonty").querySelector("h2").textContent=currentUser?"Kaonty CITE HUB":authMode==="signup"?"Hisoratra anarana":"Hiditra amin’ny CITE HUB";
  $("syncRosterBtn").style.display=isAdmin?"inline-block":"none";
  $("memberDirectAdd").style.display=isAdmin?"block":"none";
  const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"];
@@ -423,6 +447,10 @@ function showRoleUI(){
  $("tomponandraikitra").style.display=isAdmin?"block":"none";
  $("reportCsvImport").style.display=isAdmin?"block":"none";
 }
+$("landingLoginBtn").addEventListener("click",()=>showAuthForm("login"));
+$("landingSignUpBtn").addEventListener("click",()=>showAuthForm("signup"));
+$("switchAuthModeBtn").addEventListener("click",()=>showAuthForm(authMode==="signup"?"login":"signup"));
+$("backToLandingBtn").addEventListener("click",()=>{authMode=null;$("fidirana-kaonty").style.display="none";$("resetPasswordBox").style.display="none";showRoleUI();});
 async function loadAccessRequests(){
  if(currentProfile?.role!=="admin")return;
  const host=$("accessRequests");
