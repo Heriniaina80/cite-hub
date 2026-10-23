@@ -836,7 +836,7 @@ async function saveAnnualRecord(){
 }
 function downloadAnnualRecordPdf(){
  const person=roster.find(p=>String(p.id)===String($("annualPerson").value)),year=Number($("annualYear").value);if(!person){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Safidio aloha ny olona.";return}if(!window.jspdf?.jsPDF){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy afaka mamorona PDF. Jereo ny fifandraisana Internet.";return}
- const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});const pageW=210,left=8,right=202,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year);let y=10;
+ const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});const pageW=210,left=8,right=202,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=10;
  const text=(s,x,yy,size=8,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(s??""),x,yy)};
  const line=(x1,y1,x2,y2)=>{doc.setDrawColor(30,30,30);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
  const box=(x,yy,w,h,label,checked=false)=>{doc.setDrawColor(20,20,20);doc.rect(x,yy,w,h);if(checked){line(x+1,yy+1,x+w-1,yy+h-1);line(x+w-1,yy+1,x+1,yy+h-1)}if(label)text(label,x+w+1.5,yy+h-1,7)};
@@ -850,17 +850,21 @@ function downloadAnnualRecordPdf(){
  const drawRow=(vals,isHeader=false)=>{const size=isHeader?6.2:7.2,wraps=vals.map((v,i)=>doc.splitTextToSize(String(v??""),widths[i]-2)),h=isHeader?18:7;let x=left;wraps.forEach((arr,i)=>{doc.setDrawColor(25,25,25);if(isHeader){doc.setFillColor(245,245,245);doc.rect(x,y,widths[i],h,"FD")}else doc.rect(x,y,widths[i],h);doc.setFont("helvetica",isHeader?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);const maxLines=isHeader?Math.min(arr.length,4):1;doc.text(arr.slice(0,maxLines),x+1,y+(isHeader?4:4.5));x+=widths[i]});y+=h};
  const visibleRows=months.map(m=>{
   const saved=rows.find(x=>String(x.volana).slice(0,7)===m.month);
+  const draft=drafts[reportDraftKey(personGroupCode,m.month)]?.members?.[String(person.id)];
   const tr=document.querySelector('#annualRecordTable tbody tr[data-month="'+m.month+'"]');
   const studiesInput=tr?.querySelector('[data-field="studies"]')?.value;
   const hoursInput=tr?.querySelector('[data-field="hours"]')?.value;
   const partInput=tr?.querySelector('[data-field="participation"]')?.value;
   const noteInput=tr?.querySelector('[data-field="note"]')?.value;
-  const rawStudies=studiesInput!==undefined?Number(studiesInput):Number(saved?.fampianarana_baiboly??0);
+  const studiesFallback=draft?.studies!==undefined?draft.studies:saved?.fampianarana_baiboly??0;
+  const rawStudies=studiesInput!==undefined?Number(studiesInput):Number(studiesFallback);
   const studies=Number.isFinite(rawStudies)&&rawStudies>=0?Math.floor(rawStudies):0;
-  const rawHours=hoursInput!==undefined&&hoursInput!==""?Number(hoursInput):Number(saved?.ora??0);
+  const hoursFallback=draft?.hours!==undefined&&draft.hours!==""?draft.hours:saved?.ora??0;
+  const rawHours=hoursInput!==undefined&&hoursInput!==""?Number(hoursInput):Number(hoursFallback);
   const hours=Number.isFinite(rawHours)&&rawHours>=0?rawHours:0;
-  const part=partInput==="Eny"||saved?.fandraisana_anjara===true||saved?.fandraisana_anjara==="Eny"?"☑":partInput==="Tsia"||saved?.fandraisana_anjara===false||saved?.fandraisana_anjara==="Tsia"?"☐":"";
-  return {month:m.label,part,studies,hours,note:noteInput??saved?.fanamarihana??""};
+  const partValue=partInput!==undefined?partInput:draft?.participation??saved?.fandraisana_anjara;
+  const part=partValue===true||partValue==="Eny"?"☑":partValue===false||partValue==="Tsia"?"☐":"";
+  return {month:m.label,part,studies,hours,note:noteInput??draft?.note??saved?.fanamarihana??""};
  });
  const totalStudies=visibleRows.reduce((n,r)=>n+r.studies,0),totalHours=visibleRows.reduce((n,r)=>n+r.hours,0);
  text("Fampianarana Baiboly — Fitambarany: "+totalStudies,8,y,8,true);y+=6;
