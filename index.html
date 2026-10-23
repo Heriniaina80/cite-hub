@@ -595,7 +595,7 @@ $("saveNewPassword").addEventListener("click",async()=>{
  setStatus("Vita ny fanovana tenimiafina. Afaka miditra amin’ny CITE HUB ianao.");
  await loadProfile();
 });
-$("logoutBtn").addEventListener("click",async()=>{const {error}=await sbClient.auth.signOut();if(error){setStatus(error.message,true);return}currentUser=null;currentProfile=null;roster=[];reports=[];showRoleUI();setStatus("Nivoaka soa aman-tsara.");});
+$("logoutBtn").addEventListener("click",async()=>{const {error}=await sbClient.auth.signOut();if(error){setStatus(error.message,true);return}currentUser=null;currentProfile=null;authMode=null;roster=[];reports=[];showRoleUI();setStatus("Nivoaka soa aman-tsara.");});
 sbClient.auth.onAuthStateChange((event,session)=>{
  currentUser=session?.user||null;
  if(event==="PASSWORD_RECOVERY"){
