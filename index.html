@@ -992,7 +992,7 @@ async function saveAnnualRecord(){
  const entries=[];for(const tr of document.querySelectorAll("#annualRecordTable tbody tr")){const month=tr.dataset.month,part=tr.querySelector('[data-field="participation"]')?.value||"",hoursRaw=tr.querySelector('[data-field="hours"]')?.value??"",studiesRaw=tr.querySelector('[data-field="studies"]').value,note=tr.querySelector('[data-field="note"]').value.trim();if(person.sokajy==="Mpitory"&&!part){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Fenoy Eny/Tsia ny fandraisana anjara isaky ny volana ho an’ny Mpitory.";return}if(person.sokajy!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Fenoy ny ora (0–70) isaky ny volana ho an’ny Mpisavalalana.";return}if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Ampidiro isa 0 na mihoatra ny fampianarana Baiboly isaky ny volana.";return}entries.push({mpikambana_id:person.id,andiany_id:Number(person.andiany_id),volana:month+"-01",fandraisana_anjara:person.sokajy==="Mpitory"?(part==="Eny"):null,ora:person.sokajy==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note})}
  const {error}=await sbClient.from("tatitra").upsert(entries,{onConflict:"mpikambana_id,volana"});if(error){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy voatahiry: "+error.message;return}await loadAllData();configureAnnualRecord();renderAnnualRecord();$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Voatahiry ny firaketana isan-taona ho an’i "+person.anarana+".";
 }
-function drawAnnualRecordPdfPage(doc,person,year){
+function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  const pageW=210,left=8,right=202,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=10;
  const text=(s,x,yy,size=8,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(s??""),x,yy)};
  const line=(x1,y1,x2,y2)=>{doc.setDrawColor(30,30,30);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
@@ -1014,7 +1014,7 @@ function drawAnnualRecordPdfPage(doc,person,year){
  const visibleRows=months.map(m=>{
   const saved=rows.find(x=>String(x.volana).slice(0,7)===m.month);
   const draft=drafts[reportDraftKey(personGroupCode,m.month)]?.members?.[String(person.id)];
-  const tr=String($("annualPerson").value)===String(person.id)?document.querySelector('#annualRecordTable tbody tr[data-month="'+m.month+'"]'):null;
+  const tr=useCurrentForm&&String($("annualPerson").value)===String(person.id)?document.querySelector('#annualRecordTable tbody tr[data-month="'+m.month+'"]'):null;
   const studiesInput=tr?.querySelector('[data-field="studies"]')?.value;
   const hoursInput=tr?.querySelector('[data-field="hours"]')?.value;
   const partInput=tr?.querySelector('[data-field="participation"]')?.value;
@@ -1072,7 +1072,7 @@ async function previewAllAnnualS21(){
   const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
   for(let i=0;i<members.length;i++){
    if(i>0)doc.addPage();
-   drawAnnualRecordPdfPage(doc,members[i],year);
+   drawAnnualRecordPdfPage(doc,members[i],year,false);
    if(i>0&&i%12===0)await new Promise(resolve=>window.setTimeout(resolve,0));
   }
   if(activeS21BundleUrl){URL.revokeObjectURL(activeS21BundleUrl);activeS21BundleUrl=null;}
