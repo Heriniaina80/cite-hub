@@ -383,7 +383,7 @@ function groupCode(id){return groups.find(g=>String(g.id)===String(id))?.kaody||
 function groupId(code){return groups.find(g=>g.kaody===code)?.id}
 function canSeeGroup(code){return currentProfile?.role==="admin" || (currentProfile?.role==="responsable" && String(currentProfile.andiany_id)===String(groupId(code)))}
 function visibleGroups(){return currentProfile?.role==="admin"?groups:groups.filter(g=>String(g.id)===String(currentProfile?.andiany_id))}
-function getRoster(){return roster.map(p=>({andiany:groupCode(p.andiany_id),anarana:p.anarana,sokajy:p.sokajy||"Mpitory",id:p.id,andiany_id:p.andiany_id,daty_nahaterahana:p.daty_nahaterahana||"",daty_batisa:p.daty_batisa||"",lahy_vavy:p.lahy_vavy||"",sata_fanompoana:p.sata_fanompoana||"",fanazavana_s21:p.fanazavana_s21||""}));}
+function getRoster(){return roster.map(p=>({andiany:groupCode(p.andiany_id),anarana:p.anarana,sokajy:p.sokajy||"Mpitory",id:p.id,andiany_id:p.andiany_id,daty_nahaterahana:p.daty_nahaterahana||"",daty_batisa:p.daty_batisa||"",lahy_vavy:p.lahy_vavy||"",sata_fanompoana:p.sata_fanompoana||"",anti_panahy:p.anti_panahy===true,mpikarakara_fiangonana:p.mpikarakara_fiangonana===true,fanazavana_s21:p.fanazavana_s21||""}));}
 function peopleForGroup(group){return getRoster().filter(p=>group==="all"||String(p.andiany_id)===String(group)||normalizeGroupCode(p.andiany)===normalizeGroupCode(group)).sort((a,b)=>roleRank(a.sokajy)-roleRank(b.sokajy)||a.anarana.localeCompare(b.anarana,"fr",{sensitivity:"base"}))}
 function getReports(){return reports}
 function setOptions(id,items,allLabel){const el=$(id);el.innerHTML=(allLabel?'<option value="all">'+allLabel+'</option>':'<option value="">-- Safidio ny andiany --</option>')+items.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join('')}
@@ -719,7 +719,7 @@ async function saveProfileRole(){
  renderManagePeople();
  $("profilePerson").value=String(p.id);
  renderPersonProfile();
- setStatus("Voatahiry ny mombamomba an’i "+newName+". Hiseho amin’io anarana vaovao io koa ny tatitra mifandray aminy.");
+ if(s21RoleColumnsReady){setStatus("Voatahiry ny mombamomba an’i "+newName+". Ny safidy Anti-panahy sy Mpikarakara fiangonana dia voatahiry ho an’ny S-21.");}else{setStatus("Voatahiry ny mombamomba ankapobeny an’i "+newName+", saingy mbola tsy voatahiry ny safidy Anti-panahy/Mpikarakara. Alefaso ao amin’ny Supabase ilay SQL nomena, dia avereno tehirizina ireo safidy.",true);}
 }
 $("manageGroup").addEventListener("change",renderManagePeople);
 $("profilePerson").addEventListener("change",renderPersonProfile);
