@@ -950,7 +950,7 @@ function downloadAnnualRecordPdf(){
   return {month:m.label,part,studies,hours,note:noteInput??draft?.note??saved?.fanamarihana??""};
  });
  const totalStudies=visibleRows.reduce((n,r)=>n+r.studies,0),totalHours=visibleRows.reduce((n,r)=>n+r.hours,0);
- text("Fampianarana Baiboly — Fitambarany: "+totalStudies,8,y,8,true);y+=6;
+
  drawRow(heads,true);
  for(const row of visibleRows){drawRow([row.month,row.part,String(row.studies),person.sokajy==="Mpisavalalana mpanampy"?"☑":"",row.hours||"",row.note||""])}
  doc.setFont("helvetica","bold");doc.setFontSize(7.5);for(let i=0;i<widths.length;i++){doc.setDrawColor(25,25,25);doc.rect(xs[i],y,widths[i],7)}text("Tontaliny",xs[0]+1,y+4.5,7.5,true);text(totalStudies,xs[2]+2,y+4.5,7.5,true);text(totalHours,xs[4]+2,y+4.5,7.5,true);
