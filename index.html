@@ -42,6 +42,28 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 /* Menu latéral ouvrable et refermable */
 body{display:block;min-height:100vh}
 body>header{width:100%;display:flex;align-items:center;justify-content:center;gap:18px;position:relative;padding-left:76px;padding-right:76px}
+body.public-view #menuToggle,body.pending-view #menuToggle{display:none!important}
+body.public-view>nav,body.pending-view>nav{display:none!important}
+body.public-view>main>section.card:not(#publicLanding):not(#fidirana-kaonty){display:none!important}
+body.pending-view>main>section.card:not(#fidirana-kaonty){display:none!important}
+body.app-view>main>section#publicLanding{display:none!important}
+.landing-card{padding:clamp(24px,5vw,44px);overflow:hidden;background:linear-gradient(145deg,#fff 0%,#edf5ff 100%);border:1px solid #cfe0f5}
+.landing-eyebrow{display:inline-block;margin-bottom:12px;padding:6px 10px;border-radius:999px;background:#dceafe;color:#174a83;font-size:12px;font-weight:800;letter-spacing:1px}
+.landing-card h2{max-width:760px;margin:0 0 14px;font-size:clamp(28px,4.8vw,44px);line-height:1.12;letter-spacing:-.5px;color:#173b68}
+.landing-lead{max-width:760px;font-size:17px;color:#475569;margin:0 0 24px}
+.landing-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:20px 0 24px}
+.landing-feature{padding:15px;border:1px solid #d6e4f6;border-radius:12px;background:#ffffffd9}
+.landing-feature strong{display:block;color:#173b68;margin-bottom:5px}
+.landing-feature span{display:block;font-size:13px;color:#64748b}
+.landing-actions{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.landing-link{display:inline-flex;align-items:center;justify-content:center;padding:12px 17px;background:#1769aa;color:white;text-decoration:none;border-radius:9px;font-weight:700}
+.landing-link:hover{background:#104d80}
+.landing-actions .hint{margin:0}
+#fidirana-kaonty.session-card{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 16px;margin-bottom:14px}
+#fidirana-kaonty.session-card h2{font-size:16px;margin:0}
+#fidirana-kaonty.session-card #authStatus{margin:0;flex:1 1 250px}
+#fidirana-kaonty.session-card .toolbar{margin:0}
+#fidirana-kaonty.session-card #resetPasswordBox{flex:1 0 100%}
 #menuToggle{position:absolute;left:18px;top:50%;transform:translateY(-50%);background:#fff;color:#173b68;border:1px solid #dbe4f0;border-radius:9px;padding:10px 13px;font-weight:700}
 #menuToggle:hover{background:#e8f1fc}
 body>nav{position:fixed;z-index:100;top:0;bottom:0;left:0;width:250px;max-width:85vw;height:100vh;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:8px;margin:0;padding:78px 14px 20px;border-radius:0;background:#171747;overflow-y:auto;overflow-x:hidden;box-shadow:8px 0 28px #0f172a35;transform:translateX(-110%);visibility:hidden;transition:transform .22s ease,visibility .22s ease}
@@ -53,15 +75,26 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 @media(max-width:760px){body>header{padding:18px 12px 18px 82px;text-align:left;justify-content:flex-start}body>header h1{font-size:21px}body>header p{font-size:12px}#menuToggle{left:12px}body>main{width:100%;padding:16px 12px 30px}}
 </style>
 </head>
-<body>
+<body class="public-view">
 <header><button id="menuToggle" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Sokafy ny menu">☰ Menu</button><div><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></div></header>
 <nav id="mainMenu" aria-label="Menu lehibe">
 <a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#firaketana">Firaketana isan-taona</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tomponandraikitra" id="responsiblesNav" style="display:none">Tompon’andraikitra</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
 </nav>
 <main>
+<section class="card landing-card" id="publicLanding">
+<div class="landing-eyebrow">SEHATRA FITANTANANA TATITRA</div>
+<h2>Tongasoa eto amin’ny CITE HUB</h2>
+<p class="landing-lead">Toerana iray hitantanana ny tatitra isam-bolana, ny firaketana isan-taona, ary ny lisitry ny mpikambana. Midira amin’ny kaontinao vao manomboka mampiasa ny sehatra.</p>
+<div class="landing-features">
+<div class="landing-feature"><strong>Fampidirana tatitra</strong><span>Fenoy sy tehirizo amin’ny fomba mirindra ny tatitra isam-bolana.</span></div>
+<div class="landing-feature"><strong>Firaketana isan-taona</strong><span>Jereo ny fandraisana anjara sy ny ora mandritra ny taom-panompoana.</span></div>
+<div class="landing-feature"><strong>Tahiry iombonana</strong><span>Ny angona dia tehirizina araka ny fahazoan-dalana nomena ny kaontinao.</span></div>
+</div>
+<div class="landing-actions"><a class="landing-link" href="#fidirana-kaonty">Hiditra na hisoratra anarana ↓</a><p class="hint">Raha vao sambany ianao no mampiasa azy dia mamoròna kaonty aloha.</p></div>
+</section>
 <section class="card" id="fidirana-kaonty">
-<h2>Fidirana amin'ny CITE HUB</h2>
-<p class="hint">Ampidiro ny adiresy Gmail sy ny tenimiafinao ho an’ny CITE HUB. Tsy mitovy amin’ny tenimiafina Gmail-nao izany. Ny tatitra sy ny lisitra dia avy amin’ny tahiry iombonana.</p>
+<h2>Mamorona kaonty na miditra</h2>
+<p class="hint">Raha mbola tsy manana kaonty CITE HUB ianao, fenoy ny adiresy mailaka sy tenimiafina dia tsindrio “Hisoratra anarana”. Raha efa manana kaonty ianao dia tsindrio “Hiditra”. Tsy mitovy amin’ny tenimiafina Gmail-nao ny tenimiafina CITE HUB.</p>
 <div class="grid">
 <div><label for="loginEmail">Adiresy Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="anarana@gmail.com"></div>
 <div><label for="loginPassword">Tenimiafina CITE HUB</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tenimiafina"></div>
@@ -359,14 +392,36 @@ async function loadAllData(){
  mergePendingReports();configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();if(typeof configureAnnualRecord==="function")configureAnnualRecord();saveOfflineSnapshot();updateOfflineStatus();
 }
 function showRoleUI(){
+ const role=currentProfile?.role;
+ const hasAccess=!!currentUser&&(role==="admin"||role==="responsable");
+ const isAdmin=role==="admin";
+ document.body.classList.toggle("public-view",!currentUser);
+ document.body.classList.toggle("pending-view",!!currentUser&&!hasAccess);
+ document.body.classList.toggle("app-view",hasAccess);
+ $("publicLanding").style.display=currentUser?"none":"block";
  $("emailLogin").style.display=currentUser?"none":"inline-block";
+ $("signUpBtn").style.display=currentUser?"none":"inline-block";
+ $("forgotPasswordBtn").style.display=currentUser?"none":"inline-block";
  $("logoutBtn").style.display=currentUser?"inline-block":"none";
- $("syncRosterBtn").style.display=currentProfile?.role==="admin"?"inline-block":"none";
- $("memberDirectAdd").style.display=currentProfile?.role==="admin"?"block":"none";
- document.querySelectorAll('nav a').forEach(a=>{const target=a.getAttribute("href")?.slice(1);const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"].includes(target);a.style.display=(!currentUser&&!["accueil","fidirana-kaonty"].includes(target))?"none":(adminOnly&&currentProfile?.role!=="admin"?"none":"block")});
- $("fangatahana").style.display=currentProfile?.role==="admin"?"block":"none";
- $("tomponandraikitra").style.display=currentProfile?.role==="admin"?"block":"none";
- $("reportCsvImport").style.display=currentProfile?.role==="admin"?"block":"none";
+ $("loginEmail").closest(".grid").style.display=currentUser?"none":"grid";
+ $("fidirana-kaonty").classList.toggle("session-card",!!currentUser);
+ $("fidirana-kaonty").querySelector(":scope > p").style.display=currentUser?"none":"block";
+ $("fidirana-kaonty").querySelector("h2").textContent=currentUser?"Kaonty CITE HUB":"Mamorona kaonty na miditra";
+ $("syncRosterBtn").style.display=isAdmin?"inline-block":"none";
+ $("memberDirectAdd").style.display=isAdmin?"block":"none";
+ const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"];
+ document.querySelectorAll("main > section.card").forEach(section=>{
+  if(section.id==="publicLanding"||section.id==="fidirana-kaonty")return;
+  section.style.display=hasAccess&&(!adminOnly.includes(section.id)||isAdmin)?"block":"none";
+ });
+ document.querySelectorAll("nav a").forEach(a=>{
+  const target=a.getAttribute("href")?.slice(1);
+  a.style.display=hasAccess&&(!adminOnly.includes(target)||isAdmin)?"block":"none";
+ });
+ $("menuToggle").style.display=hasAccess?"inline-block":"none";
+ $("fangatahana").style.display=isAdmin?"block":"none";
+ $("tomponandraikitra").style.display=isAdmin?"block":"none";
+ $("reportCsvImport").style.display=isAdmin?"block":"none";
 }
 async function loadAccessRequests(){
  if(currentProfile?.role!=="admin")return;
