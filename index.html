@@ -89,6 +89,9 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 .s21-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-top:1px solid #dbe4f0}
 .s21-modal-footer p{margin:0;font-size:13px;color:#64748b}
 @media(max-width:700px){.s21-modal{padding:0}.s21-modal-panel{width:100vw;height:100vh;border-radius:0}.s21-modal-header h2{font-size:15px}.s21-modal-body{padding:4px}}
+.person-main{min-width:0}
+.report-role-picker{display:block;width:100%;max-width:245px;margin-top:6px;padding:5px 26px 5px 9px;font-size:12px;font-weight:700;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;min-width:0}
+.report-role-picker:focus{outline:2px solid #93c5fd;border-color:var(--blue)}
 </style>
 </head>
 <body class="public-view">
@@ -138,6 +141,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 </div>
 <p class="hint">Rehefa misafidy andiany ianao dia miseho eto ambany ny lisitry ny olona sy ny saha mifanaraka amin'ny andraikiny.</p>
 <div id="rosterStatus" class="notice" style="display:none"></div>
+<div id="reportCategorySchemaNotice" class="notice" style="display:none;margin:12px 0">Tsy mbola misy saha hitahirizana ny sokajy isam-bolana ao amin’ny tahiry iombonana. Tehirizo ny drafitra eo an-toerana aloha ary ampiharo ny SQL fanavaozana mba hahafahana mampifanaraka azy.</div>
 <div id="offlineStatus" class="notice" role="status" aria-live="polite" style="margin:12px 0">Ny CITE HUB dia afaka mitahiry drafitra eto amin’ity fitaovana ity. Rehefa misy connexion dia azo alefa any amin’ny tahiry iombonana.</div>
 <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 <div class="toolbar"><button id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div>
@@ -242,6 +246,7 @@ const $ = id => document.getElementById(id);
 const roleOrder = {"Mpitory":0,"Mpanampy":1,"Mpisava lalana maharitra":2};
 let currentUser = null, currentProfile = null, groups = [], roster = [], inactiveRoster = [], reports = [];
 let s21RoleColumnsReady = true;
+let reportCategoryColumnReady = false;
 let authMode = null;
 
 function userStoreKey(kind,userId=currentUser?.id){return userId?("cite-hub-"+kind+"-v1:"+userId):null}
@@ -268,6 +273,7 @@ function saveCurrentReportDraft(){
  const members={};
  document.querySelectorAll("#peopleList .person[data-member-id]").forEach(el=>{
   members[String(el.dataset.memberId)]={
+   category:normalizeImportCategory(el.querySelector('[data-field="category"]')?.value||el.dataset.role||"Mpitory"),
    participation:el.querySelector('[data-field="participation"]')?.value||"",
    hours:el.querySelector('[data-field="hours"]')?.value??"",
    studies:el.querySelector('[data-field="studies"]')?.value??"0",
@@ -317,7 +323,7 @@ function mergePendingReports(){
    andiany:groupCode(groupIdValue),
    volana:month,
    anarana:member?.anarana||"",
-   sokajy:member?.sokajy||"",
+   sokajy:normalizeImportCategory(rec.sokajy||member?.sokajy||"Mpitory"),
    fandraisana_anjara:rec.fandraisana_anjara===true?"Eny":rec.fandraisana_anjara===false?"Tsia":"",
    ora:rec.ora,
    fampianarana_baiboly:rec.fampianarana_baiboly??0,
@@ -390,11 +396,12 @@ async function syncPendingReports(showFeedback=true){
  if(!currentUser||!currentProfile)return;
  const queue=readPendingReportQueue(),items=Object.entries(queue);
  if(!items.length){updateOfflineStatus();return}
+ if(!reportCategoryColumnReady){updateOfflineStatus();if(showFeedback){$("message").textContent="Mbola tsy tafiditra ao amin’ny Supabase ny saha sokajy isam-bolana. Voatahiry eto amin’ity fitaovana ity ny drafitra; ampiharo aloha ny SQL fanavaozana.";$("message").style.color="#b45309"}return}
  if(!navigator.onLine){updateOfflineStatus();if(showFeedback)$("message").textContent="Mbola tsy misy connexion. Voatahiry eto amin’ity fitaovana ity ny tatitra.";return}
  const status=$("message"),button=$("syncPendingBtn");
  if(button)button.disabled=true;
  try{
-  const rows=items.map(([,item])=>{const r=item.record||item;return {mpikambana_id:r.mpikambana_id,andiany_id:r.andiany_id,volana:r.volana,fandraisana_anjara:r.fandraisana_anjara??null,ora:r.ora??null,fampianarana_baiboly:r.fampianarana_baiboly??0,fanamarihana:r.fanamarihana||null}});
+  const rows=items.map(([,item])=>{const r=item.record||item;return {mpikambana_id:r.mpikambana_id,andiany_id:r.andiany_id,volana:r.volana,sokajy:normalizeImportCategory(r.sokajy||"Mpitory"),fandraisana_anjara:r.fandraisana_anjara??null,ora:r.ora??null,fampianarana_baiboly:r.fampianarana_baiboly??0,fanamarihana:r.fanamarihana||null}});
   const {error}=await sbClient.from("tatitra").upsert(rows,{onConflict:"mpikambana_id,volana"});
   if(error)throw error;
   const latest=readPendingReportQueue();
@@ -445,9 +452,16 @@ async function loadAllData(){
  const withS21Roles=(p)=>({...p,anti_panahy:p.anti_panahy===true,mpikarakara_fiangonana:p.mpikarakara_fiangonana===true,mpisava_lalana_maharitra:p.mpisava_lalana_maharitra===true,mpisava_lalana_manokana:p.mpisava_lalana_manokana===true,misionera_eny_an_saha:p.misionera_eny_an_saha===true});
  roster=(m.data||[]).map(withS21Roles).filter(p=>p.mavitrika===true);
  inactiveRoster=(m.data||[]).map(withS21Roles).filter(p=>p.mavitrika===false);
- const r=await sbClient.from("tatitra").select("id,mpikambana_id,andiany_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
- if(r.error)throw r.error;
- reports=(r.data||[]).map(x=>({id:x.id,mpikambana_id:x.mpikambana_id,andiany:groupCode(x.andiany_id??x.mpikambana?.andiany_id),andiany_id:x.andiany_id??x.mpikambana?.andiany_id,volana:x.volana?.slice(0,7),anarana:x.mpikambana?.anarana||"",sokajy:x.mpikambana?.sokajy||"",fandraisana_anjara:x.fandraisana_anjara===true?"Eny":x.fandraisana_anjara===false?"Tsia":"",ora:x.ora,fampianarana_baiboly:x.fampianarana_baiboly??0,fanamarihana:x.fanamarihana||"",created_at:x.created_at}));
+ let r=await sbClient.from("tatitra").select("id,mpikambana_id,andiany_id,volana,sokajy,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
+ if(r.error){
+  const categoryColumnError=/sokajy|column .* does not exist|schema cache/i.test(r.error.message||"");
+  if(!categoryColumnError)throw r.error;
+  const legacyReports=await sbClient.from("tatitra").select("id,mpikambana_id,andiany_id,volana,fandraisana_anjara,ora,fampianarana_baiboly,fanamarihana,created_at,mpikambana(id,anarana,sokajy,andiany_id)").order("volana",{ascending:false});
+  if(legacyReports.error)throw legacyReports.error;
+  r=legacyReports;reportCategoryColumnReady=false;
+ }else reportCategoryColumnReady=true;
+ const categoryNotice=$("reportCategorySchemaNotice");if(categoryNotice)categoryNotice.style.display=reportCategoryColumnReady?"none":"block";
+ reports=(r.data||[]).map(x=>({id:x.id,mpikambana_id:x.mpikambana_id,andiany:groupCode(x.andiany_id??x.mpikambana?.andiany_id),andiany_id:x.andiany_id??x.mpikambana?.andiany_id,volana:x.volana?.slice(0,7),anarana:x.mpikambana?.anarana||"",sokajy:normalizeImportCategory(x.sokajy||x.mpikambana?.sokajy||"Mpitory"),fandraisana_anjara:x.fandraisana_anjara===true?"Eny":x.fandraisana_anjara===false?"Tsia":"",ora:x.ora,fampianarana_baiboly:x.fampianarana_baiboly??0,fanamarihana:x.fanamarihana||"",created_at:x.created_at}));
  mergePendingReports();configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();if(typeof configureAnnualRecord==="function")configureAnnualRecord();saveOfflineSnapshot();updateOfflineStatus();
 }
 function showAuthForm(mode){
@@ -693,6 +707,7 @@ sbClient.auth.onAuthStateChange((event,session)=>{
 function renderPeople(){
  const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus");
  $("message").textContent="";
+ const categoryNotice=$("reportCategorySchemaNotice");if(categoryNotice)categoryNotice.style.display=reportCategoryColumnReady?"none":"block";
  if(!currentUser||!currentProfile){list.innerHTML='<p class="hint">Midira amin’ny Gmail sy tenimiafina CITE HUB aloha.</p>';status.style.display="none";return}
  if(!group){list.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';status.style.display="none";return}
  if(!canSeeGroup(group)){list.innerHTML='<p class="hint">Tsy nahazo alalana hijery ity andiany ity ianao.</p>';return}
@@ -701,19 +716,19 @@ function renderPeople(){
  status.style.display="none";
  const existing=reports.filter(r=>r.volana===month&&r.andiany===group);
  const draftStore=readReportDrafts(),activeDraft=draftStore[reportDraftKey(group,month)];
+ const categories=["Mpitory","Mpisavalalana mpanampy","Mpisavalalana maharitra"];
  list.innerHTML=people.map((p,i)=>{
    const saved=existing.find(r=>String(r.mpikambana_id)===String(p.id))||{};
    const draft=activeDraft?.members?.[String(p.id)];
-   const old=draft?{...saved,fandraisana_anjara:draft.participation??"",ora:draft.hours??"",fampianarana_baiboly:draft.studies??saved.fampianarana_baiboly??0,fanamarihana:draft.note??""}:saved;
+   const old=draft?{...saved,fandraisana_anjara:draft.participation??saved.fandraisana_anjara,ora:draft.hours??saved.ora,fampianarana_baiboly:draft.studies??saved.fampianarana_baiboly??0,fanamarihana:draft.note??saved.fanamarihana}:saved;
+   const category=normalizeImportCategory(draft?.category||saved.sokajy||p.sokajy||"Mpitory");
+   const categoryOptions=categories.map(c=>'<option value="'+c+'"'+(category===c?" selected":"")+'>'+c+'</option>').join("");
    let fields='';
-   if(p.sokajy==="Mpitory"){
-     fields+='<div><label for="part-'+i+'">Nandray anjara</label><select id="part-'+i+'" data-field="participation"><option value="">-- Safidio --</option><option value="Eny" '+(old.fandraisana_anjara==="Eny"?"selected":"")+'>Eny</option><option value="Tsia" '+(old.fandraisana_anjara==="Tsia"?"selected":"")+'>Tsia</option></select></div>';
-   } else {
-     fields+='<div><label for="hours-'+i+'">Ora (0–70)</label><input id="hours-'+i+'" type="number" min="0" max="70" step="0.5" data-field="hours" value="'+esc(old.ora??"")+'"></div>';
-   }
+   fields+='<div data-role-fields="publisher" '+(category==="Mpitory"?'':'style="display:none"')+'><label for="part-'+i+'">Nandray anjara</label><select id="part-'+i+'" data-field="participation"><option value="">-- Safidio --</option><option value="Eny" '+(old.fandraisana_anjara==="Eny"?"selected":"")+'>Eny</option><option value="Tsia" '+(old.fandraisana_anjara==="Tsia"?"selected":"")+'>Tsia</option></select></div>';
+   fields+='<div data-role-fields="pioneer" '+(category==="Mpitory"?'style="display:none"':'')+'><label for="hours-'+i+'">Ora (0–70)</label><input id="hours-'+i+'" type="number" min="0" max="70" step="0.5" data-field="hours" value="'+esc(old.ora??"")+'"></div>';
    fields+='<div><label for="studies-'+i+'">Isan’ny fampianarana Baiboly</label><input id="studies-'+i+'" type="number" min="0" step="1" data-field="studies" value="'+esc(old.fampianarana_baiboly??0)+'"></div>';
    fields+='<div><label for="note-'+i+'">Fanamarihana</label><input id="note-'+i+'" data-field="note" value="'+esc(old.fanamarihana||"")+'"></div>';
-   return '<div class="person" data-member-id="'+p.id+'" data-name="'+esc(p.anarana)+'" data-role="'+esc(p.sokajy)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><span class="role">'+esc(p.sokajy)+'</span></div>'+fields+'</div>';
+   return '<div class="person" data-member-id="'+p.id+'" data-name="'+esc(p.anarana)+'" data-role="'+esc(category)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><select class="report-role-picker" aria-label="Sokajy amin’ity volana ity" title="Sokajy amin’ity volana ity" data-field="category">'+categoryOptions+'</select></div>'+fields+'</div>';
  }).join("");
  updateOfflineStatus();
 }
@@ -857,7 +872,7 @@ $("saveAll").addEventListener("click",async()=>{
  if(!people.length){$("message").textContent="Tsy misy mpikambana ao amin’ity andiany ity.";return}
  const entries=[];
  document.querySelectorAll("#peopleList .person").forEach(el=>{
-   const role=el.dataset.role,name=el.dataset.name,id=Number(el.dataset.memberId);
+   const role=normalizeImportCategory(el.querySelector('[data-field="category"]')?.value||el.dataset.role||"Mpitory"),name=el.dataset.name,id=Number(el.dataset.memberId);
    const participation=el.querySelector('[data-field="participation"]')?.value||"";
    const hoursRaw=el.querySelector('[data-field="hours"]')?.value??"";
    const studiesRaw=el.querySelector('[data-field="studies"]')?.value??"0";
@@ -865,7 +880,7 @@ $("saveAll").addEventListener("click",async()=>{
    if(role==="Mpitory"&&!participation){entries.push({missing:name,field:"fandraisana anjara"});return}
    if(role!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){entries.push({missing:name,field:"ora"});return}
    if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){entries.push({missing:name,field:"fampianarana Baiboly"});return}
-   entries.push({mpikambana_id:id,andiany_id:groupId(group),volana:month+"-01",fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
+   entries.push({mpikambana_id:id,andiany_id:groupId(group),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
  });
  const missing=entries.filter(e=>e.missing);
  if(missing.length){$("message").textContent="Mbola misy saha tsy feno: "+missing.slice(0,4).map(e=>e.missing+" ("+e.field+")").join(", ")+(missing.length>4?"…":"");$("message").style.color="#b91c1c";return}
@@ -874,6 +889,11 @@ $("saveAll").addEventListener("click",async()=>{
   $("message").textContent="Voatahiry eto amin’ity fitaovana ity ny tatitra "+entries.length+" ho an’ny "+group+" ("+month+"). Halefa any amin’ny tahiry iombonana rehefa miverina ny connexion.";
   $("message").style.color="#b45309";updateOfflineStatus();
  };
+ if(!reportCategoryColumnReady){
+  saveLocally();
+  $("message").textContent="Voatahiry eto amin’ity fitaovana ity ny drafitra sy ny sokajy isam-bolana. Tsy alefa any amin’ny tahiry iombonana raha tsy ampiana aloha ny saha sokajy ao amin’ny Supabase.";
+  $("message").style.color="#b45309";return;
+ }
  if(!navigator.onLine){saveLocally();return}
  const button=$("saveAll");button.disabled=true;
  try{
@@ -890,7 +910,17 @@ $("saveAll").addEventListener("click",async()=>{
 $("resetRows").addEventListener("click",()=>{clearReportDraft($("group").value,$("month").value);renderPeople();$("message").textContent="Naverina tamin’ny angona voatahiry farany ny saha. Raha mbola misy tatitra milahatra halefa, dia mbola hotehirizina izany.";});
 $("syncPendingBtn").addEventListener("click",()=>syncPendingReports(true));
 $("peopleList").addEventListener("input",event=>{if(event.target.closest("[data-field]"))saveCurrentReportDraft()});
-$("peopleList").addEventListener("change",event=>{if(event.target.closest("[data-field]"))saveCurrentReportDraft()});
+$("peopleList").addEventListener("change",event=>{
+ const field=event.target.closest("[data-field]");if(!field)return;
+ if(field.dataset.field==="category"){
+  const card=field.closest(".person"),category=normalizeImportCategory(field.value);
+  card.dataset.role=category;
+  const publisher=card.querySelector('[data-role-fields="publisher"]'),pioneer=card.querySelector('[data-role-fields="pioneer"]');
+  if(publisher)publisher.style.display=category==="Mpitory"?"":"none";
+  if(pioneer)pioneer.style.display=category==="Mpitory"?"none":"";
+ }
+ saveCurrentReportDraft();
+});
 window.addEventListener("online",()=>{updateOfflineStatus();syncPendingReports(true)});
 window.addEventListener("offline",updateOfflineStatus);
 $("filterMonth").value=new Date().toISOString().slice(0,7);
@@ -973,6 +1003,7 @@ $("importReportCsv").addEventListener("click",async()=>{
    grouped.set(member.id+"|"+month,rec);added++;
   }
   const incoming=[...grouped.values()];if(!incoming.length)throw new Error("Tsy nahitana andalana azo ampidirina. Hamarino ny anaran'ny andiany sy ny tsanganana.");
+  if(!reportCategoryColumnReady)throw new Error("Mila ampiana ao amin’ny Supabase aloha ny tsanganana sokajy ao amin’ny tatitra. Tsy novaina ny sokajin’ny mpikambana satria miova isam-bolana ny sokajy tatitra.");
   const saved=await sbClient.from("tatitra").upsert(incoming,{onConflict:"mpikambana_id,volana"});if(saved.error)throw saved.error;
   await loadAllData();$("filterMonth").value="2026-09";$("filterGroup").value="all";refreshDashboard();setStatus("Vita ny fampidirana: "+incoming.length+" tatitra nampidirina na nohavaozina. Andalana tsy nampidirina: "+skipped+".");
   $("reportCsvStatus").textContent="Vita ny fampidirana. Hita ao amin'ny Tatitra isam-bolana sy Tatitra voatahiry ny angona.";
