@@ -339,6 +339,7 @@ function saveOfflineSnapshot(){
  writeUserStore("app-cache",{
   savedAt:new Date().toISOString(),
   profile:currentProfile,
+  reportCategoryColumnReady,
   groups,roster,inactiveRoster,
   reports
  });
@@ -347,7 +348,7 @@ function restoreOfflineSnapshot(userId){
  try{
   const snapshot=readUserStore("app-cache",null,userId);
   if(!snapshot||!snapshot.profile||!Array.isArray(snapshot.groups)||!Array.isArray(snapshot.roster))return false;
-  currentProfile=snapshot.profile;groups=snapshot.groups;roster=snapshot.roster;inactiveRoster=snapshot.inactiveRoster||[];reports=snapshot.reports||[];
+  currentProfile=snapshot.profile;reportCategoryColumnReady=snapshot.reportCategoryColumnReady===true;groups=snapshot.groups;roster=snapshot.roster;inactiveRoster=snapshot.inactiveRoster||[];reports=snapshot.reports||[];
   mergePendingReports();
   configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();
   if(typeof configureAnnualRecord==="function")configureAnnualRecord();
@@ -1044,7 +1045,7 @@ function renderAnnualRecord(){
   const savedCategory=normalizeImportCategory(draft?.category||r?.sokajy||person.sokajy||"Mpitory");
   const shown=draft?{...(r||{}),sokajy:savedCategory,fandraisana_anjara:draft.participation??r?.fandraisana_anjara,ora:draft.hours??r?.ora,fampianarana_baiboly:draft.studies??r?.fampianarana_baiboly??0,fanamarihana:draft.note??r?.fanamarihana}:r;
   const category=normalizeImportCategory(shown?.sokajy||savedCategory);
-  return '<tr data-month="'+m.month+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td><select data-field="category" aria-label="Sokajy amin’ny '+m.label+'">'+categoryOptions(category)+'</select></td><td><div data-role-fields="publisher" '+(category==="Mpitory"?'':'style="display:none"')+'><select data-field="participation"><option value="">—</option><option value="Eny" '+(shown?.fandraisana_anjara==="Eny"?'selected':'')+'>Eny</option><option value="Tsia" '+(shown?.fandraisana_anjara==="Tsia"?'selected':'')+'>Tsia</option></select></div>—'.replace("—", "")+'</td><td><div data-role-fields="pioneer" '+(category==="Mpitory"?'style="display:none"':'')+'><input data-field="hours" type="number" min="0" max="70" step="0.5" value="'+(shown?.ora??'')+'" placeholder="Ora"></div></td><td><input data-field="studies" type="number" min="0" step="1" value="'+(shown?.fampianarana_baiboly??0)+'"></td><td><input data-field="note" value="'+esc(shown?.fanamarihana||'')+'" placeholder="Fanamarihana"></td></tr>';
+  return '<tr data-month="'+m.month+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td><select data-field="category" aria-label="Sokajy amin’ny '+m.label+'">'+categoryOptions(category)+'</select></td><td><div data-role-fields="publisher" '+(category==="Mpitory"?'':'style="display:none"')+'><select data-field="participation"><option value="">—</option><option value="Eny" '+(shown?.fandraisana_anjara==="Eny"?'selected':'')+'>Eny</option><option value="Tsia" '+(shown?.fandraisana_anjara==="Tsia"?'selected':'')+'>Tsia</option></select></div></td><td><div data-role-fields="pioneer" '+(category==="Mpitory"?'style="display:none"':'')+'><input data-field="hours" type="number" min="0" max="70" step="0.5" value="'+(shown?.ora??'')+'" placeholder="Ora"></div></td><td><input data-field="studies" type="number" min="0" step="1" value="'+(shown?.fampianarana_baiboly??0)+'"></td><td><input data-field="note" value="'+esc(shown?.fanamarihana||'')+'" placeholder="Fanamarihana"></td></tr>';
  }).join('')+'</tbody></table>';
 }
 async function saveAnnualRecord(){
