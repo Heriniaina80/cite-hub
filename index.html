@@ -402,7 +402,7 @@ async function syncPendingReports(showFeedback=true){
  const status=$("message"),button=$("syncPendingBtn");
  if(button)button.disabled=true;
  try{
-  const rows=items.map(([,item])=>{const r=item.record||item;return {mpikambana_id:r.mpikambana_id,andiany_id:r.andiany_id,volana:r.volana,sokajy:normalizeImportCategory(r.sokajy||"Mpitory"),fandraisana_anjara:r.fandraisana_anjara??null,ora:r.ora??null,fampianarana_baiboly:r.fampianarana_baiboly??0,fanamarihana:r.fanamarihana||null}});
+  const rows=items.map(([,item])=>{const r=item.record||item,member=[...roster,...inactiveRoster].find(p=>String(p.id)===String(r.mpikambana_id)),saved=reports.find(x=>String(x.mpikambana_id)===String(r.mpikambana_id)&&String(x.volana).slice(0,7)===String(r.volana).slice(0,7));return {mpikambana_id:r.mpikambana_id,andiany_id:r.andiany_id,volana:r.volana,sokajy:normalizeImportCategory(r.sokajy||saved?.sokajy||member?.sokajy||"Mpitory"),fandraisana_anjara:r.fandraisana_anjara??null,ora:r.ora??null,fampianarana_baiboly:r.fampianarana_baiboly??0,fanamarihana:r.fanamarihana||null}});
   const {error}=await sbClient.from("tatitra").upsert(rows,{onConflict:"mpikambana_id,volana"});
   if(error)throw error;
   const latest=readPendingReportQueue();
