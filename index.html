@@ -402,7 +402,7 @@ function restoreOfflineSnapshot(userId){
   if(!snapshot||!snapshot.profile||!Array.isArray(snapshot.groups)||!Array.isArray(snapshot.roster))return false;
   currentProfile=snapshot.profile;reportCategoryColumnReady=snapshot.reportCategoryColumnReady===true;s88Records=snapshot.s88Records||[];s88SchemaReady=snapshot.s88SchemaReady===true;groups=snapshot.groups;roster=snapshot.roster;inactiveRoster=snapshot.inactiveRoster||[];reports=snapshot.reports||[];
   mergePendingReports();
-  configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();
+  configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();renderS88Month();
   if(typeof configureAnnualRecord==="function")configureAnnualRecord();
   return true;
  }catch(e){return false}
@@ -564,7 +564,6 @@ function closeS88PdfPreview(){
  activeS88PdfDoc=null;activeS88PdfFilename="";
 }
 function downloadS88Pdf(){if(!activeS88PdfDoc){showCiteToast("Jereo aloha ny S-88 feno vao misintona.","warning");return}activeS88PdfDoc.save(activeS88PdfFilename)}
-$("month").addEventListener("change",renderS88Month);
 $("s88MonthlyCard").addEventListener("input",event=>{if(event.target.matches("input[type=number]")){updateS88Averages();saveS88DraftFromForm()}});
 $("saveS88Month").addEventListener("click",saveS88Month);
 $("previewS88Pdf").addEventListener("click",previewS88Pdf);
