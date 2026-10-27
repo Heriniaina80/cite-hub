@@ -92,6 +92,14 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 .person-main{min-width:0}
 .report-role-picker{display:block;width:100%;max-width:245px;margin-top:6px;padding:5px 26px 5px 9px;font-size:12px;font-weight:700;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;min-width:0}
 .report-role-picker:focus{outline:2px solid #93c5fd;border-color:var(--blue)}
+.s88-month-card{margin-top:22px;border:1px solid #cfe0f5;background:#fbfdff}
+.s88-input-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}
+.s88-meeting-panel{border:1px solid #d7e3f3;border-radius:10px;padding:14px;background:#fff;min-width:0}
+.s88-meeting-panel h4{margin:0 0 10px;color:#173b68}
+.s88-average{background:#f1f5f9}
+.s88-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+@media(max-width:680px){.s88-input-grid{grid-template-columns:1fr}.s88-actions button{width:100%}}
+#s88PreviewFrame{display:block;width:100%;height:100%;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
 </style>
 </head>
 <body class="public-view">
@@ -146,6 +154,32 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 <div class="toolbar"><button id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div>
 <div id="message" role="status" aria-live="polite"></div>
+<div id="s88MonthlyCard" class="card s88-month-card">
+ <h3>Fampidirana S-88 — Isan’ny mpanatrika fivoriana</h3>
+ <p class="hint">Fenoina isam-bolana ho an’ny fiangonana manontolo. Ampidiro ny isan’ny fivoriana sy ny tontalin’ny mpanatrika; kajiana ho azy ny salanisa isan-kerinandro. Ny volana dia ilay voafidy etsy ambony.</p>
+ <div id="s88SchemaNotice" class="notice" role="status" aria-live="polite" style="display:none"></div>
+ <div class="s88-input-grid">
+  <div class="s88-meeting-panel">
+   <h4>Fivoriana Andavanandro</h4>
+   <div class="grid">
+    <div><label for="s88WeekdayMeetings">Isan’ny fivoriana</label><input id="s88WeekdayMeetings" type="number" min="0" step="1" inputmode="numeric" placeholder="Ohatra: 4"></div>
+    <div><label for="s88WeekdayAttendance">Tontalin’ny mpanatrika</label><input id="s88WeekdayAttendance" type="number" min="0" step="1" inputmode="numeric" placeholder="Ohatra: 125"></div>
+    <div><label for="s88WeekdayAverage">Salanisa isan-kerinandro</label><input id="s88WeekdayAverage" class="s88-average" type="text" readonly value="—"></div>
+   </div>
+  </div>
+  <div class="s88-meeting-panel">
+   <h4>Fivoriana Amin’ny Faran’ny Herinandro</h4>
+   <div class="grid">
+    <div><label for="s88WeekendMeetings">Isan’ny fivoriana</label><input id="s88WeekendMeetings" type="number" min="0" step="1" inputmode="numeric" placeholder="Ohatra: 4"></div>
+    <div><label for="s88WeekendAttendance">Tontalin’ny mpanatrika</label><input id="s88WeekendAttendance" type="number" min="0" step="1" inputmode="numeric" placeholder="Ohatra: 130"></div>
+    <div><label for="s88WeekendAverage">Salanisa isan-kerinandro</label><input id="s88WeekendAverage" class="s88-average" type="text" readonly value="—"></div>
+   </div>
+  </div>
+ </div>
+ <div class="grid"><div><label for="s88ServiceYear">Taom-panompoana hojerena ao amin’ny PDF</label><select id="s88ServiceYear"></select></div></div>
+ <div class="s88-actions"><button type="button" id="saveS88Month">Tehirizo ny S-88 amin’ity volana ity</button><button type="button" id="previewS88Pdf" class="secondary">Hijery S-88 feno</button></div>
+ <div id="s88MonthStatus" class="notice" role="status" aria-live="polite" style="display:none;margin-top:12px"></div>
+</div>
 </section>
 <section class="card" id="fangatahana" style="display:none"><h2>Fangatahana fidirana</h2><p class="hint">Ireo kaonty vao nisoratra anarana nefa mbola miandry fankatoavana. Omeo andraikitra sy andiany vao afaka mampiditra tatitra izy ireo.</p><div id="accessRequests" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="accessRequestStatus" role="status" aria-live="polite"></div>
 </section>
@@ -235,6 +269,19 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
   </div>
  </div>
 </div>
+<div id="s88PreviewModal" class="s21-modal" role="dialog" aria-modal="true" aria-labelledby="s88PreviewTitle" style="display:none">
+ <div class="s21-modal-panel">
+  <div class="s21-modal-header">
+   <div><h2 id="s88PreviewTitle">Fijerena S-88</h2><p id="s88PreviewSubtitle">Hamarino ny tatitra feno alohan’ny hisintonana PDF.</p></div>
+   <button type="button" id="closeS88Preview" class="secondary">Akatona ✕</button>
+  </div>
+  <div class="s21-modal-body"><iframe id="s88PreviewFrame" title="Fijerena ny PDF S-88 feno"></iframe></div>
+  <div class="s21-modal-footer">
+   <p>Jereo aloha ny salanisa sy ny angona isam-bolana. Rehefa vonona dia tsindrio “Télécharger PDF”.</p>
+   <div class="toolbar" style="margin:0"><button type="button" id="downloadS88Pdf">Télécharger PDF</button><button type="button" id="closeS88PreviewBottom" class="secondary">Akatona</button></div>
+  </div>
+ </div>
+</div>
 <footer>CITE HUB — Dika andrana nohavaozina</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -247,6 +294,10 @@ const roleOrder = {"Mpitory":0,"Mpanampy":1,"Mpisava lalana maharitra":2};
 let currentUser = null, currentProfile = null, groups = [], roster = [], inactiveRoster = [], reports = [];
 let s21RoleColumnsReady = true;
 let reportCategoryColumnReady = false;
+let s88Records = [];
+let s88SchemaReady = false;
+let s88SchemaError = "";
+let activeS88PdfDoc = null, activeS88PdfUrl = null, activeS88PdfFilename = "";
 let authMode = null;
 
 function userStoreKey(kind,userId=currentUser?.id){return userId?("cite-hub-"+kind+"-v1:"+userId):null}
