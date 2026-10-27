@@ -415,7 +415,7 @@ function s88RecordForMonth(month){return s88Records.find(r=>s88MonthKey(r.volana
 function s88IsAuthorized(){return !!currentUser&&(currentProfile?.role==="admin"||currentProfile?.role==="responsable")}
 function s88Number(value){const n=Number(value);return Number.isFinite(n)&&n>=0&&Number.isInteger(n)?n:null}
 function s88Average(meetings,attendance){return Number(meetings)>0?Number(attendance)/Number(meetings):0}
-function s88FormatAverage(value){if(value===null||value===undefined||value==="")return "";const n=Number(value);return Number.isFinite(n)?(Math.round(n*10)/10).toLocaleString("fr-FR",{maximumFractionDigits:1}):""}
+function s88FormatAverage(value){if(value===null||value===undefined||value==="")return "";const n=Number(value);return Number.isFinite(n)?String(Math.round(n)):""}
 function s88ValuesForMonth(month){
  const saved=s88RecordForMonth(month),draft=readS88Drafts()[month]||{};
  return {
