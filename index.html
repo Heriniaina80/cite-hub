@@ -156,7 +156,8 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div id="message" role="status" aria-live="polite"></div>
 <div id="s88MonthlyCard" class="card s88-month-card">
  <h3>Fampidirana S-88 — Isan’ny mpanatrika fivoriana</h3>
- <p class="hint">Fenoina isam-bolana ho an’ny fiangonana manontolo. Ampidiro ny isan’ny fivoriana sy ny tontalin’ny mpanatrika; kajiana ho azy ny salanisa isan-kerinandro. Ny volana dia ilay voafidy etsy ambony.</p>
+ <p class="hint">Safidio eto ambany manokana ny volana anaovana S-88. Tsy voatery hitovy amin’ny volana anaovana tatitra isam-bolana izy io, ary ny fitahirizana dia manova ny volana voafidy ihany.</p>
+ <div class="grid"><div><label for="s88ReportMonth">Volana anaovana S-88</label><input id="s88ReportMonth" type="month" required></div></div>
  <div id="s88SchemaNotice" class="notice" role="status" aria-live="polite" style="display:none"></div>
  <div class="s88-input-grid">
   <div class="s88-meeting-panel">
@@ -439,14 +440,14 @@ function updateS88Averages(){
 }
 function saveS88DraftFromForm(){
  if(!currentUser||!currentProfile)return;
- const month=s88MonthKey($("month").value);if(month.length!==7||month[4]!=="-")return;
+ const month=s88MonthKey($("s88ReportMonth").value);if(month.length!==7||month[4]!=="-")return;
  const drafts=readS88Drafts();
  drafts[month]={weekdayMeetings:$("s88WeekdayMeetings").value,weekdayAttendance:$("s88WeekdayAttendance").value,weekendMeetings:$("s88WeekendMeetings").value,weekendAttendance:$("s88WeekendAttendance").value,updatedAt:new Date().toISOString()};
  writeUserStore("s88-drafts",drafts);
 }
 function configureS88ServiceYear(){
  const el=$("s88ServiceYear");if(!el)return;
- const previous=el.value,month=$("month")?.value||new Date().toISOString().slice(0,7),current=reportingYear(month);
+ const previous=el.value,month=$("s88ReportMonth")?.value||$("month")?.value||new Date().toISOString().slice(0,7),current=reportingYear(month);
  const draftMonths=Object.keys(readS88Drafts());
  const years=new Set([current,current+1,...s88Records.map(r=>reportingYear(r.volana)),...draftMonths.map(m=>reportingYear(m))]);
  el.innerHTML=[...years].filter(Number.isFinite).sort((a,b)=>b-a).map(y=>'<option value="'+y+'">'+y+'–'+(y+1)+'</option>').join("");
@@ -455,7 +456,9 @@ function configureS88ServiceYear(){
 function renderS88Month(){
  const card=$("s88MonthlyCard");if(!card)return;
  const authorized=s88IsAuthorized();card.style.display=authorized?"block":"none";if(!authorized)return;
- const month=s88MonthKey($("month").value),notice=$("s88SchemaNotice");
+ const monthPicker=$("s88ReportMonth");
+ if(!monthPicker.value)monthPicker.value=$("month")?.value||new Date().toISOString().slice(0,7);
+ const month=s88MonthKey(monthPicker.value),notice=$("s88SchemaNotice");
  if(!s88SchemaReady){
   notice.style.display="block";
   notice.textContent="Mbola tsy hita na tsy azo idirana ny tabilao S-88 ao amin’ny Supabase. Azo tehirizina eto amin’ity fitaovana ity ny drafitra, fa mila ampiharina ilay SQL fananganana public.tatitra_s88 vao afaka zaraina amin’ny Admin sy ny tompon’andraikitra hafa."+(s88SchemaError?" Antsipiriany: "+s88SchemaError:"");
@@ -477,8 +480,8 @@ async function loadS88Records(){
 }
 async function saveS88Month(){
  if(!s88IsAuthorized()){showCiteToast("Admin na tompon’andraikitra nekena ihany no mahazo mampiditra S-88.","error");return}
- const month=s88MonthKey($("month").value);
- if(month.length!==7||month[4]!=="-"){setS88Status("Safidio aloha ny volana anaovana tatitra.","error");return}
+ const month=s88MonthKey($("s88ReportMonth").value);
+ if(month.length!==7||month[4]!=="-"){setS88Status("Safidio aloha ny volana anaovana S-88.","error");return}
  const inputs=[["s88WeekdayMeetings","Isan’ny fivoriana andavanandro"],["s88WeekdayAttendance","Tontalin’ny mpanatrika andavanandro"],["s88WeekendMeetings","Isan’ny fivoriana amin’ny faran’ny herinandro"],["s88WeekendAttendance","Tontalin’ny mpanatrika amin’ny faran’ny herinandro"]];
  const values={};
  for(const [id,label] of inputs){const raw=$(id).value,n=s88Number(raw);if(raw===""||n===null){setS88Status("Ampidiro isa 0 na mihoatra amin’ny saha: "+label+".","error");$(id).focus();return}values[id]=n}
@@ -1080,7 +1083,8 @@ $("fitantanana").addEventListener("click",async event=>{
 $("saveProfileRole").addEventListener("click",saveProfileRole);
 $("cancelProfileRole").addEventListener("click",renderPersonProfile);
 $("group").addEventListener("change",renderPeople);
-$("month").addEventListener("change",()=>{renderPeople();renderS88Month()});
+$("month").addEventListener("change",()=>{renderPeople();if(!$("s88ReportMonth").value)$("s88ReportMonth").value=$("month").value;renderS88Month()});
+$("s88ReportMonth").addEventListener("change",renderS88Month);
 $("saveAll").addEventListener("click",async()=>{
  const month=$("month").value,group=$("group").value;
  if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty CITE HUB efa nampiasaina tamin’ity fitaovana ity aloha.";return}
