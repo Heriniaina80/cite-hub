@@ -1,4 +1,4 @@
-const CACHE_NAME = "cite-hub-shell-v18";
+const CACHE_NAME = "cite-hub-shell-v19";
 const APP_SHELL = [
   "./",
   "./index.html",
