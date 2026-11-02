@@ -31,7 +31,7 @@ button:hover{background:#104d80}button.secondary{background:#e8eef6;color:var(--
 .toolbar button{flex:0 0 auto}.hint{font-size:13px;color:var(--muted)}.danger{background:#b91c1c;color:#fff}.danger:hover{background:#991b1b}.notice{padding:12px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;color:#9a3412;font-size:14px}
 .people-list{display:grid;gap:10px;margin-top:14px}
 .person{border:1px solid var(--line);border-radius:11px;padding:14px;background:#fff;display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(2,minmax(150px,1fr));gap:13px;align-items:center}
-.person-name{font-weight:700}.role{display:inline-block;font-size:12px;color:#1d4ed8;background:#eff6ff;border-radius:20px;padding:4px 8px;margin-top:5px}
+.person-name{font-weight:700}.person.report-complete{background:#f0fdf4;border-color:#86efac;box-shadow:inset 4px 0 0 #16a34a}.person.report-complete .person-name:after{content:"✓ Vita";display:inline-block;margin-left:8px;padding:2px 7px;border-radius:999px;background:#dcfce7;color:#166534;font-size:11px;font-weight:700;vertical-align:middle}.role{display:inline-block;font-size:12px;color:#1d4ed8;background:#eff6ff;border-radius:20px;padding:4px 8px;margin-top:5px}
 .person label{font-size:12px;color:var(--muted)}.person input,.person select{margin-top:4px}
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px}.stat h3{font-size:15px;margin:0 0 8px}.big{font-size:25px;color:var(--navy);font-weight:700}
@@ -925,6 +925,24 @@ sbClient.auth.onAuthStateChange((event,session)=>{
  }
  setTimeout(()=>loadProfile().catch(e=>setStatus(e.message,true)),0);
 });
+function updateReportCardCompletion(card){
+ if(!card)return false;
+ const category=normalizeImportCategory(card.querySelector('[data-field="category"]')?.value||card.dataset.role||"Mpitory");
+ const studiesRaw=card.querySelector('[data-field="studies"]')?.value??"";
+ const studiesValid=studiesRaw!==""&&Number.isInteger(Number(studiesRaw))&&Number(studiesRaw)>=0;
+ let roleFieldsValid=false;
+ if(category==="Mpitory"){
+  const participation=card.querySelector('[data-field="participation"]')?.value||"";
+  roleFieldsValid=participation==="Eny"||participation==="Tsia";
+ }else{
+  const hoursRaw=card.querySelector('[data-field="hours"]')?.value??"";
+  roleFieldsValid=hoursRaw!==""&&Number.isFinite(Number(hoursRaw))&&Number(hoursRaw)>=0&&Number(hoursRaw)<=70;
+ }
+ const complete=studiesValid&&roleFieldsValid;
+ card.classList.toggle("report-complete",complete);
+ card.setAttribute("aria-label",(card.dataset.name||"Mpikambana")+(complete?" — Vita":" — Mbola tsy vita"));
+ return complete;
+}
 function renderPeople(){
  const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus");
  $("message").textContent="";
@@ -951,6 +969,7 @@ function renderPeople(){
    fields+='<div><label for="note-'+i+'">Fanamarihana</label><input id="note-'+i+'" data-field="note" value="'+esc(old.fanamarihana||"")+'"></div>';
    return '<div class="person" data-member-id="'+p.id+'" data-name="'+esc(p.anarana)+'" data-role="'+esc(category)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><select class="report-role-picker" aria-label="Sokajy amin’ity volana ity" title="Sokajy amin’ity volana ity" data-field="category">'+categoryOptions+'</select></div>'+fields+'</div>';
  }).join("");
+ list.querySelectorAll(".person[data-member-id]").forEach(updateReportCardCompletion);
  updateOfflineStatus();
 }
 function monthlyReportRows(){const month=$("filterMonth").value,group=$("filterGroup").value;return reports.filter(r=>(!month||r.volana===month)&&(group==="all"||r.andiany===group)&&canSeeGroup(r.andiany))}
@@ -1195,7 +1214,7 @@ $("saveAll").addEventListener("click",async()=>{
 });
 $("resetRows").addEventListener("click",()=>{clearReportDraft($("group").value,$("month").value);renderPeople();$("message").textContent="Naverina tamin’ny angona voatahiry farany ny saha. Raha mbola misy tatitra milahatra halefa, dia mbola hotehirizina izany.";});
 $("syncPendingBtn").addEventListener("click",()=>syncPendingReports(true));
-$("peopleList").addEventListener("input",event=>{if(event.target.closest("[data-field]"))saveCurrentReportDraft()});
+$("peopleList").addEventListener("input",event=>{const field=event.target.closest("[data-field]");if(!field)return;updateReportCardCompletion(field.closest(".person"));saveCurrentReportDraft()});
 $("peopleList").addEventListener("change",event=>{
  const field=event.target.closest("[data-field]");if(!field)return;
  if(field.dataset.field==="category"){
@@ -1205,6 +1224,7 @@ $("peopleList").addEventListener("change",event=>{
   if(publisher)publisher.style.display=category==="Mpitory"?"":"none";
   if(pioneer)pioneer.style.display=category==="Mpitory"?"none":"";
  }
+ updateReportCardCompletion(field.closest(".person"));
  saveCurrentReportDraft();
 });
 window.addEventListener("online",()=>{updateOfflineStatus();syncPendingReports(true)});
