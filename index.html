@@ -152,7 +152,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div id="reportCategorySchemaNotice" class="notice" style="display:none;margin:12px 0">Tsy mbola misy saha hitahirizana ny sokajy isam-bolana ao amin’ny tahiry iombonana. Tehirizo ny drafitra eo an-toerana aloha ary ampiharo ny SQL fanavaozana mba hahafahana mampifanaraka azy.</div>
 <div id="offlineStatus" class="notice" role="status" aria-live="polite" style="margin:12px 0">Ny CITE HUB dia afaka mitahiry drafitra eto amin’ity fitaovana ity. Rehefa misy connexion dia azo alefa any amin’ny tahiry iombonana.</div>
 <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
-<div class="toolbar"><button id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div>
+<div class="toolbar"><button id="saveCompleted" type="button">Tehirizo ireo efa vita</button><button class="secondary" id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div><p class="hint">Azonao tehirizina tsikelikely ireo tatitra efa feno. Tsy ho very na ho voafafa ny saha mbola tsy vita; tohizo fotsiny ny fampidirana azy dia tsindrio indray ilay bokotra.</p>
 <div id="message" role="status" aria-live="polite"></div>
 <div id="s88MonthlyCard" class="card s88-month-card">
  <h3>Fampidirana S-88 — Isan’ny mpanatrika fivoriana</h3>
@@ -1085,6 +1085,70 @@ $("cancelProfileRole").addEventListener("click",renderPersonProfile);
 $("group").addEventListener("change",renderPeople);
 $("month").addEventListener("change",()=>{renderPeople();if(!$("s88ReportMonth").value)$("s88ReportMonth").value=$("month").value;renderS88Month()});
 $("s88ReportMonth").addEventListener("change",renderS88Month);
+function removePendingReportEntries(entries){
+ const queue=readPendingReportQueue();
+ for(const entry of entries){
+  const key=String(entry.mpikambana_id)+"|"+String(entry.volana);
+  delete queue[key];
+ }
+ writeUserStore("pending-reports",queue);
+ mergePendingReports();
+}
+async function saveCompletedReports(){
+ const month=$("month").value,group=$("group").value,button=$("saveCompleted");
+ if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty CITE HUB aloha.";return}
+ if(!month||!group){$("message").textContent="Safidio aloha ny volana sy ny andiany.";return}
+ if(!canSeeGroup(group)){$("message").textContent="Tsy nahazo alalana amin’ity andiany ity ianao.";return}
+ const people=peopleForGroup(group);
+ if(!people.length){$("message").textContent="Tsy misy mpikambana ao amin’ity andiany ity.";return}
+ const entries=[],missing=[];
+ document.querySelectorAll("#peopleList .person[data-member-id]").forEach(el=>{
+  const role=normalizeImportCategory(el.querySelector('[data-field="category"]')?.value||el.dataset.role||"Mpitory"),name=el.dataset.name,id=Number(el.dataset.memberId);
+  const participation=el.querySelector('[data-field="participation"]')?.value||"";
+  const hoursRaw=el.querySelector('[data-field="hours"]')?.value??"";
+  const studiesRaw=el.querySelector('[data-field="studies"]')?.value??"0";
+  const note=el.querySelector('[data-field="note"]')?.value||"";
+  if(role==="Mpitory"&&!participation){missing.push({name,field:"fandraisana anjara"});return}
+  if(role!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){missing.push({name,field:"ora"});return}
+  if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){missing.push({name,field:"fampianarana Baiboly"});return}
+  entries.push({mpikambana_id:id,andiany_id:groupId(group),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
+ });
+ if(!entries.length){
+  const detail=missing.slice(0,4).map(x=>x.name+" ("+x.field+")").join(", ");
+  $("message").textContent="Mbola tsy misy tatitra feno azo tehirizina. Fenoy aloha ny saha ilaina"+(detail?": "+detail+(missing.length>4?"…":"")+".":".");
+  $("message").style.color="#b45309";return;
+ }
+ button.disabled=true;
+ const missingText=missing.length?" Mbola miandry: "+missing.length+" olona"+(missing.length<=4?" ("+missing.map(x=>x.name).join(", ")+")":".")+".":" Tsy misy olona tavela.";
+ const saveLocally=()=>{
+  saveEntriesAsPending(entries,group,month);
+  removeSyncedDraftRows(entries.map(record=>({record,group,month})));
+  renderPeople();
+  const reason=!navigator.onLine?"Tsy misy connexion Internet.": "Mbola tsy vonona ny saha sokajy isam-bolana ao amin’ny Supabase.";
+  $("message").textContent=reason+" Voatahiry vetivety eto amin’ity fitaovana ity ny tatitra "+entries.length+"."+missingText;
+  $("message").style.color="#b45309";
+ };
+ try{
+  if(!reportCategoryColumnReady||!navigator.onLine){saveLocally();return}
+  const {error}=await sbClient.from("tatitra").upsert(entries,{onConflict:"mpikambana_id,volana"});
+  if(error){
+   if(isNetworkFailure(error)){saveLocally();return}
+   throw error;
+  }
+  removePendingReportEntries(entries);
+  removeSyncedDraftRows(entries.map(record=>({record,group,month})));
+  await loadAllData();
+  $("message").textContent="Voatahiry ao amin’ny tahiry iombonana ny tatitra "+entries.length+" ho an’ny "+group+" ("+month+")."+missingText;
+  $("message").style.color="#166534";
+ }catch(e){
+  if(isNetworkFailure(e)){saveLocally()}
+  else{$("message").textContent="Tsy voatahiry ny tatitra: "+(e?.message||String(e));$("message").style.color="#b91c1c"}
+ }finally{
+  button.disabled=false;
+  updateOfflineStatus();
+ }
+}
+$("saveCompleted").addEventListener("click",saveCompletedReports);
 $("saveAll").addEventListener("click",async()=>{
  const month=$("month").value,group=$("group").value;
  if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty CITE HUB efa nampiasaina tamin’ity fitaovana ity aloha.";return}
