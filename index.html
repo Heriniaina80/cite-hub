@@ -100,7 +100,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 .s88-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
 @media(max-width:680px){.s88-input-grid{grid-template-columns:1fr}.s88-actions button{width:100%}}
 #s88PreviewFrame{display:block;width:100%;height:100%;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
-</style>
+.mobile-pdf-open{padding:18px;text-align:center;background:#f8fafc;border-radius:10px;color:#334155}.mobile-pdf-open p{margin:0 0 14px}.button-link{display:inline-block;background:#1769aa;color:#fff;padding:11px 18px;border-radius:8px;text-decoration:none;font-weight:700}@media(max-width:700px){.s21-modal-body iframe{display:none}.mobile-pdf-open{display:block!important}}</style>
 </head>
 <body class="public-view">
 <header><button id="menuToggle" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Sokafy ny menu">☰ Menu</button><div><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></div></header>
@@ -263,7 +263,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
    <div><h2 id="s21BundleTitle">Fijerena S-21</h2><p id="s21BundleSubtitle">Hamarino ny pejy rehetra alohan’ny hisintonana PDF.</p></div>
    <button type="button" id="closeS21Bundle" class="secondary">Akatona ✕</button>
   </div>
-  <div class="s21-modal-body"><iframe id="s21BundlePreviewFrame" title="Fijerena ny PDF S-21 rehetra"></iframe></div>
+  <div class="s21-modal-body"><iframe id="s21BundlePreviewFrame" title="Fijerena ny PDF S-21 rehetra"></iframe><div class="mobile-pdf-open" id="s21MobilePdfOpen" style="display:none"><p>Ao amin’ny téléphone, sokafy amin’ny mpijery PDF ny rakitra mba hahitana ny pejy rehetra.</p><a id="s21OpenPdfLink" class="button-link" target="_blank" rel="noopener">Sokafy ny PDF</a></div></div>
   <div class="s21-modal-footer">
    <p>Jereo ny anarana sy ny pejy rehetra. Rehefa vonona dia tsindrio “Télécharger PDF”.</p>
    <div class="toolbar" style="margin:0"><button type="button" id="downloadS21Bundle">Télécharger PDF</button><button type="button" id="closeS21BundleBottom" class="secondary">Akatona</button></div>
@@ -276,7 +276,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
    <div><h2 id="s88PreviewTitle">Fijerena S-88</h2><p id="s88PreviewSubtitle">Hamarino ny tatitra feno alohan’ny hisintonana PDF.</p></div>
    <button type="button" id="closeS88Preview" class="secondary">Akatona ✕</button>
   </div>
-  <div class="s21-modal-body"><iframe id="s88PreviewFrame" title="Fijerena ny PDF S-88 feno"></iframe></div>
+  <div class="s21-modal-body"><iframe id="s88PreviewFrame" title="Fijerena ny PDF S-88 feno"></iframe><div class="mobile-pdf-open" id="s88MobilePdfOpen" style="display:none"><p>Ao amin’ny téléphone, sokafy amin’ny mpijery PDF ny rakitra mba hahitana ny pejy rehetra.</p><a id="s88OpenPdfLink" class="button-link" target="_blank" rel="noopener">Sokafy ny PDF</a></div></div>
   <div class="s21-modal-footer">
    <p>Jereo aloha ny salanisa sy ny angona isam-bolana. Rehefa vonona dia tsindrio “Télécharger PDF”.</p>
    <div class="toolbar" style="margin:0"><button type="button" id="downloadS88Pdf">Télécharger PDF</button><button type="button" id="closeS88PreviewBottom" class="secondary">Akatona</button></div>
@@ -557,7 +557,7 @@ function previewS88Pdf(){
   const doc=createS88Pdf(year);if(activeS88PdfUrl){URL.revokeObjectURL(activeS88PdfUrl);activeS88PdfUrl=null}
   activeS88PdfDoc=doc;activeS88PdfFilename="S-88-MG-"+year+"-"+(year+1)+".pdf";activeS88PdfUrl=URL.createObjectURL(doc.output("blob"));
   $("s88PreviewTitle").textContent="Fijerena S-88 feno";$("s88PreviewSubtitle").textContent="Taom-panompoana "+year+"–"+(year+1)+" · Volana 12 · Isan’ny fivoriana sy salanisa";
-  $("s88PreviewFrame").src=activeS88PdfUrl;$("s88PreviewModal").style.display="flex";document.body.style.overflow="hidden";
+  $("s88PreviewFrame").src=activeS88PdfUrl;$("s88OpenPdfLink").href=activeS88PdfUrl;$("s88PreviewModal").style.display="flex";document.body.style.overflow="hidden";
   setS88Status("Vita ny PDF S-88 ho an’ny taom-panompoana "+year+"–"+(year+1)+". Jereo aloha ny pejy iray manontolo.","success");
  }catch(error){setS88Status("Tsy afaka namorona ny S-88: "+(error?.message||String(error)),"error");showCiteToast("Tsy afaka namorona ny PDF S-88.","error")}
 }
@@ -1482,7 +1482,7 @@ async function previewAllAnnualS21(){
   activeS21BundleUrl=URL.createObjectURL(blob);
   $("s21BundleTitle").textContent="Fijerena S-21 — "+groupLabel;
   $("s21BundleSubtitle").textContent=members.length+" olona · Taom-panompoana "+year+"–"+(year+1)+" · Pejy "+doc.getNumberOfPages();
-  $("s21BundlePreviewFrame").src=activeS21BundleUrl;
+  $("s21BundlePreviewFrame").src=activeS21BundleUrl;$("s21OpenPdfLink").href=activeS21BundleUrl;
   $("s21BundleModal").style.display="flex";
   document.body.style.overflow="hidden";
   const message="Vita ny fanomanana S-21 "+members.length+" olona. Hamarino eto aloha ny pejy rehetra.";
