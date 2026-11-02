@@ -582,14 +582,14 @@ function updateOfflineStatus(){
   host.textContent=pending
    ?"Tsy misy connexion Internet. Misy tatitra "+pending+" voatahiry eto amin’ity fitaovana ity, mbola halefa any amin’ny tahiry iombonana rehefa miverina ny connexion."
    :drafts
-    ?"Tsy misy connexion Internet. Voatahiry vetivety eto amin’ity fitaovana ity ny fanovana "+drafts+" volana/andiany. Tsindrio “Tehirizo ny tatitra rehetra” rehefa vonona mba hilaharana halefa any amin’ny Admin rehefa miverina ny connexion."
+    ?"Tsy misy connexion Internet. Voatahiry vetivety eto amin’ity fitaovana ity ny fanovana "+drafts+" volana/andiany. Tsindrio “Tehirizo ireo efa vita” mba hitahirizana tsikelikely ny tatitra; halefa any amin’ny tahiry iombonana rehefa miverina ny connexion."
     :"Tsy misy connexion Internet. Ny fanovana soratanao dia tehirizina ho drafitra eto amin’ity fitaovana ity.";
   host.style.background="#fff7ed";host.style.borderColor="#fed7aa";
  }else if(pending){
   host.textContent="Misy tatitra "+pending+" mbola voatahiry eto amin’ity fitaovana ity fa tsy mbola tafiditra ao amin’ny tahiry iombonana. Tsindrio “Alefaso any amin’ny tahiry iombonana” na miandrasa ny fampifanarahana mandeha ho azy.";
   host.style.background="#fff7ed";host.style.borderColor="#fed7aa";
  }else if(drafts){
-  host.textContent="Voatahiry eto amin’ity fitaovana ity ny drafitra "+drafts+" volana/andiany. Raha tianao ho hitan’ny Admin, tsindrio “Tehirizo ny tatitra rehetra” rehefa feno.";
+  host.textContent="Voatahiry eto amin’ity fitaovana ity ny drafitra "+drafts+" volana/andiany. Tsindrio “Tehirizo ireo efa vita” isaky ny misy tatitra feno mba hampidirana azy tsikelikely ao amin’ny tahiry iombonana.";
   host.style.background="#eff6ff";host.style.borderColor="#bfdbfe";
  }else{
   host.textContent="Mifandray amin’ny Internet. Ny tatitra voatahiry ao amin’ny tahiry iombonana dia azon’ny olona nahazo alalana jerena.";
