@@ -941,7 +941,8 @@ function updateReportCardCompletion(card){
   const hoursRaw=card.querySelector('[data-field="hours"]')?.value??"";
   roleFieldsValid=hoursRaw!==""&&Number.isFinite(Number(hoursRaw))&&Number(hoursRaw)>=0&&Number(hoursRaw)<=70;
  }
- const complete=studiesValid&&roleFieldsValid;
+ const special=category==="Mpisava lalana manokana";
+ const complete=roleFieldsValid&&(special||studiesValid);
  card.classList.toggle("report-complete",complete);
  card.setAttribute("aria-label",(card.dataset.name||"Mpikambana")+(complete?" — Vita":" — Mbola tsy vita"));
  return complete;
