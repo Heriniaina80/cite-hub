@@ -1007,7 +1007,7 @@ function toggleDashboardDetail(type,button){
  if(panel.style.display!=="none"&&panel.dataset.type===type){panel.style.display="none";panel.innerHTML="";button.setAttribute("aria-expanded","false");return}
  const month=$("filterMonth").value;
  const group=$("filterGroup").value;
- const selected=monthlyReportRows().filter(r=>String(r.sokajy||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim()==="mpitory"&&r.fandraisana_anjara==="Tsia");
+ const selected=monthlyReportRows().filter(r=>String(r.sokajy||"").toLowerCase().trim()==="mpitory"&&r.fandraisana_anjara==="Tsia");
  const grouped=new Map();
  selected.forEach(r=>{const key=r.andiany||"Andiany tsy fantatra";if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(r)});
  const ordered=[...grouped.entries()].sort((a,b)=>a[0].localeCompare(b[0],"fr",{numeric:true}));
