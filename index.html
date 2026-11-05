@@ -233,7 +233,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div class="toolbar"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" id="downloadAnnualPdf" class="secondary">Misintona PDF</button><button type="button" id="previewAnnualS21Bundle">Hijery S-21 rehetra</button></div>
 <p class="hint">Ny bokotra “Hijery S-21 rehetra” dia mamorona PDF mitambatra ho an’ny olona mavitrika ao amin’ny andiany sy taom-panompoana voafidy. Azonao jerena eto aloha ny pejy rehetra, dia vao misintona azy.</p>
 <div id="annualRecordStatus" class="notice" role="status" aria-live="polite" style="display:none"></div>
-<div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona, dia tsindrio “Asehoy ny firaketana”.</p></div>
+<div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona, dia tsindrio “Asehoy ny firaketana”.</p></div><section class="card" id="s21SpecialHoursPanel" style="margin-top:16px;display:none"><h3>Ora manokana ao amin’ny S-21</h3><p class="hint">Ireo ora ireo dia tehirizina misaraka ary tsy tafiditra amin’ny tatitra na antontan’isa mahazatra an’ny fiangonana.</p><div class="table-wrap" id="s21SpecialHoursTable"></div><div class="toolbar"><button type="button" id="saveS21SpecialHours">Tehirizo ny ora S-21</button></div><p class="hint" id="s21SpecialHoursStatus" role="status"></p></section>
 </section>
 
 <section class="card" id="tatitra">
@@ -292,7 +292,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_adOLLnzo6nOQ_sM6a7JT_g_R3jxfvN7";
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 const roleOrder = {"Mpitory":0,"Mpanampy":1,"Mpisava lalana maharitra":2};
-let currentUser = null, currentProfile = null, groups = [], roster = [], inactiveRoster = [], reports = [];
+let currentUser = null, currentProfile = null, groups = [], roster = [], inactiveRoster = [], reports = [], s21HourRecords = [];
 let s21RoleColumnsReady = true;
 let reportCategoryColumnReady = false;
 let s88Records = [];
@@ -683,6 +683,9 @@ async function loadAllData(){
  }else reportCategoryColumnReady=true;
  const categoryNotice=$("reportCategorySchemaNotice");if(categoryNotice)categoryNotice.style.display=reportCategoryColumnReady?"none":"block";
  reports=(r.data||[]).map(x=>({id:x.id,mpikambana_id:x.mpikambana_id,andiany:groupCode(x.andiany_id??x.mpikambana?.andiany_id),andiany_id:x.andiany_id??x.mpikambana?.andiany_id,volana:x.volana?.slice(0,7),anarana:x.mpikambana?.anarana||"",sokajy:normalizeImportCategory(x.sokajy||x.mpikambana?.sokajy||"Mpitory"),fandraisana_anjara:x.fandraisana_anjara===true?"Eny":x.fandraisana_anjara===false?"Tsia":"",ora:x.ora,fampianarana_baiboly:x.fampianarana_baiboly??0,fanamarihana:x.fanamarihana||"",created_at:x.created_at}));
+ const specialHours=await sbClient.from("s21_ora_isam_bolana").select("id,mpikambana_id,volana,andraikitra,ora");
+ if(specialHours.error)throw specialHours.error;
+ s21HourRecords=specialHours.data||[];
  mergePendingReports();configureGroups();renderManagePeople();renderPeople();refreshDashboard();renderRoleHistory();if(typeof configureAnnualRecord==="function")configureAnnualRecord();await loadS88Records();renderS88Month();saveOfflineSnapshot();updateOfflineStatus();
 }
 function showAuthForm(mode){
@@ -1375,6 +1378,19 @@ function renderAnnualRecord(){
   const category=normalizeImportCategory(shown?.sokajy||savedCategory);
   return '<tr data-month="'+m.month+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td><select data-field="category" aria-label="Sokajy amin’ny '+m.label+'">'+categoryOptions(category)+'</select></td><td><div data-role-fields="publisher" '+(category==="Mpitory"?'':'style="display:none"')+'><select data-field="participation"><option value="">—</option><option value="Eny" '+(shown?.fandraisana_anjara==="Eny"?'selected':'')+'>Eny</option><option value="Tsia" '+(shown?.fandraisana_anjara==="Tsia"?'selected':'')+'>Tsia</option></select></div></td><td><div data-role-fields="pioneer" '+(category==="Mpitory"?'style="display:none"':'')+'><input data-field="hours" type="number" min="0" max="70" step="0.5" value="'+(shown?.ora??'')+'" placeholder="Ora"></div></td><td><input data-field="studies" type="number" min="0" step="1" value="'+(shown?.fampianarana_baiboly??0)+'"></td><td><input data-field="note" value="'+esc(shown?.fanamarihana||'')+'" placeholder="Fanamarihana"></td></tr>';
  }).join('')+'</tbody></table>';
+ const specialRoles=[
+  {key:"mpisava_lalana_manokana",label:"Mpisava lalana manokana"},
+  {key:"misionera_eny_an_saha",label:"Misionera eny amin’ny saha"}
+ ].filter(role=>person[role.key]===true);
+ const panel=$("s21SpecialHoursPanel");
+ if(panel)panel.style.display=specialRoles.length?"block":"none";
+ if(specialRoles.length){
+  const specialRows=specialRoles.flatMap(role=>months.map(m=>{
+   const rec=s21HourRecords.find(x=>String(x.mpikambana_id)===String(person.id)&&String(x.volana).slice(0,7)===m.month&&x.andraikitra===role.label);
+   return '<tr data-month="'+m.month+'" data-role="'+esc(role.label)+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td>'+esc(role.label)+'</td><td><input data-s21-hours type="number" min="0" max="70" step="0.5" value="'+(rec?.ora??'')+'" placeholder="Ora"></td></tr>';
+  }));
+  $("s21SpecialHoursTable").innerHTML='<table><thead><tr><th>Volana</th><th>Andraikitra</th><th>Ora fiasana</th></tr></thead><tbody>'+specialRows.join('')+'</tbody></table>';
+ }
 }
 async function saveAnnualRecord(){
  if(currentProfile?.role!=="admin"&&currentProfile?.role!=="responsable"){setStatus("Tsy mahazo alalana hitahiry firaketana ianao.",true);return}
@@ -1393,6 +1409,35 @@ async function saveAnnualRecord(){
  if(error){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy voatahiry: "+error.message;return}
  await loadAllData();configureAnnualRecord();renderAnnualRecord();$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Voatahiry ny firaketana isan-taona ho an’i "+person.anarana+".";
 }
+async function saveS21SpecialHours(){
+ const person=roster.find(p=>String(p.id)===String($("annualPerson").value));
+ const year=Number($("annualYear").value);
+ const status=$("s21SpecialHoursStatus");
+ if(!person){if(status)status.textContent="Safidio aloha ny olona.";return}
+ if(currentProfile?.role!=="admin"&&currentProfile?.role!=="responsable"){if(status)status.textContent="Tsy mahazo alalana hitahiry.";return}
+ const entries=[];
+ for(const row of document.querySelectorAll("#s21SpecialHoursTable tbody tr")){
+  const raw=row.querySelector("[data-s21-hours]")?.value??"";
+  if(raw==="")continue;
+  const hours=Number(raw);
+  if(!Number.isFinite(hours)||hours<0||hours>70){if(status)status.textContent="Ampidiro ora 0 hatramin’ny 70 isaky ny volana.";return}
+  entries.push({mpikambana_id:person.id,volana:row.dataset.month+"-01",andraikitra:row.dataset.role,ora:hours,updated_at:new Date().toISOString()});
+ }
+ const button=$("saveS21SpecialHours");button.disabled=true;
+ try{
+  if(entries.length){
+   const {error}=await sbClient.from("s21_ora_isam_bolana").upsert(entries,{onConflict:"mpikambana_id,volana,andraikitra"});
+   if(error)throw error;
+  }
+  const refreshed=await sbClient.from("s21_ora_isam_bolana").select("id,mpikambana_id,volana,andraikitra,ora");
+  if(refreshed.error)throw refreshed.error;
+  s21HourRecords=refreshed.data||[];
+  renderAnnualRecord();
+  if(status)status.textContent="Voatahiry misaraka ao amin’ny S-21 ny ora ho an’i "+person.anarana+" (taom-panompoana "+year+"–"+(year+1)+").";
+ }catch(error){if(status)status.textContent="Tsy voatahiry ny ora S-21: "+(error?.message||String(error))}
+ finally{button.disabled=false}
+}
+
 function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  const pageW=210,left=8,right=202,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=10;
  const text=(s,x,yy,size=8,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(s??""),x,yy)};
@@ -1457,6 +1502,19 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  drawRow(heads,true);
  for(const row of visibleRows){drawRow([row.month,row.part,String(row.studies),row.category==="Mpisavalalana mpanampy"?"☑":"",row.hours||"",row.note||""])}
  doc.setFont("helvetica","bold");doc.setFontSize(7.5);for(let i=0;i<widths.length;i++){doc.setDrawColor(25,25,25);doc.rect(xs[i],y,widths[i],7)}text("Tontaliny",xs[0]+1,y+4.5,7.5,true);text(totalStudies,xs[2]+2,y+4.5,7.5,true);text(totalHours,xs[4]+2,y+4.5,7.5,true);
+ const specialRoleNames=[...(person.mpisava_lalana_manokana?["Mpisava lalana manokana"]:[]),...(person.misionera_eny_an_saha?["Misionera eny amin’ny saha"]:[])];
+ if(specialRoleNames.length){
+  y+=10;text("ORA MANOKANA — S-21 (tsy tafiditra amin’ny tatitra mahazatra)",left,y,8,true);y+=5;
+  const specialCols=[48,48,48,48],specialMonths=months;
+  const specialRows=specialMonths.map(m=>[m.label,...specialRoleNames.map(role=>{
+   const rec=s21HourRecords.find(x=>String(x.mpikambana_id)===String(person.id)&&String(x.volana).slice(0,7)===m.month&&x.andraikitra===role);
+   return rec?.ora??"";
+  })]);
+  const headers=["Volana",...specialRoleNames];
+  const widths2=[48,...specialRoleNames.map(()=> (right-left-48)/specialRoleNames.length)];
+  const drawSpecial=(vals,bold=false)=>{let x=left;vals.forEach((v,i)=>{doc.setDrawColor(25,25,25);if(bold){doc.setFillColor(245,245,245);doc.rect(x,y,widths2[i],6,"FD")}else doc.rect(x,y,widths2[i],5.5);doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(6.5);doc.setTextColor(20,20,20);doc.text(String(v??""),x+1,y+(bold?4:3.8));x+=widths2[i]});y+=bold?6:5.5};
+  drawSpecial(headers,true);specialRows.forEach(row=>drawSpecial(row,false));
+ }
  text("S-21-MG 11/23",8,289,6);text("CITE HUB · Taom-panompoana "+year+"–"+(year+1),pageW-8,289,6,false);
 }
 
@@ -1542,7 +1600,7 @@ $("annualRecordTable").addEventListener("change",event=>{
  if(publisher)publisher.style.display=category==="Mpitory"?"":"none";
  if(pioneer)pioneer.style.display=category==="Mpitory"?"none":"";
 });
-$("loadAnnualRecord").addEventListener("click",renderAnnualRecord);$("saveAnnualRecord").addEventListener("click",saveAnnualRecord);$("downloadAnnualPdf").addEventListener("click",downloadAnnualRecordPdf);
+$("loadAnnualRecord").addEventListener("click",renderAnnualRecord);$("saveAnnualRecord").addEventListener("click",saveAnnualRecord);$("downloadAnnualPdf").addEventListener("click",downloadAnnualRecordPdf);$("saveS21SpecialHours").addEventListener("click",saveS21SpecialHours);
 async function boot(){
  $("filterMonth").value=new Date().toISOString().slice(0,7);
  try{
