@@ -958,7 +958,7 @@ function renderPeople(){
  status.style.display="none";
  const existing=reports.filter(r=>r.volana===month&&r.andiany===group);
  const draftStore=readReportDrafts(),activeDraft=draftStore[reportDraftKey(group,month)];
- const categories=["Mpitory","Mpisavalalana mpanampy","Mpisavalalana maharitra"];
+ const categories=["Mpitory","Mpisavalalana mpanampy","Mpisavalalana maharitra","Mpisava lalana manokana"];
  list.innerHTML=people.map((p,i)=>{
    const saved=existing.find(r=>String(r.mpikambana_id)===String(p.id))||{};
    const draft=activeDraft?.members?.[String(p.id)];
