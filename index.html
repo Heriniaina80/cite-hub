@@ -1142,7 +1142,7 @@ async function saveCompletedReports(){
   if(role==="Mpisava lalana manokana"){specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:role,ora:Number(hoursRaw)});return}
   entries.push({mpikambana_id:id,andiany_id:groupId(group),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
  });
- if(!entries.length){
+ if(!entries.length&&!specialEntries.length){
   const detail=missing.slice(0,4).map(x=>x.name+" ("+x.field+")").join(", ");
   $("message").textContent="Mbola tsy misy tatitra feno azo tehirizina. Fenoy aloha ny saha ilaina"+(detail?": "+detail+(missing.length>4?"…":"")+".":".");
   $("message").style.color="#b45309";return;
