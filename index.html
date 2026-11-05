@@ -184,7 +184,13 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 </section>
 <section class="card" id="fangatahana" style="display:none"><h2>Fangatahana fidirana</h2><p class="hint">Ireo kaonty vao nisoratra anarana nefa mbola miandry fankatoavana. Omeo andraikitra sy andiany vao afaka mampiditra tatitra izy ireo.</p><div id="accessRequests" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="accessRequestStatus" role="status" aria-live="polite"></div>
 </section>
-<section class="card" id="tomponandraikitra" style="display:none"><h2>Fitantanana ny kaonty sy andraikitra</h2><p class="hint">Hita eto ny Admin sy ny tompon’andraikitra nekena. Azonao ovaina ny andraikiny: raha tendrena ho Admin ny tompon’andraikitra iray dia hahita sy hitantana ny andiany rehetra ary ny fankatoavana kaonty izy. Admin ihany no afaka manova izany; voatahiry foana ny kaonty sy ny tatitra. Aza esorina ny Admin farany.</p><div id="approvedResponsibilities" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="approvedResponsibilityStatus" role="status" aria-live="polite"></div></section>
+<section class="card" id="tomponandraikitra" style="display:none"><h2>Fitantanana ny kaonty sy andraikitra</h2><p class="hint">Hita eto ny Admin sy ny tompon’andraikitra nekena. Azonao ovaina ny andraikiny: raha tendrena ho Admin ny tompon’andraikitra iray dia hahita sy hitantana ny andiany rehetra ary ny fankatoavana kaonty izy. Admin ihany no afaka manova izany; voatahiry foana ny kaonty sy ny tatitra. Aza esorina ny Admin farany.</p><div id="approvedResponsibilities" class="table-wrap"><p class="hint">Miandry ny angona...</p></div><div id="approvedResponsibilityStatus" role="status" aria-live="polite"></div>
+<div class="card" style="background:#f8fbff;border-color:#bfdbfe;margin-top:18px">
+<h3>Gmail handefasana tatitra isam-bolana</h3>
+<p class="hint">Ampidiro eto ny anaran’ny tompon’andraikitra sy ny Gmail handraisany ny PDF ho an’ny Andiany tsirairay. Raha miova ny tompon’andraikitra dia soloina eto fotsiny ny anarany sy ny Gmail. Admin ihany no afaka manova izany.</p>
+<div id="reportRecipientEmails" class="table-wrap"><p class="hint">Miandry ny angona...</p></div>
+<div id="reportRecipientEmailStatus" role="status" aria-live="polite"></div>
+</div></section>
 <section class="card" id="fitantanana">
 <h2>Fitantanana ny lisitry ny olona sy ny andiany</h2>
 <p>Ampio andiany vaovao rehefa mitombo ny isan’ny andiany, ampio olona vaovao, ary ovay ny sokajy na ny andiany misy azy. Mariho fa mety hiova ny andiany aseho amin’ny tatitra taloha rehefa afindra ny mpikambana, satria mifandray amin’ny mombamomba azy ireo tatitra.</p>
@@ -765,6 +771,38 @@ async function loadApprovedResponsibilities(){
  if(!data?.length){host.innerHTML='<p class="hint">Mbola tsy misy Admin na tompon’andraikitra nekena.</p>';return}
  host.innerHTML='<table><thead><tr><th>Kaonty (mailaka)</th><th>Andraikitra</th><th>Andiany iandraiketana</th><th>Hetsika</th></tr></thead><tbody>'+data.map(p=>'<tr data-approved-user-id="'+esc(p.user_id)+'" data-current-role="'+esc(p.role)+'"><td>'+esc(p.email||p.user_id)+'</td><td><select class="approved-role" aria-label="Andraikitry ny kaonty"><option value="responsable"'+(p.role==="responsable"?" selected":"")+'>Tompon’andraikitra</option><option value="admin"'+(p.role==="admin"?" selected":"")+'>Admin</option></select></td><td><select class="approved-team" aria-label="Andiany iandraiketan’ny kaonty"'+(p.role==="admin"?" disabled":"")+'><option value=""'+(!p.andiany_id?' selected':'')+'>— Andiany rehetra (Admin) / Safidio ny andiany —</option>'+groups.map(g=>'<option value="'+esc(g.id)+'"'+(String(g.id)===String(p.andiany_id)?' selected':'')+'>'+esc(g.kaody+' — '+g.anarana)+'</option>').join('')+'</select></td><td><div class="toolbar" style="margin:0"><button type="button" data-save-responsibility>Tehirizo ny fanovana</button><button type="button" class="danger" data-revoke-responsibility>Esory ny andraikitra</button></div></td></tr>').join('')+'</tbody></table>';
 }
+async function loadReportRecipientEmails(){
+ if(currentProfile?.role!=="admin")return;
+ const host=$("reportRecipientEmails");
+ host.innerHTML='<p class="hint">Eo am-pakana ny Gmail voatahiry...</p>';
+ const {data,error}=await sbClient.from("mpandray_tatitra").select("id,andiany_id,anarana_tomponandraikitra,email").order("andiany_id");
+ if(error){host.innerHTML='<p class="hint">Tsy afaka namaky ny Gmail: '+esc(error.message)+'</p>';return}
+ const saved=new Map((data||[]).map(item=>[String(item.andiany_id),item]));
+ host.innerHTML='<table><thead><tr><th>Andiany</th><th>Anaran’ny tompon’andraikitra</th><th>Adiresy Gmail</th><th>Hetsika</th></tr></thead><tbody>'+groups.map(g=>{
+  const item=saved.get(String(g.id))||{};
+  return '<tr data-recipient-group="'+esc(g.id)+'"><td><strong>'+esc(g.kaody+' — '+g.anarana)+'</strong></td><td><input type="text" class="recipient-name" autocomplete="off" placeholder="Anaran’ny tompon’andraikitra" value="'+esc(item.anarana_tomponandraikitra||'')+'"></td><td><input type="email" class="recipient-email" autocomplete="off" placeholder="anarana@gmail.com" value="'+esc(item.email||'')+'"></td><td><button type="button" data-save-recipient>Tehirizo</button></td></tr>';
+ }).join('')+'</tbody></table>';
+}
+async function saveReportRecipientEmail(row){
+ if(currentProfile?.role!=="admin"){showCiteToast("Admin ihany no afaka manova ny Gmail handraisana tatitra.","error");return}
+ const status=$("reportRecipientEmailStatus"),groupIdValue=Number(row?.dataset.recipientGroup);
+ const name=row?.querySelector(".recipient-name")?.value.trim()||"";
+ const email=row?.querySelector(".recipient-email")?.value.trim()||"";
+ if(!groupIdValue||!email||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+  status.textContent="Ampidiro Gmail marina aloha ho an’ity Andiany ity.";status.style.color="#b91c1c";return;
+ }
+ const button=row.querySelector("[data-save-recipient]");button.disabled=true;button.textContent="Tehirizina...";
+ const {error}=await sbClient.from("mpandray_tatitra").upsert({
+  andiany_id:groupIdValue,
+  anarana_tomponandraikitra:name||null,
+  email,
+  updated_at:new Date().toISOString(),
+  updated_by:currentUser?.id||null
+ },{onConflict:"andiany_id"});
+ button.disabled=false;button.textContent="Tehirizo";
+ if(error){status.textContent="Tsy voatahiry ny Gmail: "+error.message;status.style.color="#b91c1c";showCiteToast(status.textContent,"error");return}
+ status.textContent="Voatahiry ny Gmail ho an’ny "+(groups.find(g=>String(g.id)===String(groupIdValue))?.kaody||"Andiany")+".";status.style.color="#166534";showCiteToast(status.textContent,"success");
+}
 async function saveResponsibilityAssignment(userId,roleValue,groupIdValue){
  if(currentProfile?.role!=="admin"){setStatus("Administration ihany no afaka manova andraikitra.",true);return}
  const status=$("approvedResponsibilityStatus");
@@ -819,6 +857,10 @@ $("approvedResponsibilities").addEventListener("click",event=>{
  if(event.target.closest("[data-save-responsibility]"))saveResponsibilityAssignment(row.dataset.approvedUserId,row.querySelector(".approved-role").value,row.querySelector(".approved-team").value);
  if(event.target.closest("[data-revoke-responsibility]"))revokeResponsibility(row.dataset.approvedUserId);
 });
+$("reportRecipientEmails").addEventListener("click",event=>{
+ const button=event.target.closest("[data-save-recipient]");if(!button)return;
+ const row=button.closest("tr[data-recipient-group]");if(row)saveReportRecipientEmail(row);
+});
 async function handleAccessRequest(userId,approve,groupIdValue){
  if(currentProfile?.role!=="admin"){setStatus("Administration ihany no afaka manapa-kevitra amin’ny fangatahana.",true);return}
  const status=$("accessRequestStatus");
@@ -853,7 +895,7 @@ async function loadProfile(){
   }
   throw e;
  }
- if(currentProfile.role==="admin"&&navigator.onLine){await loadAccessRequests();await loadApprovedResponsibilities()}
+ if(currentProfile.role==="admin"&&navigator.onLine){await loadAccessRequests();await loadApprovedResponsibilities();await loadReportRecipientEmails()}
  setStatus("Tafiditra: "+currentUser.email+" · Andraikitra: "+currentProfile.role+(currentProfile.andiany_id?" · "+groupCode(currentProfile.andiany_id):""));
  updateOfflineStatus();
  if(navigator.onLine)await syncPendingReports(false);
