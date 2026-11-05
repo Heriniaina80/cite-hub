@@ -1138,7 +1138,8 @@ async function saveCompletedReports(){
   const note=el.querySelector('[data-field="note"]')?.value||"";
   if(role==="Mpitory"&&!participation){missing.push({name,field:"fandraisana anjara"});return}
   if(role!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){missing.push({name,field:"ora"});return}
-  if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){missing.push({name,field:"fampianarana Baiboly"});return}
+  if(role!=="Mpisava lalana manokana"&&(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0)){missing.push({name,field:"fampianarana Baiboly"});return}
+  if(role==="Mpisava lalana manokana"){specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:role,ora:Number(hoursRaw)});return}
   entries.push({mpikambana_id:id,andiany_id:groupId(group),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
  });
  if(!entries.length){
