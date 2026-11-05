@@ -788,7 +788,7 @@ async function saveReportRecipientEmail(row){
  const status=$("reportRecipientEmailStatus"),groupIdValue=Number(row?.dataset.recipientGroup);
  const name=row?.querySelector(".recipient-name")?.value.trim()||"";
  const email=row?.querySelector(".recipient-email")?.value.trim()||"";
- if(!groupIdValue||!email||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+ if(!groupIdValue||!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
   status.textContent="Ampidiro Gmail marina aloha ho an’ity Andiany ity.";status.style.color="#b91c1c";return;
  }
  const button=row.querySelector("[data-save-recipient]");button.disabled=true;button.textContent="Tehirizina...";
