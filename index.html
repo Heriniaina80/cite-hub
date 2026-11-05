@@ -1129,7 +1129,7 @@ async function saveCompletedReports(){
  if(!canSeeGroup(group)){$("message").textContent="Tsy nahazo alalana amin’ity andiany ity ianao.";return}
  const people=peopleForGroup(group);
  if(!people.length){$("message").textContent="Tsy misy mpikambana ao amin’ity andiany ity.";return}
- const entries=[],missing=[];
+ const entries=[],specialEntries=[],missing=[];
  document.querySelectorAll("#peopleList .person[data-member-id]").forEach(el=>{
   const role=normalizeImportCategory(el.querySelector('[data-field="category"]')?.value||el.dataset.role||"Mpitory"),name=el.dataset.name,id=Number(el.dataset.memberId);
   const participation=el.querySelector('[data-field="participation"]')?.value||"";
