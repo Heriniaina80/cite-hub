@@ -1017,8 +1017,8 @@ function renderPeople(){
  list.querySelectorAll(".person[data-member-id]").forEach(updateReportCardCompletion);
  updateOfflineStatus();
 }
-function monthlyReportRows(){
- const month=$("filterMonth").value,group=$("filterGroup").value;
+function monthlyReportRows(monthOverride,groupOverride){
+ const month=monthOverride??$("filterMonth").value,group=groupOverride??$("filterGroup").value;
  const specialRecords=s21HourRecords.filter(x=>String(x.volana).slice(0,7)===month&&x.andraikitra==="Mpisava lalana manokana");
  const specialIds=new Set(specialRecords.map(x=>String(x.mpikambana_id)));
  const regularRows=reports.filter(r=>(!month||r.volana===month)&&!specialIds.has(String(r.mpikambana_id)));
@@ -1029,8 +1029,8 @@ function monthlyReportRows(){
  }).filter(Boolean);
  return [...regularRows,...specialRows].filter(r=>(!month||r.volana===month)&&(group==="all"||r.andiany===group)&&canSeeGroup(r.andiany));
 }
-function exportMonthlyReport(printMode){
- const month=$("filterMonth").value,group=$("filterGroup").value,rows=monthlyReportRows();
+function exportMonthlyReport(printMode,options={}){
+ const month=options.month??$("filterMonth").value,group=options.group??$("filterGroup").value,rows=monthlyReportRows(month,group);
  if(!month){$("monthlyExportStatus").textContent="Safidio aloha ny volana.";return}
  if(group==="all"){$("monthlyExportStatus").textContent="Safidio ny andiany iray mba hamoronana tatitra misaraka.";return}
  if(!rows.length){$("monthlyExportStatus").textContent="Tsy mbola misy tatitra amin'ity volana sy andiany ity.";return}
@@ -1038,7 +1038,7 @@ function exportMonthlyReport(printMode){
  const normalizeCategory=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/\\s+/g," ").trim();const isAssistant=v=>{const n=normalizeCategory(v);return n==="mpanampy"||n.includes("mpisavalalana mpanampy")||n.includes("mpisava lalana mpanampy")};const isRegular=v=>{const n=normalizeCategory(v);return n.includes("maharitra")&&(n.includes("mpisava")||n.includes("pionnier"))};const categories=[["Mpitory",rows.filter(r=>normalizeCategory(r.sokajy)==="mpitory")],["Mpisavalalana mpanampy",rows.filter(r=>isAssistant(r.sokajy))],["Mpisavalalana maharitra",rows.filter(r=>isRegular(r.sokajy))],["Mpisava lalana manokana",rows.filter(r=>normalizeCategory(r.sokajy).includes("manokana"))]];
  const tableRows=categories.map(([label,list])=>'<tr class="category"><th colspan="6">'+label+'</th></tr>'+list.map(r=>'<tr><td>'+safe(r.anarana)+'</td><td>'+safe(r.sokajy)+'</td><td>'+safe(r.fandraisana_anjara||"—")+'</td><td>'+safe(r.ora??"—")+'</td><td>'+safe(r.fampianarana_baiboly??0)+'</td><td>'+safe(r.fanamarihana||"")+'</td></tr>').join("")).join("");
  const html='<!doctype html><html lang="mg"><head><meta charset="utf-8"><title>CITE HUB - '+safe(group)+' - '+safe(month)+'</title><style>body{font:12px Arial,sans-serif;color:#17233b;margin:24px}h1{font-size:20px;margin:0 0 6px;color:#17375e}p{margin:4px 0 18px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #b8c5d6;padding:7px;text-align:left}thead th,.category th{background:#eaf1fb}.category th{color:#17375e;padding:8px}footer{margin-top:24px;font-size:10px;color:#64748b}@media print{body{margin:10mm}}</style></head><body><h1>CITE HUB — Tatitra isam-bolana</h1><p><b>Andiany:</b> '+safe(group)+' &nbsp; <b>Volana:</b> '+safe(month)+'<br><b>Isan’ny olona:</b> '+rows.length+'</p><table><thead><tr><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th><th>Fanamarihana</th></tr></thead><tbody>'+tableRows+'</tbody></table><footer>CITE HUB · Tatitra novokarina avy amin’ny angona voatahiry</footer></body></html>';
- if(printMode){if(!window.jspdf?.jsPDF){$("monthlyExportStatus").textContent="Tsy afaka mamorona PDF izao. Jereo ny fifandraisana Internet dia avereno.";return}const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});const left=12,right=285;let y=15;const pageBottom=195;const line=(text,size=9,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);const wrapped=doc.splitTextToSize(String(text??""),right-left);if(y+wrapped.length*4.5>pageBottom){doc.addPage();y=15}doc.text(wrapped,left,y);y+=wrapped.length*4.5+2};doc.setTextColor(23,55,94);line("CITE HUB — TATITRA ISAM-BOLANA",16,true);doc.setTextColor(30,41,59);line("Andiany: "+group+"    |    Volana: "+month+"    |    Isan'ny olona: "+rows.length,10,true);y+=3;const widths=[58,45,34,20,35,68],headers=["Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"];const drawRow=(cells,isHeader=false)=>{const lineHeight=5;const wrapped=cells.map((v,i)=>doc.splitTextToSize(String(v??"—"),widths[i]-3));const h=Math.max(7,...wrapped.map(a=>a.length*lineHeight+2));if(y+h>pageBottom){doc.addPage();y=15}let x=left;wrapped.forEach((txt,i)=>{if(isHeader){doc.setFillColor(232,241,251);doc.rect(x,y,widths[i],h,"F")}doc.setDrawColor(184,197,214);doc.rect(x,y,widths[i],h);doc.setFont("helvetica",isHeader?"bold":"normal");doc.setFontSize(8);doc.setTextColor(30,41,59);doc.text(txt,x+1.5,y+4.5);x+=widths[i]});y+=h};for(const [label,list] of categories){if(y+10>pageBottom){doc.addPage();y=15}y+=2;line(label,11,true);drawRow(headers,true);for(const r of list){drawRow([r.anarana,r.sokajy,r.fandraisana_anjara||"—",r.ora??"—",r.fampianarana_baiboly??0,r.fanamarihana||""])}y+=3}const pages=doc.internal.getNumberOfPages();for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(100,116,139);doc.text("CITE HUB · "+group+" · "+month+" · Pejy "+p+"/"+pages,285,202,{align:"right"})}doc.save("CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf");$("monthlyExportStatus").textContent="Vita ny PDF. Nalaina mivantana ilay tatitra."}
+ if(printMode){if(!window.jspdf?.jsPDF){$("monthlyExportStatus").textContent="Tsy afaka mamorona PDF izao. Jereo ny fifandraisana Internet dia avereno.";return}const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});const left=12,right=285;let y=15;const pageBottom=195;const line=(text,size=9,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);const wrapped=doc.splitTextToSize(String(text??""),right-left);if(y+wrapped.length*4.5>pageBottom){doc.addPage();y=15}doc.text(wrapped,left,y);y+=wrapped.length*4.5+2};doc.setTextColor(23,55,94);line("CITE HUB — TATITRA ISAM-BOLANA",16,true);doc.setTextColor(30,41,59);line("Andiany: "+group+"    |    Volana: "+month+"    |    Isan'ny olona: "+rows.length,10,true);y+=3;const widths=[58,45,34,20,35,68],headers=["Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"];const drawRow=(cells,isHeader=false)=>{const lineHeight=5;const wrapped=cells.map((v,i)=>doc.splitTextToSize(String(v??"—"),widths[i]-3));const h=Math.max(7,...wrapped.map(a=>a.length*lineHeight+2));if(y+h>pageBottom){doc.addPage();y=15}let x=left;wrapped.forEach((txt,i)=>{if(isHeader){doc.setFillColor(232,241,251);doc.rect(x,y,widths[i],h,"F")}doc.setDrawColor(184,197,214);doc.rect(x,y,widths[i],h);doc.setFont("helvetica",isHeader?"bold":"normal");doc.setFontSize(8);doc.setTextColor(30,41,59);doc.text(txt,x+1.5,y+4.5);x+=widths[i]});y+=h};for(const [label,list] of categories){if(y+10>pageBottom){doc.addPage();y=15}y+=2;line(label,11,true);drawRow(headers,true);for(const r of list){drawRow([r.anarana,r.sokajy,r.fandraisana_anjara||"—",r.ora??"—",r.fampianarana_baiboly??0,r.fanamarihana||""])}y+=3}const pages=doc.internal.getNumberOfPages();for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(100,116,139);doc.text("CITE HUB · "+group+" · "+month+" · Pejy "+p+"/"+pages,285,202,{align:"right"})}if(options.returnDoc)return doc;doc.save("CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf");$("monthlyExportStatus").textContent="Vita ny PDF. Nalaina mivantana ilay tatitra."}
  else {const data=[["Volana","Andiany","Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"],...rows.map(r=>[month,group,r.anarana,r.sokajy,r.fandraisana_anjara,r.ora,r.fampianarana_baiboly,r.fanamarihana])];const csv=data.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".csv";a.click();URL.revokeObjectURL(url);$("monthlyExportStatus").textContent="Voasintona ny CSV."}
 }
 $("printMonthlyReport").addEventListener("click",()=>exportMonthlyReport(true));$("downloadMonthlyCsv").addEventListener("click",()=>exportMonthlyReport(false));
@@ -1289,6 +1289,23 @@ $("saveAll").addEventListener("click",async()=>{
   const refreshed=await sbClient.from("s21_ora_isam_bolana").select("id,mpikambana_id,volana,andraikitra,ora");if(refreshed.error)throw refreshed.error;s21HourRecords=refreshed.data||[];
   await loadAllData();
   $("message").textContent="Voatahiry ny tatitra mahazatra "+entries.length+" sy ny ora S-21 misaraka "+specialEntries.length+" ho an’ny "+group+" ("+month+").";$("message").style.color="#166534";
+  try{
+   if(!window.jspdf?.jsPDF)throw new Error("Tsy hita ny fitaovana famoronana PDF.");
+   const pdfDoc=exportMonthlyReport(true,{month,group,returnDoc:true});
+   if(!pdfDoc)throw new Error("Tsy afaka namorona ny PDF.");
+   const pdfBuffer=pdfDoc.output("arraybuffer"),bytes=new Uint8Array(pdfBuffer);
+   let binary="";for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode(...bytes.subarray(offset,Math.min(offset+0x8000,bytes.length)));
+   const pdfBase64=btoa(binary);
+   const filename="CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf";
+   const {data:mailResult,error:mailError}=await sbClient.functions.invoke("cite-hub-send-report",{body:{andiany_id:groupId(group),month,pdfBase64,filename}});
+   if(mailError)throw mailError;
+   if(!mailResult?.success)throw new Error(mailResult?.error||"Tsy voamarina ny fandefasana mailaka.");
+   $("message").textContent+=" Nalefa tamin’ny Gmail an’ny tompon’andraikitra koa ny PDF.";
+  }catch(mailError){
+   console.error("CITE HUB email error:",mailError);
+   $("message").textContent+=" Voatahiry ny tatitra, saingy tsy tafita ny mailaka: "+(mailError?.message||String(mailError));
+   $("message").style.color="#b45309";
+  }
  }catch(e){if(isNetworkFailure(e)){saveLocally()}else{$("message").textContent="Tsy voatahiry ny tatitra: "+(e?.message||String(e));$("message").style.color="#b91c1c"}}
  finally{button.disabled=false;updateOfflineStatus()}
 });
