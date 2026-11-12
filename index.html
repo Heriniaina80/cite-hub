@@ -1528,7 +1528,7 @@ async function saveS21SpecialHours(){
 
 function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  const pageW=297,pageH=210,left=8,right=289,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=9;
- const text=(s,x,yy,size=7,bold=false,align="left")=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(s??""),x,yy,{align})};
+ const text=(s,x,yy,size=7,bold=false,align="left")=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(Array.isArray(s)?s:String(s??""),x,yy,{align})};
  const line=(x1,y1,x2,y2)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
  const box=(x,yy,w,h,label,checked=false,size=6.4)=>{doc.setDrawColor(20,20,20);doc.setLineWidth(.25);doc.rect(x,yy,w,h);if(checked){line(x+.6,yy+.6,x+w-.6,yy+h-.6);line(x+w-.6,yy+.6,x+.6,yy+h-.6)}if(label)text(label,x+w+1.5,yy+h-.25,size)};
  const formatDateDMY=value=>{if(!value)return "";const match=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return match?match[3]+"-"+match[2]+"-"+match[1]:String(value)};
@@ -1548,7 +1548,7 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  ];
  const roleWidths=[42,57,55,57,70];let rx=8;
  roleItems.forEach((item,i)=>{box(rx,y-3,3.2,3.2,item.label,item.checked,6.1);rx+=roleWidths[i]});
- y+=5;
+ y+=11;
  const widths=[42.5,35,36.5,35,50,82],heads=["Taom-panompoana","Nandray anjara\ntamin’ny\nfanompoana","Fampianarana\nBaiboly","Mpisava lalana\nmpanampy","Ora (raha mpisava lalana na misionera eny amin’ny saha)","Fanamarihana"],xs=[left];for(const w of widths)xs.push(xs[xs.length-1]+w);
  const tableTop=y,headerH=20,rowH=9.65,totalH=8;
  let x=left;
@@ -1604,7 +1604,7 @@ function downloadAnnualRecordPdf(){
  const person=roster.find(p=>String(p.id)===String($("annualPerson").value)),year=Number($("annualYear").value);
  if(!person){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Safidio aloha ny olona.";return}
  if(!window.jspdf?.jsPDF){$("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent="Tsy afaka mamorona PDF. Jereo ny fifandraisana Internet.";return}
- const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+ const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
  drawAnnualRecordPdfPage(doc,person,year);
  doc.save("S-21-MG-"+s21SafeFilename(person.anarana)+"-"+year+"-"+(year+1)+".pdf");
 }
