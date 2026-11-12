@@ -1527,44 +1527,38 @@ async function saveS21SpecialHours(){
 }
 
 function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
- const pageW=210,left=8,right=202,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=10;
- const text=(s,x,yy,size=8,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(s??""),x,yy)};
- const line=(x1,y1,x2,y2)=>{doc.setDrawColor(30,30,30);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
- const box=(x,yy,w,h,label,checked=false)=>{doc.setDrawColor(20,20,20);doc.rect(x,yy,w,h);if(checked){line(x+1,yy+1,x+w-1,yy+h-1);line(x+w-1,yy+1,x+1,yy+h-1)}if(label)text(label,x+w+1.5,yy+h-1,7)};
+ const pageW=297,pageH=210,left=8,right=289,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=9;
+ const text=(s,x,yy,size=7,bold=false,align="left")=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(String(s??""),x,yy,{align})};
+ const line=(x1,y1,x2,y2)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
+ const box=(x,yy,w,h,label,checked=false,size=6.4)=>{doc.setDrawColor(20,20,20);doc.setLineWidth(.25);doc.rect(x,yy,w,h);if(checked){line(x+.6,yy+.6,x+w-.6,yy+h-.6);line(x+w-.6,yy+.6,x+.6,yy+h-.6)}if(label)text(label,x+w+1.5,yy+h-.25,size)};
  const formatDateDMY=value=>{if(!value)return "";const match=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return match?match[3]+"-"+match[2]+"-"+match[1]:String(value)};
  doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(20,20,20);
- doc.text("FIRAKETANA NY FANOMPOAN’NY MPITORIN’NY FIANGONANA",pageW/2,10,{align:"center"});
- y=18;
- // Anarana: tsipika iray manerana ny sakany.
- text("Anarana:",8,y,8,true);line(26,y+1,202,y+1);text(person.anarana,29,y,8);y+=8;
- // Daty nahaterahana sy Lahy/Vavy dia apetraka amin’ny tsipika iray.
- text("Daty nahaterahana:",8,y,7.2,true);line(39,y+1,111,y+1);text(formatDateDMY(person.daty_nahaterahana),41,y,7);
- box(126,y-3,3,3,"",person.lahy_vavy==="Lahy");text("Lahy",131,y,7);
- box(162,y-3,3,3,"",person.lahy_vavy==="Vavy");text("Vavy",167,y,7);
- y+=7;
- // Datin’ny batisa sy ireo safidy hafa dia apetraka amin’ny toerana raikitra.
- text("Datin’ny batisa:",8,y,7.2,true);line(34,y+1,111,y+1);text(formatDateDMY(person.daty_batisa),36,y,7);
- box(126,y-3,3,3,"",false);text("Ondry hafa",131,y,7);
- box(162,y-3,3,3,"",false);text("Voahosotra",167,y,7);
- y+=8;
- // Andraikitra: tsipika roa, elanelana mitovy ary tsy mifampikasoka.
- text("Andraikitra ao amin’ny fiangonana:",8,y,7.4,true);y+=6;
- const roleRows=[
-  [{label:"Anti-panahy",checked:person.anti_panahy===true},{label:"Mpikarakara fiangonana",checked:person.mpikarakara_fiangonana===true},{label:"Mpisava lalana maharitra",checked:person.mpisava_lalana_maharitra===true}],
-  [{label:"Mpisava lalana manokana",checked:person.mpisava_lalana_manokana===true},{label:"Misionera eny amin’ny saha",checked:person.misionera_eny_an_saha===true}]
+ doc.text("FIRAKETANA NY FANOMPOAN’NY MPITORIN’NY FIANGONANA",pageW/2,y,{align:"center"});y=20;
+ text("Anarana:",8,y,7.5,true);text(person.anarana,38,y,7.5,true);line(34,y+1,289,y+1);y+=7;
+ text("Daty nahaterahana:",8,y,7,true);text(formatDateDMY(person.daty_nahaterahana),47,y,7);line(43,y+1,178,y+1);
+ box(184,y-3,3.2,3.2,"Lahy",person.lahy_vavy==="Lahy",6.5);box(235,y-3,3.2,3.2,"Vavy",person.lahy_vavy==="Vavy",6.5);y+=7;
+ text("Datin’ny batisa:",8,y,7,true);text(formatDateDMY(person.daty_batisa),39,y,7);line(36,y+1,178,y+1);
+ box(184,y-3,3.2,3.2,"Ondry hafa",false,6.5);box(235,y-3,3.2,3.2,"Voahosotra",false,6.5);y+=8;
+ const roleItems=[
+  {label:"Anti-panahy",checked:person.anti_panahy===true},
+  {label:"Mpikarakara fiangonana",checked:person.mpikarakara_fiangonana===true},
+  {label:"Mpisava lalana maharitra",checked:person.mpisava_lalana_maharitra===true},
+  {label:"Mpisava lalana manokana",checked:person.mpisava_lalana_manokana===true},
+  {label:"Misionera eny amin’ny saha",checked:person.misionera_eny_an_saha===true}
  ];
- roleRows.forEach(row=>{
-  const slot=(right-left)/3;
-  row.forEach((item,i)=>{
-   const x=left+(row.length===2?i*1.5*slot:i*slot);
-   box(x,y-3,3,3,"",item.checked);
-   text(item.label,x+5,y,6.5);
-  });
-  y+=6.5;
+ const roleWidths=[42,57,55,57,70];let rx=8;
+ roleItems.forEach((item,i)=>{box(rx,y-3,3.2,3.2,item.label,item.checked,6.1);rx+=roleWidths[i]});
+ y+=5;
+ const widths=[42.5,35,36.5,35,50,82],heads=["Taom-panompoana","Nandray anjara\ntamin’ny\nfanompoana","Fampianarana\nBaiboly","Mpisava lalana\nmpanampy","Ora (raha mpisava lalana na misionera eny amin’ny saha)","Fanamarihana"],xs=[left];for(const w of widths)xs.push(xs[xs.length-1]+w);
+ const tableTop=y,headerH=20,rowH=9.65,totalH=8;
+ let x=left;
+ heads.forEach((head,i)=>{
+  doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.setFillColor(255,255,255);doc.rect(x,tableTop,widths[i],headerH,"FD");
+  doc.setFont("helvetica","bold");doc.setFontSize(i===4?6.1:6.5);doc.setTextColor(15,15,15);
+  const lines=String(head).split("\n");const lineH=3.2;const startY=tableTop+(headerH-(lines.length*lineH))/2+2.4;
+  lines.forEach((ln,j)=>{const maxW=widths[i]-3;const wrapped=doc.splitTextToSize(ln,maxW);wrapped.forEach((wl,k)=>doc.text(wl,x+widths[i]/2,startY+(j+k)*lineH,{align:"center"}))});
+  x+=widths[i];
  });
- y+=1;
- const widths=[28,25,28,29,31,53],heads=["Taom-panompoana","Nandray anjara tamin’ny fanompoana","Fampianarana Baiboly","Mpisava lalana mpanampy","Ora (raha mpisava lalana na misionera eny amin’ny saha)","Fanamarihana"];const xs=[left];for(const w of widths)xs.push(xs[xs.length-1]+w);
- const drawRow=(vals,isHeader=false)=>{const size=isHeader?6.2:7.2,wraps=vals.map((v,i)=>doc.splitTextToSize(String(v??""),widths[i]-2)),h=isHeader?18:7;let x=left;wraps.forEach((arr,i)=>{doc.setDrawColor(25,25,25);if(isHeader){doc.setFillColor(245,245,245);doc.rect(x,y,widths[i],h,"FD")}else doc.rect(x,y,widths[i],h);doc.setFont("helvetica",isHeader?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);const maxLines=isHeader?Math.min(arr.length,4):1;doc.text(arr.slice(0,maxLines),x+1,y+(isHeader?4:4.5));x+=widths[i]});y+=h};
  const visibleRows=months.map(m=>{
   const saved=rows.find(x=>String(x.volana).slice(0,7)===m.month);
   const draft=drafts[reportDraftKey(personGroupCode,m.month)]?.members?.[String(person.id)];
@@ -1582,30 +1576,29 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
   const rawHours=hoursInput!==undefined&&hoursInput!==""?Number(hoursInput):Number(hoursFallback);
   const hours=Number.isFinite(rawHours)&&rawHours>=0?rawHours:0;
   const partValue=partInput!==undefined?partInput:draft?.participation??saved?.fandraisana_anjara;
-  const part=partValue===true||partValue==="Eny"?"☑":partValue===false||partValue==="Tsia"?"☐":"";
-  return {month:m.label,part,studies,hours,category,note:noteInput??draft?.note??saved?.fanamarihana??""};
+  const participated=partValue===true||partValue==="Eny";
+  const specialRole=person.mpisava_lalana_manokana?"Mpisava lalana manokana":person.misionera_eny_an_saha?"Misionera eny amin’ny saha":"";
+  const specialRec=specialRole?s21HourRecords.find(x=>String(x.mpikambana_id)===String(person.id)&&String(x.volana).slice(0,7)===m.month&&x.andraikitra===specialRole):null;
+  const shownHours=specialRole?(specialRec?.ora??""):(hours||"");
+  return {month:m.label,participated,studies,hours:Number(shownHours)||0,shownHours,category,note:noteInput??draft?.note??saved?.fanamarihana??""};
  });
- const totalStudies=visibleRows.reduce((n,r)=>n+r.studies,0),totalHours=visibleRows.reduce((n,r)=>n+r.hours,0);
-
- drawRow(heads,true);
- for(const row of visibleRows){drawRow([row.month,row.part,String(row.studies),row.category==="Mpisavalalana mpanampy"?"☑":"",row.hours||"",row.note||""])}
- doc.setFont("helvetica","bold");doc.setFontSize(7.5);for(let i=0;i<widths.length;i++){doc.setDrawColor(25,25,25);doc.rect(xs[i],y,widths[i],7)}text("Tontaliny",xs[0]+1,y+4.5,7.5,true);text(totalStudies,xs[2]+2,y+4.5,7.5,true);text(totalHours,xs[4]+2,y+4.5,7.5,true);
- const specialRoleNames=[...(person.mpisava_lalana_manokana?["Mpisava lalana manokana"]:[]),...(person.misionera_eny_an_saha?["Misionera eny amin’ny saha"]:[])];
- if(specialRoleNames.length){
-  y+=10;text("ORA MANOKANA — S-21 (tsy tafiditra amin’ny tatitra mahazatra)",left,y,8,true);y+=5;
-  const specialCols=[48,48,48,48],specialMonths=months;
-  const specialRows=specialMonths.map(m=>[m.label,...specialRoleNames.map(role=>{
-   const rec=s21HourRecords.find(x=>String(x.mpikambana_id)===String(person.id)&&String(x.volana).slice(0,7)===m.month&&x.andraikitra===role);
-   return rec?.ora??"";
-  })]);
-  const headers=["Volana",...specialRoleNames];
-  const widths2=[48,...specialRoleNames.map(()=> (right-left-48)/specialRoleNames.length)];
-  const drawSpecial=(vals,bold=false)=>{let x=left;vals.forEach((v,i)=>{doc.setDrawColor(25,25,25);if(bold){doc.setFillColor(245,245,245);doc.rect(x,y,widths2[i],6,"FD")}else doc.rect(x,y,widths2[i],5.5);doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(6.5);doc.setTextColor(20,20,20);doc.text(String(v??""),x+1,y+(bold?4:3.8));x+=widths2[i]});y+=bold?6:5.5};
-  drawSpecial(headers,true);specialRows.forEach(row=>drawSpecial(row,false));
- }
- text("S-21-MG 11/23",8,289,6);text("CITE HUB · Taom-panompoana "+year+"–"+(year+1),pageW-8,289,6,false);
+ let totalHours=0;
+ visibleRows.forEach((row,index)=>{
+  const yy=tableTop+headerH+index*rowH;let xx=left;
+  widths.forEach((w,i)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);if(index%2===0){doc.setFillColor(245,248,253);doc.rect(xx,yy,w,rowH,"FD")}else doc.rect(xx,yy,w,rowH);xx+=w});
+  text(row.month,left+2,yy+rowH/2+1.2,7);
+  const cbX=xs[1]+widths[1]/2-2;box(cbX,yy+rowH/2-2,4,4,"",row.participated);
+  text(row.studies,xs[2]+widths[2]/2,yy+rowH/2+1.2,7,false,"center");
+  const assistant=row.category==="Mpisavalalana mpanampy";
+  box(xs[3]+widths[3]/2-2,yy+rowH/2-2,4,4,"",assistant);
+  if(row.shownHours!==""){text(row.shownHours,xs[4]+widths[4]/2,yy+rowH/2+1.2,7,false,"center");totalHours+=row.hours}
+  if(row.note)text(doc.splitTextToSize(row.note,widths[5]-3).slice(0,2),xs[5]+1.5,yy+3.5,6);
+ });
+ const totalY=tableTop+headerH+months.length*rowH;let xx=left;
+ widths.forEach((w,i)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.setFillColor(255,255,255);doc.rect(xx,totalY,w,totalH,"FD");xx+=w});
+ text("Tontaliny",xs[3]-2,totalY+5.2,7.2,true,"right");text(totalHours||"",xs[4]+widths[4]/2,totalY+5.2,7.2,true,"center");
+ text("S-21-MG 11/23",8,205,5.5);text("Taom-panompoana "+year+"–"+(year+1),289,205,5.5,false,"right");
 }
-
 function s21SafeFilename(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"Andiany"}
 function downloadAnnualRecordPdf(){
  const person=roster.find(p=>String(p.id)===String($("annualPerson").value)),year=Number($("annualYear").value);
