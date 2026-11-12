@@ -151,6 +151,7 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div id="rosterStatus" class="notice" style="display:none"></div>
 <div id="reportCategorySchemaNotice" class="notice" style="display:none;margin:12px 0">Tsy mbola misy saha hitahirizana ny sokajy isam-bolana ao amin’ny tahiry iombonana. Tehirizo ny drafitra eo an-toerana aloha ary ampiharo ny SQL fanavaozana mba hahafahana mampifanaraka azy.</div>
 <div id="offlineStatus" class="notice" role="status" aria-live="polite" style="margin:12px 0">Ny CITE HUB dia afaka mitahiry drafitra eto amin’ity fitaovana ity. Rehefa misy connexion dia azo alefa any amin’ny tahiry iombonana.</div>
+<div style="margin:12px 0"><label for="reportPersonSearch">Hikaroka mpitory amin’ny anarany</label><input id="reportPersonSearch" type="search" autocomplete="off" placeholder="Soraty eto ny anarana..."><p class="hint" id="reportPersonSearchStatus">Soraty ny anarana na ampahany amin’ny anarana mba hahitana haingana ilay mpitory.</p></div>
 <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 <div class="toolbar"><button id="saveCompleted" type="button">Tehirizo ireo efa vita</button><button class="secondary" id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div><p class="hint">Azonao tehirizina tsikelikely ireo tatitra efa feno. Tsy ho very na ho voafafa ny saha mbola tsy vita; tohizo fotsiny ny fampidirana azy dia tsindrio indray ilay bokotra.</p>
 <div id="message" role="status" aria-live="polite"></div>
@@ -990,6 +991,11 @@ function updateReportCardCompletion(card){
  card.setAttribute("aria-label",(card.dataset.name||"Mpikambana")+(complete?" — Vita":" — Mbola tsy vita"));
  return complete;
 }
+function filterReportPeople(){
+ const query=normalizeImportText($("reportPersonSearch")?.value||""),cards=[...$("peopleList").querySelectorAll(".person[data-member-id]")];let shown=0;
+ cards.forEach(card=>{const match=!query||normalizeImportText(card.dataset.name||"").includes(query);card.style.display=match?"":"none";if(match)shown++});
+ const status=$("reportPersonSearchStatus");if(status)status.textContent=query?shown+" amin’ny "+cards.length+" no mifanaraka amin’ny fikarohana.":"Soraty ny anarana na ampahany amin’ny anarana mba hahitana haingana ilay mpitory.";
+}
 function renderPeople(){
  const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus");
  $("message").textContent="";
@@ -1017,6 +1023,7 @@ function renderPeople(){
    return '<div class="person" data-member-id="'+p.id+'" data-name="'+esc(p.anarana)+'" data-role="'+esc(category)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><select class="report-role-picker" aria-label="Sokajy amin’ity volana ity" title="Sokajy amin’ity volana ity" data-field="category">'+categoryOptions+'</select></div>'+fields+'</div>';
  }).join("");
  list.querySelectorAll(".person[data-member-id]").forEach(updateReportCardCompletion);
+ filterReportPeople();
  updateOfflineStatus();
 }
 function monthlyReportRows(monthOverride,groupOverride){
@@ -1335,6 +1342,7 @@ $("saveAll").addEventListener("click",async()=>{
 });
 $("resetRows").addEventListener("click",()=>{clearReportDraft($("group").value,$("month").value);renderPeople();$("message").textContent="Naverina tamin’ny angona voatahiry farany ny saha. Raha mbola misy tatitra milahatra halefa, dia mbola hotehirizina izany.";});
 $("syncPendingBtn").addEventListener("click",()=>syncPendingReports(true));
+$("reportPersonSearch").addEventListener("input",filterReportPeople);
 $("peopleList").addEventListener("input",event=>{const field=event.target.closest("[data-field]");if(!field)return;updateReportCardCompletion(field.closest(".person"));saveCurrentReportDraft()});
 $("peopleList").addEventListener("change",event=>{
  const field=event.target.closest("[data-field]");if(!field)return;
