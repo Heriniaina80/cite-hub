@@ -1580,7 +1580,11 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
   const specialRole=person.mpisava_lalana_manokana?"Mpisava lalana manokana":person.misionera_eny_an_saha?"Misionera eny amin’ny saha":"";
   const specialRec=specialRole?s21HourRecords.find(x=>String(x.mpikambana_id)===String(person.id)&&String(x.volana).slice(0,7)===m.month&&x.andraikitra===specialRole):null;
   const shownHours=specialRole?(specialRec?.ora??""):(hours||"");
-  return {month:m.label,participated,studies,hours:Number(shownHours)||0,shownHours,category,note:noteInput??draft?.note??saved?.fanamarihana??""};
+  const previousNote=String(noteInput??draft?.note??"").trim();
+  const monthlyNote=String(saved?.fanamarihana??"").trim();
+  const noteParts=[previousNote];
+  if(monthlyNote&& !previousNote.split(/\\n+/).some(part=>part.trim()===monthlyNote))noteParts.push(monthlyNote);
+  return {month:m.label,participated,studies,hours:Number(shownHours)||0,shownHours,category,note:noteParts.filter(Boolean).join("\\n")};
  });
  let totalHours=0;
  visibleRows.forEach((row,index)=>{
