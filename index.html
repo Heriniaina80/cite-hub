@@ -1631,7 +1631,7 @@ async function previewAllAnnualS21(){
  const groupLabel=groupValue==="all"?"Andiany rehetra":(groups.find(g=>String(g.id)===String(groupValue))?.kaody||"Andiany voafidy");
  const button=$("previewAnnualS21Bundle");button.disabled=true;button.textContent="Mamokatra PDF...";
  try{
-  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
   for(let i=0;i<members.length;i++){
    if(i>0)doc.addPage();
    drawAnnualRecordPdfPage(doc,members[i],year,false);
