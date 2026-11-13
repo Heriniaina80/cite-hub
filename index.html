@@ -666,7 +666,7 @@ function peopleForGroup(group){return getRoster().filter(p=>group==="all"||Strin
 function getReports(){return reports}
 function setOptions(id,items,allLabel){const el=$(id);el.innerHTML=(allLabel?'<option value="all">'+allLabel+'</option>':'<option value="">-- Safidio ny andiany --</option>')+items.map(g=>'<option value="'+esc(g.kaody)+'">'+esc(g.kaody)+' — '+esc(g.anarana)+'</option>').join('')}
 function configureGroups(){
- const allowed=visibleGroups();setOptions("group",allowed);setOptions("manageGroup",allowed,currentProfile?.role==="admin"?"Andiany rehetra":null);setOptions("filterGroup",allowed,"Andiany rehetra");
+ const allowed=visibleGroups();setOptions("group",allowed,currentProfile?.role==="admin"?"Andiany rehetra":null);setOptions("manageGroup",allowed,currentProfile?.role==="admin"?"Andiany rehetra":null);setOptions("filterGroup",allowed,"Andiany rehetra");
  const profileGroup=$("profileNewGroup");if(profileGroup)profileGroup.innerHTML=allowed.map(g=>`<option value="${g.id}">${esc(g.kaody)} — ${esc(g.anarana)}</option>`).join("");
 }
 async function loadAllData(){
@@ -1006,12 +1006,12 @@ function renderPeople(){
  const people=peopleForGroup(group);
  if(!people.length){list.innerHTML='<p class="hint">Tsy mbola misy mpikambana ao amin’ity andiany ity. </p>';status.style.display="block";status.textContent="Tsy misy mpikambana hita ao amin'ny tahiry.";return}
  status.style.display="none";
- const existing=reports.filter(r=>r.volana===month&&r.andiany===group);
+ const memberIds=new Set(people.map(p=>String(p.id)));const existing=reports.filter(r=>r.volana===month&&(group==="all"?memberIds.has(String(r.mpikambana_id)):r.andiany===group));
  const draftStore=readReportDrafts(),activeDraft=draftStore[reportDraftKey(group,month)];
  const categories=["Mpitory","Mpisavalalana mpanampy","Mpisavalalana maharitra","Mpisava lalana manokana"];
  list.innerHTML=people.map((p,i)=>{
    const saved=existing.find(r=>String(r.mpikambana_id)===String(p.id))||{};
-   const draft=activeDraft?.members?.[String(p.id)];
+   const draft=activeDraft?.members?.[String(p.id)]||draftStore[reportDraftKey(p.andiany,month)]?.members?.[String(p.id)];
    const old=draft?{...saved,fandraisana_anjara:draft.participation??saved.fandraisana_anjara,ora:draft.hours??saved.ora,fampianarana_baiboly:draft.studies??saved.fampianarana_baiboly??0,fanamarihana:draft.note??saved.fanamarihana}:saved;
    const category=normalizeImportCategory(draft?.category||saved.sokajy||p.sokajy||"Mpitory");
    const categoryOptions=categories.map(c=>'<option value="'+c+'"'+(category===c?" selected":"")+'>'+c+'</option>').join("");
@@ -1041,7 +1041,7 @@ function monthlyReportRows(monthOverride,groupOverride){
 function exportMonthlyReport(printMode,options={}){
  const month=options.month??$("filterMonth").value,group=options.group??$("filterGroup").value,rows=monthlyReportRows(month,group);
  if(!month){$("monthlyExportStatus").textContent="Safidio aloha ny volana.";return}
- if(group==="all"){$("monthlyExportStatus").textContent="Safidio ny andiany iray mba hamoronana tatitra misaraka.";return}
+ 
  if(!rows.length){$("monthlyExportStatus").textContent="Tsy mbola misy tatitra amin'ity volana sy andiany ity.";return}
  const safe=s=>String(s??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
  const normalizeCategory=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/\\s+/g," ").trim();const isAssistant=v=>{const n=normalizeCategory(v);return n==="mpanampy"||n.includes("mpisavalalana mpanampy")||n.includes("mpisava lalana mpanampy")};const isRegular=v=>{const n=normalizeCategory(v);return n.includes("maharitra")&&(n.includes("mpisava")||n.includes("pionnier"))};const categories=[["Mpitory",rows.filter(r=>normalizeCategory(r.sokajy)==="mpitory")],["Mpisavalalana mpanampy",rows.filter(r=>isAssistant(r.sokajy))],["Mpisavalalana maharitra",rows.filter(r=>isRegular(r.sokajy))],["Mpisava lalana manokana",rows.filter(r=>normalizeCategory(r.sokajy).includes("manokana"))]];
@@ -1250,7 +1250,7 @@ async function saveCompletedReports(){
    specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:"Mpisava lalana manokana",ora:Number(hoursRaw),updated_at:new Date().toISOString()});return;
   }
   if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){missing.push({name,field:"fampianarana Baiboly"});return}
-  entries.push({mpikambana_id:id,andiany_id:groupId(group),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
+  const person=people.find(p=>String(p.id)===String(id));entries.push({mpikambana_id:id,andiany_id:Number(person?.andiany_id),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
  });
  if(!entries.length&&!specialEntries.length){
   const detail=missing.slice(0,4).map(x=>x.name+" ("+x.field+")").join(", ");
@@ -1328,10 +1328,12 @@ $("saveAll").addEventListener("click",async()=>{
    let binary="";for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode(...bytes.subarray(offset,Math.min(offset+0x8000,bytes.length)));
    const pdfBase64=btoa(binary);
    const filename="CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf";
-   const {data:mailResult,error:mailError}=await sbClient.functions.invoke("cite-hub-send-report",{body:{andiany_id:groupId(group),month,pdfBase64,filename}});
-   if(mailError)throw mailError;
-   if(!mailResult?.success)throw new Error(mailResult?.error||"Tsy voamarina ny fandefasana mailaka.");
-   $("message").textContent+=" Nalefa tamin’ny Gmail an’ny tompon’andraikitra koa ny PDF.";
+   if(group!=="all"){
+    const {data:mailResult,error:mailError}=await sbClient.functions.invoke("cite-hub-send-report",{body:{andiany_id:groupId(group),month,pdfBase64,filename}});
+    if(mailError)throw mailError;
+    if(!mailResult?.success)throw new Error(mailResult?.error||"Tsy voamarina ny fandefasana mailaka.");
+    $("message").textContent+=" Nalefa tamin’ny Gmail an’ny tompon’andraikitra koa ny PDF.";
+   }else{$("message").textContent+=" Vita ny PDF mitambatra ho an’ny andiany rehetra; tsy nalefa ho azy tamin’ny Gmail satria samy manana tompon’andraikitra ny andiany.";}
   }catch(mailError){
    console.error("CITE HUB email error:",mailError);
    $("message").textContent+=" Voatahiry ny tatitra, saingy tsy tafita ny mailaka: "+(mailError?.message||String(mailError));
