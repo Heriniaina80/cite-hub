@@ -152,7 +152,8 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 <div id="reportCategorySchemaNotice" class="notice" style="display:none;margin:12px 0">Tsy mbola misy saha hitahirizana ny sokajy isam-bolana ao amin’ny tahiry iombonana. Tehirizo ny drafitra eo an-toerana aloha ary ampiharo ny SQL fanavaozana mba hahafahana mampifanaraka azy.</div>
 <div id="offlineStatus" class="notice" role="status" aria-live="polite" style="margin:12px 0">Ny CITE HUB dia afaka mitahiry drafitra eto amin’ity fitaovana ity. Rehefa misy connexion dia azo alefa any amin’ny tahiry iombonana.</div>
 <div style="margin:12px 0"><label for="reportPersonSearch">Hikaroka mpitory amin’ny anarany</label><input id="reportPersonSearch" type="search" autocomplete="off" placeholder="Soraty eto ny anarana..."><p class="hint" id="reportPersonSearchStatus">Soraty ny anarana na ampahany amin’ny anarana mba hahitana haingana ilay mpitory.</p></div>
-<div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
+<div id="allPeopleToggleWrap" class="toolbar" style="display:none;margin:10px 0"><button type="button" class="secondary" id="toggleAllPeople">Asehoy ny mpitory rehetra</button></div>
+ <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 <div class="toolbar"><button id="saveCompleted" type="button">Tehirizo ireo efa vita</button><button class="secondary" id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div><p class="hint">Azonao tehirizina tsikelikely ireo tatitra efa feno. Tsy ho very na ho voafafa ny saha mbola tsy vita; tohizo fotsiny ny fampidirana azy dia tsindrio indray ilay bokotra.</p>
 <div id="message" role="status" aria-live="polite"></div>
 <div id="s88MonthlyCard" class="card s88-month-card">
@@ -992,12 +993,14 @@ function updateReportCardCompletion(card){
  return complete;
 }
 function filterReportPeople(){
- const query=normalizeImportText($("reportPersonSearch")?.value||""),cards=[...$("peopleList").querySelectorAll(".person[data-member-id]")];let shown=0;
- cards.forEach(card=>{const match=!query||normalizeImportText(card.dataset.name||"").includes(query);card.style.display=match?"":"none";if(match)shown++});
- const status=$("reportPersonSearchStatus");if(status)status.textContent=query?shown+" amin’ny "+cards.length+" no mifanaraka amin’ny fikarohana.":"Soraty ny anarana na ampahany amin’ny anarana mba hahitana haingana ilay mpitory.";
+ const query=normalizeImportText($("reportPersonSearch")?.value||""),cards=[...$("peopleList").querySelectorAll(".person[data-member-id]")],allMode=$("group").value==="all",expanded=$("toggleAllPeople")?.dataset.expanded==="true";let shown=0;
+ cards.forEach(card=>{const match=query?normalizeImportText(card.dataset.name||"").includes(query):(!allMode||expanded);card.style.display=match?"":"none";if(match)shown++});
+ const status=$("reportPersonSearchStatus");if(status)status.textContent=query?shown+" amin’ny "+cards.length+" no mifanaraka amin’ny fikarohana.":(allMode&&!expanded?"Ampiasao ny bokotra “Asehoy ny mpitory rehetra” na tadiavo amin’ny anarany.":"Soraty ny anarana na ampahany amin’ny anarana mba hahitana haingana ilay mpitory.");
 }
 function renderPeople(){
- const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus");
+ const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus"),toggleWrap=$("allPeopleToggleWrap"),toggleButton=$("toggleAllPeople");
+ if(toggleWrap)toggleWrap.style.display=group==="all"&&currentProfile?.role==="admin"?"flex":"none";
+ if(toggleButton){toggleButton.dataset.expanded="false";toggleButton.textContent="Asehoy ny mpitory rehetra";}
  $("message").textContent="";
  const categoryNotice=$("reportCategorySchemaNotice");if(categoryNotice)categoryNotice.style.display=reportCategoryColumnReady?"none":"block";
  if(!currentUser||!currentProfile){list.innerHTML='<p class="hint">Midira amin’ny Gmail sy tenimiafina CITE HUB aloha.</p>';status.style.display="none";return}
@@ -1345,6 +1348,7 @@ $("saveAll").addEventListener("click",async()=>{
 $("resetRows").addEventListener("click",()=>{clearReportDraft($("group").value,$("month").value);renderPeople();$("message").textContent="Naverina tamin’ny angona voatahiry farany ny saha. Raha mbola misy tatitra milahatra halefa, dia mbola hotehirizina izany.";});
 $("syncPendingBtn").addEventListener("click",()=>syncPendingReports(true));
 $("reportPersonSearch").addEventListener("input",filterReportPeople);
+ $("toggleAllPeople").addEventListener("click",()=>{const button=$("toggleAllPeople"),expanded=button.dataset.expanded!=="true";button.dataset.expanded=expanded?"true":"false";button.textContent=expanded?"Afeno ny lisitry ny mpitory":"Asehoy ny mpitory rehetra";filterReportPeople();});
 $("peopleList").addEventListener("input",event=>{const field=event.target.closest("[data-field]");if(!field)return;updateReportCardCompletion(field.closest(".person"));saveCurrentReportDraft()});
 $("peopleList").addEventListener("change",event=>{
  const field=event.target.closest("[data-field]");if(!field)return;
