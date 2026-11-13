@@ -1306,7 +1306,7 @@ $("saveAll").addEventListener("click",async()=>{
   if(role!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){missing.push({name,field:"ora"});return}
   if(role==="Mpisava lalana manokana"){specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:"Mpisava lalana manokana",ora:Number(hoursRaw),updated_at:new Date().toISOString()});return}
   if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){missing.push({name,field:"fampianarana Baiboly"});return}
-  entries.push({mpikambana_id:id,andiany_id:groupId(group),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
+  const person=people.find(p=>String(p.id)===String(id));entries.push({mpikambana_id:id,andiany_id:Number(person?.andiany_id),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
  });
  if(missing.length){$("message").textContent="Mbola misy saha tsy feno: "+missing.slice(0,4).map(e=>e.name+" ("+e.field+")").join(", ")+(missing.length>4?"…":"");$("message").style.color="#b91c1c";return}
  if(!entries.length&&!specialEntries.length){$("message").textContent="Tsy misy tatitra feno azo tehirizina.";return}
