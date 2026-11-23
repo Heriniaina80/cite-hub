@@ -1607,15 +1607,15 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
   widths.forEach((w,i)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);if(index%2===0){doc.setFillColor(245,248,253);doc.rect(xx,yy,w,rowH,"FD")}else doc.rect(xx,yy,w,rowH);xx+=w});
   text(row.month,left+2,yy+rowH/2+1.2,8,true);
   const cbX=xs[1]+widths[1]/2-2;box(cbX,yy+rowH/2-2,4,4,"",row.participated);
-  text(row.studies,xs[2]+widths[2]/2,yy+rowH/2+1.2,8,true,"center");
+  text(row.studies,xs[2]+widths[2]/2,yy+rowH/2+1.8,11,true,"center");
   const assistant=row.category==="Mpisavalalana mpanampy";
   box(xs[3]+widths[3]/2-2,yy+rowH/2-2,4,4,"",assistant);
-  if(row.shownHours!==""){text(row.shownHours,xs[4]+widths[4]/2,yy+rowH/2+1.2,8,true,"center");totalHours+=row.hours}
+  if(row.shownHours!==""){text(row.shownHours,xs[4]+widths[4]/2,yy+rowH/2+1.8,11,true,"center");totalHours+=row.hours}
   if(row.note)text(doc.splitTextToSize(row.note,widths[5]-3).slice(0,2),xs[5]+1.5,yy+3.5,7,true);
  });
  const totalY=tableTop+headerH+months.length*rowH;let xx=left;
  widths.forEach((w,i)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.setFillColor(255,255,255);doc.rect(xx,totalY,w,totalH,"FD");xx+=w});
- text("Tontaliny",xs[3]-2,totalY+5.2,8,true,"right");text(totalHours||"",xs[4]+widths[4]/2,totalY+5.2,8,true,"center");
+ text("Tontaliny",xs[3]-2,totalY+5.2,9,true,"right");text(totalHours||"",xs[4]+widths[4]/2,totalY+5.5,11,true,"center");
  text("S-21-MG 11/23",8,205,6.5,true);text("Taom-panompoana "+year+"–"+(year+1),289,205,6.5,true,"right");
 }
 function s21SafeFilename(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"Andiany"}
