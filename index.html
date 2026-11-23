@@ -1541,7 +1541,7 @@ async function saveS21SpecialHours(){
 }
 
 function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
- const pageW=297,pageH=210,left=8,right=289,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=9;
+ const pageW=297,pageH=210,left=8,right=289,months=annualMonths(year),rows=reports.filter(r=>!r.local_pending&&String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=useCurrentForm?readReportDrafts():{},personGroupCode=groupCode(person.andiany_id);let y=9;
  const text=(s,x,yy,size=8,bold=true,align="left")=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(Array.isArray(s)?s:String(s??""),x,yy,{align})};
  const line=(x1,y1,x2,y2)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
  const box=(x,yy,w,h,label,checked=false,size=6.4)=>{doc.setDrawColor(20,20,20);doc.setLineWidth(.25);doc.rect(x,yy,w,h);if(checked){line(x+.6,yy+.6,x+w-.6,yy+h-.6);line(x+w-.6,yy+.6,x+.6,yy+h-.6)}if(label)text(label,x+w+1.5,yy+h-.25,size)};
@@ -1575,7 +1575,7 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  });
  const visibleRows=months.map(m=>{
   const saved=rows.find(x=>String(x.volana).slice(0,7)===m.month);
-  const draft=drafts[reportDraftKey(personGroupCode,m.month)]?.members?.[String(person.id)];
+  const draft=useCurrentForm?drafts[reportDraftKey(personGroupCode,m.month)]?.members?.[String(person.id)]:null;
   const tr=useCurrentForm&&String($("annualPerson").value)===String(person.id)?document.querySelector('#annualRecordTable tbody tr[data-month="'+m.month+'"]'):null;
   const studiesInput=tr?.querySelector('[data-field="studies"]')?.value;
   const hoursInput=tr?.querySelector('[data-field="hours"]')?.value;
@@ -1595,7 +1595,7 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
   const specialRole=person.mpisava_lalana_manokana?"Mpisava lalana manokana":person.misionera_eny_an_saha?"Misionera eny amin’ny saha":"";
   const specialRec=specialRole?s21HourRecords.find(x=>String(x.mpikambana_id)===String(person.id)&&String(x.volana).slice(0,7)===m.month&&x.andraikitra===specialRole):null;
   const shownHours=specialRole?(specialRec?.ora??""):(hours||"");
-  const previousNote=String(noteInput??draft?.note??"").trim();
+  const previousNote=String(noteInput??(useCurrentForm?draft?.note:"")??"").trim();
   const monthlyNote=String(saved?.fanamarihana??"").trim();
   const noteParts=[previousNote];
   if(monthlyNote&& !previousNote.split(/\n+/).some(part=>part.trim()===monthlyNote))noteParts.push(monthlyNote);
@@ -1642,14 +1642,26 @@ async function previewAllAnnualS21(){
   const message="Tsy afaka mamorona PDF. Hamarino ny fifandraisana Internet.";
   $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"error");return;
  }
- const members=roster.filter(p=>groupValue==="all"||String(p.andiany_id)===String(groupValue));
- if(!members.length){
+ if(!navigator.onLine){
+  const message="Tsy afaka manamarina ny tatitra ao Supabase ianao satria tsy misy Internet. Ampifandraiso amin’ny Internet aloha vao mamorona S-21 rehetra.";
+  $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"error");return;
+ }
+ const button=$("previewAnnualS21Bundle");button.disabled=true;button.textContent="Manamarina tatitra voatahiry...";
+ let members=[];
+ try{
+  await loadAllData();
+  const pending=reports.filter(r=>r.local_pending&&reportingYear(r.volana)===year&&(groupValue==="all"||String(r.andiany_id)===String(groupValue)));
+  if(pending.length){
+   const message="Mbola misy tatitra "+pending.length+" tsy tafiditra ao Supabase (miandry fandefasana). Alefaso/tehirizo aloha ireo tatitra ireo, dia avereno mamorona S-21.";
+   $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"warning");return;
+  }
+  members=roster.filter(p=>groupValue==="all"||String(p.andiany_id)===String(groupValue));
+  if(!members.length){
   const message="Tsy misy olona mavitrika azo anaovana S-21 amin’ity safidy ity.";
   $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"warning");return;
  }
- const groupLabel=groupValue==="all"?"Andiany rehetra":(groups.find(g=>String(g.id)===String(groupValue))?.kaody||"Andiany voafidy");
- const button=$("previewAnnualS21Bundle");button.disabled=true;button.textContent="Mamokatra PDF...";
- try{
+  const groupLabel=groupValue==="all"?"Andiany rehetra":(groups.find(g=>String(g.id)===String(groupValue))?.kaody||"Andiany voafidy");
+  button.textContent="Mamokatra PDF...";
   const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
   for(let i=0;i<members.length;i++){
    if(i>0)doc.addPage();
@@ -1666,10 +1678,10 @@ async function previewAllAnnualS21(){
   $("s21BundlePreviewFrame").src=activeS21BundleUrl;$("s21OpenPdfLink").href=activeS21BundleUrl;
   $("s21BundleModal").style.display="flex";
   document.body.style.overflow="hidden";
-  const message="Vita ny fanomanana S-21 "+members.length+" olona. Hamarino eto aloha ny pejy rehetra.";
+  const message="Vita ny fanomanana S-21 "+members.length+" olona avy amin’ny tatitra voatahiry ao Supabase. Hamarino eto aloha ny pejy rehetra.";
   $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;
  }catch(error){
-  const message="Tsy afaka nanomana ny PDF S-21: "+(error?.message||String(error));
+  const message="Tsy afaka nanamarina na nanomana ny PDF S-21: "+(error?.message||String(error));
   $("annualRecordStatus").style.display="block";$("annualRecordStatus").textContent=message;showCiteToast(message,"error");
  }finally{
   button.disabled=false;button.textContent="Hijery S-21 rehetra";
