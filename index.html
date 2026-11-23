@@ -1475,7 +1475,7 @@ function renderAnnualRecord(){
  const categoryOptions=(chosen)=>categories.map(c=>'<option value="'+c+'"'+(chosen===c?" selected":"")+'>'+c+'</option>').join("");
  $("annualRecordTable").innerHTML='<table><thead><tr><th>Volana</th><th>Sokajy amin’ny volana</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th><th>Fanamarihana</th></tr></thead><tbody>'+months.map(m=>{
   const r=existing.find(x=>String(x.volana)===m.month),draft=drafts[reportDraftKey(personGroupCode,m.month)]?.members?.[String(person.id)];
-  const savedCategory=normalizeImportCategory(draft?.category||r?.sokajy||person.sokajy||"Mpitory");
+  const savedCategory=normalizeImportCategory(draft?.category||r?.sokajy||"Mpitory");
   const shown=draft?{...(r||{}),sokajy:savedCategory,fandraisana_anjara:draft.participation??r?.fandraisana_anjara,ora:draft.hours??r?.ora,fampianarana_baiboly:draft.studies??r?.fampianarana_baiboly??0,fanamarihana:draft.note??r?.fanamarihana}:r;
   const category=normalizeImportCategory(shown?.sokajy||savedCategory);
   return '<tr data-month="'+m.month+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td><select data-field="category" aria-label="Sokajy amin’ny '+m.label+'">'+categoryOptions(category)+'</select></td><td><div data-role-fields="publisher" '+(category==="Mpitory"?'':'style="display:none"')+'><select data-field="participation"><option value="">—</option><option value="Eny" '+(shown?.fandraisana_anjara==="Eny"?'selected':'')+'>Eny</option><option value="Tsia" '+(shown?.fandraisana_anjara==="Tsia"?'selected':'')+'>Tsia</option></select></div></td><td><div data-role-fields="pioneer" '+(category==="Mpitory"?'style="display:none"':'')+'><input data-field="hours" type="number" min="0" max="70" step="0.5" value="'+(shown?.ora??'')+'" placeholder="Ora"></div></td><td><input data-field="studies" type="number" min="0" step="1" value="'+(shown?.fampianarana_baiboly??'')+'"></td><td><input data-field="note" value="'+esc(shown?.fanamarihana||'')+'" placeholder="Fanamarihana"></td></tr>';
@@ -1581,7 +1581,7 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
   const hoursInput=tr?.querySelector('[data-field="hours"]')?.value;
   const partInput=tr?.querySelector('[data-field="participation"]')?.value;
   const categoryInput=tr?.querySelector('[data-field="category"]')?.value;
-  const category=normalizeImportCategory(categoryInput??draft?.category??saved?.sokajy??person.sokajy??"Mpitory");
+  const category=normalizeImportCategory(categoryInput??draft?.category??saved?.sokajy??"Mpitory");
   const noteInput=tr?.querySelector('[data-field="note"]')?.value;
   const studiesFallback=draft?.studies!==undefined?draft.studies:(saved?saved.fampianarana_baiboly??0:"");
   const studiesRaw=studiesInput!==undefined?studiesInput:studiesFallback;
