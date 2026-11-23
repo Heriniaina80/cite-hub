@@ -1250,10 +1250,10 @@ async function saveCompletedReports(){
   if(role==="Mpitory"&&!participation){missing.push({name,field:"fandraisana anjara"});return}
   if(role!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){missing.push({name,field:"ora"});return}
   if(role==="Mpisava lalana manokana"){
-   specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:"Mpisava lalana manokana",ora:Number(hoursRaw),updated_at:new Date().toISOString()});return;
+   specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:"Mpisava lalana manokana",ora:Number(hoursRaw),updated_at:new Date().toISOString()});
   }
   if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){missing.push({name,field:"fampianarana Baiboly"});return}
-  const person=people.find(p=>String(p.id)===String(id));entries.push({mpikambana_id:id,andiany_id:Number(person?.andiany_id),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
+  const person=people.find(p=>String(p.id)===String(id));entries.push({mpikambana_id:id,andiany_id:Number(person?.andiany_id),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"||role==="Mpisava lalana manokana"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
  });
  if(!entries.length&&!specialEntries.length){
   const detail=missing.slice(0,4).map(x=>x.name+" ("+x.field+")").join(", ");
@@ -1307,9 +1307,9 @@ $("saveAll").addEventListener("click",async()=>{
   const participation=el.querySelector('[data-field="participation"]')?.value||"",hoursRaw=el.querySelector('[data-field="hours"]')?.value??"",studiesRaw=el.querySelector('[data-field="studies"]')?.value??"0",note=el.querySelector('[data-field="note"]')?.value||"";
   if(role==="Mpitory"&&!participation){missing.push({name,field:"fandraisana anjara"});return}
   if(role!=="Mpitory"&&(hoursRaw===""||!Number.isFinite(Number(hoursRaw))||Number(hoursRaw)<0||Number(hoursRaw)>70)){missing.push({name,field:"ora"});return}
-  if(role==="Mpisava lalana manokana"){specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:"Mpisava lalana manokana",ora:Number(hoursRaw),updated_at:new Date().toISOString()});return}
+  if(role==="Mpisava lalana manokana"){specialEntries.push({mpikambana_id:id,volana:month+"-01",andraikitra:"Mpisava lalana manokana",ora:Number(hoursRaw),updated_at:new Date().toISOString()})}
   if(studiesRaw===""||!Number.isInteger(Number(studiesRaw))||Number(studiesRaw)<0){missing.push({name,field:"fampianarana Baiboly"});return}
-  const person=people.find(p=>String(p.id)===String(id));entries.push({mpikambana_id:id,andiany_id:Number(person?.andiany_id),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
+  const person=people.find(p=>String(p.id)===String(id));entries.push({mpikambana_id:id,andiany_id:Number(person?.andiany_id),volana:month+"-01",sokajy:role,fandraisana_anjara:role==="Mpitory"?(participation==="Eny"):null,ora:role==="Mpitory"||role==="Mpisava lalana manokana"?null:Number(hoursRaw),fampianarana_baiboly:Number(studiesRaw),fanamarihana:note});
  });
  if(missing.length){$("message").textContent="Mbola misy saha tsy feno: "+missing.slice(0,4).map(e=>e.name+" ("+e.field+")").join(", ")+(missing.length>4?"…":"");$("message").style.color="#b91c1c";return}
  if(!entries.length&&!specialEntries.length){$("message").textContent="Tsy misy tatitra feno azo tehirizina.";return}
@@ -1478,7 +1478,7 @@ function renderAnnualRecord(){
   const savedCategory=normalizeImportCategory(draft?.category||r?.sokajy||person.sokajy||"Mpitory");
   const shown=draft?{...(r||{}),sokajy:savedCategory,fandraisana_anjara:draft.participation??r?.fandraisana_anjara,ora:draft.hours??r?.ora,fampianarana_baiboly:draft.studies??r?.fampianarana_baiboly??0,fanamarihana:draft.note??r?.fanamarihana}:r;
   const category=normalizeImportCategory(shown?.sokajy||savedCategory);
-  return '<tr data-month="'+m.month+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td><select data-field="category" aria-label="Sokajy amin’ny '+m.label+'">'+categoryOptions(category)+'</select></td><td><div data-role-fields="publisher" '+(category==="Mpitory"?'':'style="display:none"')+'><select data-field="participation"><option value="">—</option><option value="Eny" '+(shown?.fandraisana_anjara==="Eny"?'selected':'')+'>Eny</option><option value="Tsia" '+(shown?.fandraisana_anjara==="Tsia"?'selected':'')+'>Tsia</option></select></div></td><td><div data-role-fields="pioneer" '+(category==="Mpitory"?'style="display:none"':'')+'><input data-field="hours" type="number" min="0" max="70" step="0.5" value="'+(shown?.ora??'')+'" placeholder="Ora"></div></td><td><input data-field="studies" type="number" min="0" step="1" value="'+(shown?.fampianarana_baiboly??0)+'"></td><td><input data-field="note" value="'+esc(shown?.fanamarihana||'')+'" placeholder="Fanamarihana"></td></tr>';
+  return '<tr data-month="'+m.month+'"><td>'+m.label+' '+m.month.slice(0,4)+'</td><td><select data-field="category" aria-label="Sokajy amin’ny '+m.label+'">'+categoryOptions(category)+'</select></td><td><div data-role-fields="publisher" '+(category==="Mpitory"?'':'style="display:none"')+'><select data-field="participation"><option value="">—</option><option value="Eny" '+(shown?.fandraisana_anjara==="Eny"?'selected':'')+'>Eny</option><option value="Tsia" '+(shown?.fandraisana_anjara==="Tsia"?'selected':'')+'>Tsia</option></select></div></td><td><div data-role-fields="pioneer" '+(category==="Mpitory"?'style="display:none"':'')+'><input data-field="hours" type="number" min="0" max="70" step="0.5" value="'+(shown?.ora??'')+'" placeholder="Ora"></div></td><td><input data-field="studies" type="number" min="0" step="1" value="'+(shown?.fampianarana_baiboly??'')+'"></td><td><input data-field="note" value="'+esc(shown?.fanamarihana||'')+'" placeholder="Fanamarihana"></td></tr>';
  }).join('')+'</tbody></table>';
  const specialRoles=[
   {key:"mpisava_lalana_manokana",label:"Mpisava lalana manokana"},
@@ -1583,9 +1583,10 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
   const categoryInput=tr?.querySelector('[data-field="category"]')?.value;
   const category=normalizeImportCategory(categoryInput??draft?.category??saved?.sokajy??person.sokajy??"Mpitory");
   const noteInput=tr?.querySelector('[data-field="note"]')?.value;
-  const studiesFallback=draft?.studies!==undefined?draft.studies:saved?.fampianarana_baiboly??0;
-  const rawStudies=studiesInput!==undefined?Number(studiesInput):Number(studiesFallback);
-  const studies=Number.isFinite(rawStudies)&&rawStudies>=0?Math.floor(rawStudies):0;
+  const studiesFallback=draft?.studies!==undefined?draft.studies:(saved?saved.fampianarana_baiboly??0:"");
+  const studiesRaw=studiesInput!==undefined?studiesInput:studiesFallback;
+  const rawStudies=studiesRaw===""||studiesRaw===null||studiesRaw===undefined?null:Number(studiesRaw);
+  const studies=rawStudies!==null&&Number.isFinite(rawStudies)&&rawStudies>=0?Math.floor(rawStudies):"";
   const hoursFallback=draft?.hours!==undefined&&draft.hours!==""?draft.hours:saved?.ora??0;
   const rawHours=hoursInput!==undefined&&hoursInput!==""?Number(hoursInput):Number(hoursFallback);
   const hours=Number.isFinite(rawHours)&&rawHours>=0?rawHours:0;
@@ -1597,8 +1598,8 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
   const previousNote=String(noteInput??draft?.note??"").trim();
   const monthlyNote=String(saved?.fanamarihana??"").trim();
   const noteParts=[previousNote];
-  if(monthlyNote&& !previousNote.split(/\\n+/).some(part=>part.trim()===monthlyNote))noteParts.push(monthlyNote);
-  return {month:m.label,participated,studies,hours:Number(shownHours)||0,shownHours,category,note:noteParts.filter(Boolean).join("\\n")};
+  if(monthlyNote&& !previousNote.split(/\n+/).some(part=>part.trim()===monthlyNote))noteParts.push(monthlyNote);
+  return {month:m.label,participated,studies,hours:Number(shownHours)||0,shownHours,category,note:noteParts.filter(Boolean).join("\n")};
  });
  let totalHours=0;
  visibleRows.forEach((row,index)=>{
