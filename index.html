@@ -1542,16 +1542,16 @@ async function saveS21SpecialHours(){
 
 function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  const pageW=297,pageH=210,left=8,right=289,months=annualMonths(year),rows=reports.filter(r=>String(r.mpikambana_id)===String(person.id)&&reportingYear(r.volana)===year),drafts=readReportDrafts(),personGroupCode=groupCode(person.andiany_id);let y=9;
- const text=(s,x,yy,size=7,bold=false,align="left")=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(Array.isArray(s)?s:String(s??""),x,yy,{align})};
+ const text=(s,x,yy,size=8,bold=true,align="left")=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);doc.setTextColor(20,20,20);doc.text(Array.isArray(s)?s:String(s??""),x,yy,{align})};
  const line=(x1,y1,x2,y2)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.line(x1,y1,x2,y2)};
  const box=(x,yy,w,h,label,checked=false,size=6.4)=>{doc.setDrawColor(20,20,20);doc.setLineWidth(.25);doc.rect(x,yy,w,h);if(checked){line(x+.6,yy+.6,x+w-.6,yy+h-.6);line(x+w-.6,yy+.6,x+.6,yy+h-.6)}if(label)text(label,x+w+1.5,yy+h-.25,size)};
  const formatDateDMY=value=>{if(!value)return "";const match=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return match?match[3]+"-"+match[2]+"-"+match[1]:String(value)};
- doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(20,20,20);
+ doc.setFont("helvetica","bold");doc.setFontSize(12.5);doc.setTextColor(20,20,20);
  doc.text("FIRAKETANA NY FANOMPOAN’NY MPITORIN’NY FIANGONANA",pageW/2,y,{align:"center"});y=20;
- text("Anarana:",8,y,7.5,true);text(person.anarana,38,y,7.5,true);line(34,y+1,289,y+1);y+=7;
- text("Daty nahaterahana:",8,y,7,true);text(formatDateDMY(person.daty_nahaterahana),47,y,7);line(43,y+1,178,y+1);
+ text("Anarana:",8,y,8.5,true);text(person.anarana,38,y,8.5,true);line(34,y+1,289,y+1);y+=7;
+ text("Daty nahaterahana:",8,y,8,true);text(formatDateDMY(person.daty_nahaterahana),47,y,8,true);line(43,y+1,178,y+1);
  box(184,y-3,3.2,3.2,"Lahy",person.lahy_vavy==="Lahy",6.5);box(235,y-3,3.2,3.2,"Vavy",person.lahy_vavy==="Vavy",6.5);y+=7;
- text("Datin’ny batisa:",8,y,7,true);text(formatDateDMY(person.daty_batisa),39,y,7);line(36,y+1,178,y+1);
+ text("Datin’ny batisa:",8,y,8,true);text(formatDateDMY(person.daty_batisa),39,y,8,true);line(36,y+1,178,y+1);
  box(184,y-3,3.2,3.2,"Ondry hafa",false,6.5);box(235,y-3,3.2,3.2,"Voahosotra",false,6.5);y+=8;
  const roleItems=[
   {label:"Anti-panahy",checked:person.anti_panahy===true},
@@ -1568,7 +1568,7 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  let x=left;
  heads.forEach((head,i)=>{
   doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.setFillColor(255,255,255);doc.rect(x,tableTop,widths[i],headerH,"FD");
-  doc.setFont("helvetica","bold");doc.setFontSize(i===4?6.1:6.5);doc.setTextColor(15,15,15);
+  doc.setFont("helvetica","bold");doc.setFontSize(i===4?7:7.3);doc.setTextColor(15,15,15);
   const lines=String(head).split("\n");const lineH=3.2;const startY=tableTop+(headerH-(lines.length*lineH))/2+2.4;
   lines.forEach((ln,j)=>{const maxW=widths[i]-3;const wrapped=doc.splitTextToSize(ln,maxW);wrapped.forEach((wl,k)=>doc.text(wl,x+widths[i]/2,startY+(j+k)*lineH,{align:"center"}))});
   x+=widths[i];
@@ -1605,18 +1605,18 @@ function drawAnnualRecordPdfPage(doc,person,year,useCurrentForm=true){
  visibleRows.forEach((row,index)=>{
   const yy=tableTop+headerH+index*rowH;let xx=left;
   widths.forEach((w,i)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);if(index%2===0){doc.setFillColor(245,248,253);doc.rect(xx,yy,w,rowH,"FD")}else doc.rect(xx,yy,w,rowH);xx+=w});
-  text(row.month,left+2,yy+rowH/2+1.2,7);
+  text(row.month,left+2,yy+rowH/2+1.2,8,true);
   const cbX=xs[1]+widths[1]/2-2;box(cbX,yy+rowH/2-2,4,4,"",row.participated);
-  text(row.studies,xs[2]+widths[2]/2,yy+rowH/2+1.2,7,false,"center");
+  text(row.studies,xs[2]+widths[2]/2,yy+rowH/2+1.2,8,true,"center");
   const assistant=row.category==="Mpisavalalana mpanampy";
   box(xs[3]+widths[3]/2-2,yy+rowH/2-2,4,4,"",assistant);
-  if(row.shownHours!==""){text(row.shownHours,xs[4]+widths[4]/2,yy+rowH/2+1.2,7,false,"center");totalHours+=row.hours}
-  if(row.note)text(doc.splitTextToSize(row.note,widths[5]-3).slice(0,2),xs[5]+1.5,yy+3.5,6);
+  if(row.shownHours!==""){text(row.shownHours,xs[4]+widths[4]/2,yy+rowH/2+1.2,8,true,"center");totalHours+=row.hours}
+  if(row.note)text(doc.splitTextToSize(row.note,widths[5]-3).slice(0,2),xs[5]+1.5,yy+3.5,7,true);
  });
  const totalY=tableTop+headerH+months.length*rowH;let xx=left;
  widths.forEach((w,i)=>{doc.setDrawColor(25,25,25);doc.setLineWidth(.25);doc.setFillColor(255,255,255);doc.rect(xx,totalY,w,totalH,"FD");xx+=w});
- text("Tontaliny",xs[3]-2,totalY+5.2,7.2,true,"right");text(totalHours||"",xs[4]+widths[4]/2,totalY+5.2,7.2,true,"center");
- text("S-21-MG 11/23",8,205,5.5);text("Taom-panompoana "+year+"–"+(year+1),289,205,5.5,false,"right");
+ text("Tontaliny",xs[3]-2,totalY+5.2,8,true,"right");text(totalHours||"",xs[4]+widths[4]/2,totalY+5.2,8,true,"center");
+ text("S-21-MG 11/23",8,205,6.5,true);text("Taom-panompoana "+year+"–"+(year+1),289,205,6.5,true,"right");
 }
 function s21SafeFilename(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"Andiany"}
 function downloadAnnualRecordPdf(){
