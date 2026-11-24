@@ -72,6 +72,13 @@ body.menu-open:after{content:"";position:fixed;inset:0;background:#0f172a66;z-in
 body>nav a{display:block;flex:0 0 auto;width:100%;padding:12px;border-radius:9px;color:#dbe6ff;text-decoration:none;text-align:left;font-weight:700}
 body>nav a:hover,body>nav a:focus{background:#29295c}
 body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
+body.app-view>nav,body.app-view #menuToggle{display:none!important}
+.workspace-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:20px}
+.workspace-tile{display:flex;flex-direction:column;align-items:flex-start;gap:9px;min-height:180px;padding:20px;text-align:left;background:#fff;border:1px solid #cbdcf0;border-radius:14px;color:#173b68;box-shadow:0 4px 14px #173b680d}
+.workspace-tile:hover{border-color:#1769aa;background:#f5f9ff;transform:translateY(-2px)}
+.workspace-icon{font-size:28px}.workspace-tile strong{font-size:17px}.workspace-tile small{font-size:13px;line-height:1.5;color:#64748b}.workspace-open{margin-top:auto;color:#1769aa;font-weight:700}
+.workspace-backbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 14px;padding:10px 0}
+
 @media(max-width:760px){body>header{padding:18px 12px 18px 82px;text-align:left;justify-content:flex-start}body>header h1{font-size:21px}body>header p{font-size:12px}#menuToggle{left:12px}body>main{width:100%;padding:16px 12px 30px}}
 .cite-toast{position:fixed;z-index:1000;top:18px;right:18px;width:min(440px,calc(100vw - 36px));padding:15px 18px;border-radius:12px;background:#fff;color:#173b68;border:1px solid #bfdbfe;box-shadow:0 12px 36px #0f172a30;font-weight:700;line-height:1.45;opacity:0;transform:translateY(-12px);pointer-events:none;visibility:hidden;transition:opacity .2s ease,transform .2s ease,visibility .2s ease}
 .cite-toast.show{opacity:1;transform:translateY(0);visibility:visible}
@@ -136,6 +143,16 @@ body>main{width:100%;max-width:1100px;margin:22px auto;padding:0 15px}
 </div>
 <div id="authStatus" class="notice" role="status" aria-live="polite">Miandry fidirana...</div>
 </section>
+<section class="card" id="workspaceDashboard" style="display:none">
+<h2>Safidio ny sokajy tianao hampiasaina</h2>
+<p class="hint">Tsindrio ny sokajy iray mba hanehoana ireo fitaovana ao anatiny. Afaka miverina eto ianao rehefa vita.</p>
+<div class="workspace-grid">
+<button type="button" class="workspace-tile" data-workspace="reports"><span class="workspace-icon">📝</span><strong>Tatitra isam-bolana</strong><small>Fampidirana tatitra, S-88, tatitra sy tahiry</small><span class="workspace-open">Sokafy →</span></button>
+<button type="button" class="workspace-tile" data-workspace="annual"><span class="workspace-icon">📘</span><strong>Firaketana isan-taona — S-21</strong><small>Firaketana olona iray sy S-21 rehetra</small><span class="workspace-open">Sokafy →</span></button>
+<button type="button" class="workspace-tile" data-workspace="admin" id="workspaceAdminTile"><span class="workspace-icon">⚙️</span><strong>Fitantanana</strong><small>Lisitra, andiany, kaonty ary tompon’andraikitra</small><span class="workspace-open">Sokafy →</span></button>
+</div>
+</section>
+<div id="workspaceBackBar" class="workspace-backbar" style="display:none"><button type="button" class="secondary" id="workspaceBackBtn">← Hiverina amin’ny sokajy</button><strong id="workspaceCurrentTitle"></strong></div>
 <section class="card" id="accueil">
 <h2>Pejy fandraisana</h2><p>Tongasoa eto amin'ny CITE HUB.</p>
 <p>Afaka manomboka mampiditra tatitra avy hatrany ianao. Safidio ny bokotra etsy ambany, fidio ny andiany sy ny volana, ary fenoy ny tatitra rehetra ao anatin'ny pejy iray.</p>
@@ -717,6 +734,34 @@ function showAuthForm(mode){
  setStatus(authMode==="signup"?"Fenoy ny mailaka sy ny tenimiafina vaovao, dia tsindrio “Hisoratra anarana”.":"Ampidiro ny mailaka sy ny tenimiafinao, dia tsindrio “Hiditra”.");
  $("fidirana-kaonty").scrollIntoView({behavior:"smooth",block:"start"});
 }
+let activeWorkspaceCategory="";
+function showWorkspaceCategory(category){
+ activeWorkspaceCategory=category||"";
+ const hasAccess=!!currentUser&&(currentProfile?.role==="admin"||currentProfile?.role==="responsable");
+ const isAdmin=currentProfile?.role==="admin";
+ const map={reports:["fampidirana","tatitra","voatahiry"],annual:["firaketana"],admin:["fitantanana","fangatahana","tomponandraikitra"]};
+ const titles={reports:"Tatitra isam-bolana",annual:"Firaketana isan-taona — S-21",admin:"Fitantanana"};
+ const dashboard=$("workspaceDashboard"),back=$("workspaceBackBar");
+ if(!hasAccess){dashboard.style.display="none";back.style.display="none";return}
+ dashboard.style.display=category?"none":"block";
+ back.style.display=category?"flex":"none";
+ $("workspaceCurrentTitle").textContent=titles[category]||"";
+ document.querySelectorAll("main > section.card").forEach(section=>{
+  if(["publicLanding","fidirana-kaonty","workspaceDashboard"].includes(section.id))return;
+  const allowed=(map[category]||[]).includes(section.id);
+  const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"].includes(section.id);
+  section.style.display=allowed&&(!adminOnly||isAdmin)?"block":"none";
+ });
+ if(category==="reports"||category==="annual"||category==="admin"){
+  const target=category==="reports"?"fampidirana":category==="annual"?"firaketana":"fitantanana";
+  $(target)?.scrollIntoView({behavior:"smooth",block:"start"});
+ }else if(!category){dashboard.scrollIntoView({behavior:"smooth",block:"start"});}
+}
+document.addEventListener("click",event=>{
+ const tile=event.target.closest("[data-workspace]");
+ if(tile){if(tile.dataset.workspace==="admin"&&currentProfile?.role!=="admin")return;showWorkspaceCategory(tile.dataset.workspace);return}
+ if(event.target.closest("#workspaceBackBtn"))showWorkspaceCategory("");
+});
 function showRoleUI(){
  const role=currentProfile?.role;
  const hasAccess=!!currentUser&&(role==="admin"||role==="responsable");
@@ -741,16 +786,19 @@ function showRoleUI(){
  $("memberDirectAdd").style.display=isAdmin?"block":"none";
  const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"];
  document.querySelectorAll("main > section.card").forEach(section=>{
-  if(section.id==="publicLanding"||section.id==="fidirana-kaonty")return;
-  section.style.display=hasAccess&&(!adminOnly.includes(section.id)||isAdmin)?"block":"none";
+  if(["publicLanding","fidirana-kaonty","workspaceDashboard"].includes(section.id))return;
+  section.style.display="none";
  });
+ $("workspaceDashboard").style.display=hasAccess?"block":"none";
+ $("workspaceBackBar").style.display="none";
+ activeWorkspaceCategory="";
  document.querySelectorAll("nav a").forEach(a=>{
   const target=a.getAttribute("href")?.slice(1);
   a.style.display=hasAccess&&(!adminOnly.includes(target)||isAdmin)?"block":"none";
  });
- $("menuToggle").style.display=hasAccess?"inline-block":"none";
- $("fangatahana").style.display=isAdmin?"block":"none";
- $("tomponandraikitra").style.display=isAdmin?"block":"none";
+ $("menuToggle").style.display="none";
+ $("fangatahana").style.display="none";
+ $("tomponandraikitra").style.display="none";
  $("reportCsvImport").style.display=isAdmin?"block":"none";
 }
 $("landingLoginBtn").addEventListener("click",()=>showAuthForm("login"));
