@@ -78,6 +78,9 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 .workspace-tile:hover{border-color:#1769aa;background:#f5f9ff;transform:translateY(-2px)}
 .workspace-icon{font-size:28px}.workspace-tile strong{font-size:17px}.workspace-tile small{font-size:13px;line-height:1.5;color:#64748b}.workspace-open{margin-top:auto;color:#1769aa;font-weight:700}
 .workspace-backbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 14px;padding:10px 0}
+.workspace-return-button{min-height:46px;padding:12px 20px!important;border:2px solid #991b1b;border-radius:10px;font-size:15px;font-weight:800;letter-spacing:.1px;box-shadow:0 4px 12px #991b1b30}
+.workspace-return-button:hover{background:#991b1b;transform:translateY(-1px)}
+.workspace-return-button:focus-visible{outline:3px solid #fecaca;outline-offset:3px}
 
 @media(max-width:760px){body>header{padding:18px 12px 18px 82px;text-align:left;justify-content:flex-start}body>header h1{font-size:21px}body>header p{font-size:12px}#menuToggle{left:12px}body>main{width:100%;padding:16px 12px 30px}}
 .cite-toast{position:fixed;z-index:1000;top:18px;right:18px;width:min(440px,calc(100vw - 36px));padding:15px 18px;border-radius:12px;background:#fff;color:#173b68;border:1px solid #bfdbfe;box-shadow:0 12px 36px #0f172a30;font-weight:700;line-height:1.45;opacity:0;transform:translateY(-12px);pointer-events:none;visibility:hidden;transition:opacity .2s ease,transform .2s ease,visibility .2s ease}
@@ -157,7 +160,7 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 <h2 id="workspaceSubcategoryHeading">Safidio ny asa tianao hatao</h2><p class="hint">Safidio eto izay zavatra tianao hosokafana.</p>
 <div class="workspace-grid" id="workspaceSubcategoryTiles"></div>
 </section>
-<div id="workspaceContentBackBar" class="workspace-backbar" style="display:none"><button type="button" class="secondary" id="workspaceSubBackBtn">← Hiverina amin’ny lisitra</button><strong id="workspaceSubcategoryTitle"></strong></div>
+<div id="workspaceContentBackBar" class="workspace-backbar" style="display:none"><button type="button" class="danger workspace-return-button" id="workspaceSubBackBtn">← Hiverina amin’ny lisitra</button><strong id="workspaceSubcategoryTitle"></strong></div>
 <section class="card" id="accueil">
 <h2>Pejy fandraisana</h2><p>Tongasoa eto amin'ny CITE HUB.</p>
 <p>Afaka manomboka mampiditra tatitra avy hatrany ianao. Safidio ny bokotra etsy ambany, fidio ny andiany sy ny volana, ary fenoy ny tatitra rehetra ao anatin'ny pejy iray.</p>
