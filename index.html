@@ -152,7 +152,12 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 <button type="button" class="workspace-tile" data-workspace="admin" id="workspaceAdminTile"><span class="workspace-icon">⚙️</span><strong>Fitantanana</strong><small>Lisitra, andiany, kaonty ary tompon’andraikitra</small><span class="workspace-open">Sokafy →</span></button>
 </div>
 </section>
-<div id="workspaceBackBar" class="workspace-backbar" style="display:none"><button type="button" class="secondary" id="workspaceBackBtn">← Hiverina amin’ny sokajy</button><strong id="workspaceCurrentTitle"></strong></div>
+<div id="workspaceBackBar" class="workspace-backbar" style="display:none"><button type="button" class="secondary" id="workspaceBackBtn">← Sokajy lehibe</button><strong id="workspaceCurrentTitle"></strong></div>
+<section class="card" id="workspaceSubcategoryDashboard" style="display:none">
+<h2 id="workspaceSubcategoryHeading">Safidio ny asa tianao hatao</h2><p class="hint">Safidio eto izay zavatra tianao hosokafana.</p>
+<div class="workspace-grid" id="workspaceSubcategoryTiles"></div>
+</section>
+<div id="workspaceContentBackBar" class="workspace-backbar" style="display:none"><button type="button" class="secondary" id="workspaceSubBackBtn">← Hiverina amin’ny lisitra</button><strong id="workspaceSubcategoryTitle"></strong></div>
 <section class="card" id="accueil">
 <h2>Pejy fandraisana</h2><p>Tongasoa eto amin'ny CITE HUB.</p>
 <p>Afaka manomboka mampiditra tatitra avy hatrany ianao. Safidio ny bokotra etsy ambany, fidio ny andiany sy ny volana, ary fenoy ny tatitra rehetra ao anatin'ny pejy iray.</p>
@@ -160,6 +165,7 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 </section>
 <section class="card" id="fampidirana">
 <h2>Fampidirana tatitra isam-bolana</h2>
+<div id="monthlyEntryView" class="workspace-inner-panel" style="display:none">
 <div class="grid">
 <div><label for="month">Volana anaovana tatitra</label><input id="month" type="month" required></div>
 <div><label for="group">Andiany</label><select id="group"><option value="">-- Safidio ny andiany --</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div>
@@ -173,7 +179,8 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
  <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 <div class="toolbar"><button id="saveCompleted" type="button">Tehirizo ireo efa vita</button><button class="secondary" id="saveAll" type="button">Tehirizo ny tatitra rehetra</button><button class="secondary" id="syncPendingBtn" type="button">Alefaso any amin’ny tahiry iombonana</button><button class="secondary" id="resetRows" type="button">Avereno ho banga</button></div><p class="hint">Azonao tehirizina tsikelikely ireo tatitra efa feno. Tsy ho very na ho voafafa ny saha mbola tsy vita; tohizo fotsiny ny fampidirana azy dia tsindrio indray ilay bokotra.</p>
 <div id="message" role="status" aria-live="polite"></div>
-<div id="s88MonthlyCard" class="card s88-month-card">
+</div>
+<div id="s88MonthlyCard" class="card s88-month-card workspace-inner-panel" style="display:none">
  <h3>Fampidirana S-88 — Isan’ny mpanatrika fivoriana</h3>
  <p class="hint">Safidio eto ambany manokana ny volana anaovana S-88. Tsy voatery hitovy amin’ny volana anaovana tatitra isam-bolana izy io, ary ny fitahirizana dia manova ny volana voafidy ihany.</p>
  <div class="grid"><div><label for="s88ReportMonth">Volana anaovana S-88</label><input id="s88ReportMonth" type="month" required></div></div>
@@ -213,6 +220,7 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 <section class="card" id="fitantanana">
 <h2>Fitantanana ny lisitry ny olona sy ny andiany</h2>
 <p>Ampio andiany vaovao rehefa mitombo ny isan’ny andiany, ampio olona vaovao, ary ovay ny sokajy na ny andiany misy azy. Mariho fa mety hiova ny andiany aseho amin’ny tatitra taloha rehefa afindra ny mpikambana, satria mifandray amin’ny mombamomba azy ireo tatitra.</p>
+<div id="adminMembersView" class="workspace-inner-panel" style="display:none">
 <div class="card" style="background:#f8fbff;border-color:#bfdbfe;margin:14px 0">
 <h3>Manampy andiany vaovao</h3><div class="grid"><div><label for="newGroupCode">Kaody andiany</label><input id="newGroupCode" placeholder="N°08"></div><div><label for="newGroupName">Anaran’ny andiany</label><input id="newGroupName" placeholder="Andiany vaovao"></div></div><div class="toolbar"><button type="button" id="addGroupBtn">＋ Ampio andiany</button></div><div id="groupManageStatus" class="hint" role="status" aria-live="polite"></div>
 </div>
@@ -229,6 +237,8 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 <h3 style="margin-top:22px">Olona nesorina amin’ny lisitra</h3><p class="hint">Tsy voafafa ny mombamomba azy na ny tatitra taloha. Azonao averina ao amin’ny lisitra ny olona iray eto.</p>
 <div id="inactivePeople" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
 </details>
+</div>
+<div id="adminProfileView" class="workspace-inner-panel" style="display:none">
 <div class="profile-box" id="personProfile" style="margin:16px 0;padding:18px;border:1px solid #bfdbfe;border-radius:12px;background:#f8fbff">
 <h3>Mombamomba ny olona</h3><p class="hint">Safidio ny olona iray, dia azonao ahitsy ny anarany, sokajiny, andiany ary ny mombamomba azy.</p>
 <div><label for="profilePerson">Anarana — Andiany</label><select id="profilePerson" disabled><option value="">-- Safidio ny olona --</option></select></div>
@@ -254,25 +264,36 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 <p class="hint">Ohatra: RAKOTO — N°01 · Sokajy ankehitriny: Mpitory · Sokajy vaovao voafidy: Mpisava lalana maharitra.</p>
 </div></div>
 <h3>Tantaran’ny fanovana sokajy</h3><div id="roleHistory"><p class="hint">Mbola tsy misy fanovana voatahiry.</p></div>
+</div>
 </section>
 <section class="card" id="firaketana">
-<h2>Firaketana isan-taona — olona iray</h2>
-<p class="hint">Safidio ny andiany sy ny olona iray, dia fenoy isam-bolana ny firaketana manomboka Septambra ka hatramin’ny Aogositra. Tehirizina ao amin’ny tahiry iombonana ny volana tsirairay.</p>
-<div class="grid"><div><label for="annualGroup">Andiany</label><select id="annualGroup"></select></div><div><label for="annualPerson">Anarana</label><select id="annualPerson"></select></div><div><label for="annualYear">Taom-panompoana</label><select id="annualYear"></select></div></div>
-<div class="toolbar"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" id="downloadAnnualPdf" class="secondary">Misintona PDF</button><button type="button" id="previewAnnualS21Bundle">Hijery S-21 rehetra</button></div>
-<p class="hint">Ny bokotra “Hijery S-21 rehetra” dia mamorona PDF mitambatra ho an’ny olona mavitrika ao amin’ny andiany sy taom-panompoana voafidy. Azonao jerena eto aloha ny pejy rehetra, dia vao misintona azy.</p>
+<h2>Firaketana isan-taona — S-21</h2>
+<p class="hint">Safidio ny asa tianao hatao eto ambany.</p>
+<div class="grid" id="annualSharedFilters"><div><label for="annualGroup">Andiany</label><select id="annualGroup"></select></div><div><label for="annualYear">Taom-panompoana</label><select id="annualYear"></select></div></div>
+<div id="annualSingleView" class="workspace-inner-panel" style="display:none">
+<h3>Firaketana olona iray</h3>
+<div class="grid"><div><label for="annualPerson">Anarana</label><select id="annualPerson"></select></div></div>
+<div class="toolbar" id="annualSingleActions"><button type="button" id="loadAnnualRecord">Asehoy ny firaketana</button><button type="button" id="saveAnnualRecord">Tehirizo ny taona</button><button type="button" id="downloadAnnualPdf" class="secondary">Misintona PDF</button></div>
+<div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny olona, dia tsindrio “Asehoy ny firaketana”.</p></div><section class="card" id="s21SpecialHoursPanel" style="margin-top:16px;display:none"><h3>Ora manokana ao amin’ny S-21</h3><p class="hint">Ireo ora ireo dia tehirizina misaraka ary tsy tafiditra amin’ny tatitra na antontan’isa mahazatra an’ny fiangonana.</p><div class="table-wrap" id="s21SpecialHoursTable"></div><div class="toolbar"><button type="button" id="saveS21SpecialHours">Tehirizo ny ora S-21</button></div><p class="hint" id="s21SpecialHoursStatus" role="status"></p></section>
+</div>
+<div id="annualBundleView" class="workspace-inner-panel" style="display:none">
+<h3>S-21 ho an’ny olona rehetra</h3>
+<p class="hint">Safidio etsy ambony ny Andiany sy ny taom-panompoana, dia mamoròna PDF mitambatra ho an’ireo olona mavitrika.</p>
+<div class="toolbar"><button type="button" id="previewAnnualS21Bundle">Hijery S-21 rehetra</button></div>
+</div>
 <div id="annualRecordStatus" class="notice" role="status" aria-live="polite" style="display:none"></div>
-<div class="table-wrap" id="annualRecordTable"><p class="hint">Safidio ny andiany sy ny olona, dia tsindrio “Asehoy ny firaketana”.</p></div><section class="card" id="s21SpecialHoursPanel" style="margin-top:16px;display:none"><h3>Ora manokana ao amin’ny S-21</h3><p class="hint">Ireo ora ireo dia tehirizina misaraka ary tsy tafiditra amin’ny tatitra na antontan’isa mahazatra an’ny fiangonana.</p><div class="table-wrap" id="s21SpecialHoursTable"></div><div class="toolbar"><button type="button" id="saveS21SpecialHours">Tehirizo ny ora S-21</button></div><p class="hint" id="s21SpecialHoursStatus" role="status"></p></section>
 </section>
 
 <section class="card" id="tatitra">
 <h2>Tatitra isam-bolana</h2>
+<div id="monthlyReportView" class="workspace-inner-panel" style="display:none">
 <div class="grid">
 <div><label for="filterMonth">Volana</label><input id="filterMonth" type="month"></div>
 <div><label for="filterGroup">Andiany</label><select id="filterGroup"><option value="all">Andiany rehetra</option><option>N°01</option><option>N°02</option><option>N°03</option><option>N°04</option><option>N°05</option><option>N°06</option><option>N°07</option></select></div>
 </div>
 <div class="toolbar" style="margin:16px 0;padding:12px;background:#eef5ff;border:1px solid #bfd4f5;border-radius:10px"><strong style="margin-right:8px">Famoahana tatitra:</strong><button type="button" id="printMonthlyReport">⬇️ Misintona tatitra</button><button type="button" class="secondary" id="downloadMonthlyCsv">⬇️ Misintona CSV</button><span class="hint" id="monthlyExportStatus" role="status" aria-live="polite" style="display:block;width:100%;margin-top:6px"></span></div><div class="statgrid" id="monthlyCards" style="margin-top:14px"></div><div id="monthlyDashboardDetail" class="card" style="display:none;margin-top:14px;background:#f8fbff;border-color:#bfdbfe" aria-live="polite"></div><h3>Antsipirihan'ny tatitra</h3><div class="table-wrap" id="monthlyTable"></div>
-<div class="card" id="reportCsvImport" style="display:none;margin-top:18px;background:#f8fbff;border-color:#bfdbfe">
+</div>
+<div class="card workspace-inner-panel" id="reportCsvImport" style="display:none;margin-top:18px;background:#f8fbff;border-color:#bfdbfe">
 <h3>Fampidirana tatitra avy amin'ny Excel/CSV</h3>
 <p class="hint">Ho an'ny Administration ihany. Raisina ny tsanganana Month, Team, Name, Category, Presence, Hours, Bible, Note. Hotehirizina ao amin'ny Supabase ny tatitra sy ny olona tsy mbola ao anaty lisitra.</p>
 <div class="grid"><div><label for="reportCsvFile">Rakitra tatitra CSV</label><input id="reportCsvFile" type="file" accept=".csv,text/csv"></div></div>
