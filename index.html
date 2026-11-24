@@ -734,33 +734,80 @@ function showAuthForm(mode){
  setStatus(authMode==="signup"?"Fenoy ny mailaka sy ny tenimiafina vaovao, dia tsindrio “Hisoratra anarana”.":"Ampidiro ny mailaka sy ny tenimiafinao, dia tsindrio “Hiditra”.");
  $("fidirana-kaonty").scrollIntoView({behavior:"smooth",block:"start"});
 }
-let activeWorkspaceCategory="";
-function showWorkspaceCategory(category){
- activeWorkspaceCategory=category||"";
- const hasAccess=!!currentUser&&(currentProfile?.role==="admin"||currentProfile?.role==="responsable");
- const isAdmin=currentProfile?.role==="admin";
- const map={reports:["fampidirana","tatitra","voatahiry"],annual:["firaketana"],admin:["fitantanana","fangatahana","tomponandraikitra"]};
- const titles={reports:"Tatitra isam-bolana",annual:"Firaketana isan-taona — S-21",admin:"Fitantanana"};
- const dashboard=$("workspaceDashboard"),back=$("workspaceBackBar");
- if(!hasAccess){dashboard.style.display="none";back.style.display="none";return}
- dashboard.style.display=category?"none":"block";
- back.style.display=category?"flex":"none";
- $("workspaceCurrentTitle").textContent=titles[category]||"";
+let activeWorkspaceCategory="",activeWorkspaceSubcategory="";
+const workspaceSubcategories={
+ reports:[
+  {id:"entry",title:"Fampidirana tatitra",desc:"Fidio ny volana sy ny Andiany, fenoy ary tehirizo ny tatitra",icon:"📝",section:"fampidirana",panel:"monthlyEntryView"},
+  {id:"s88",title:"S-88 — Mpanatrika fivoriana",desc:"Ampidiro sy jereo ny antontan’isan’ny fivoriana",icon:"👥",section:"fampidirana",panel:"s88MonthlyCard"},
+  {id:"monthly",title:"Tatitra isam-bolana",desc:"Jereo ny antontan’isa sy ny antsipirian’ny tatitra",icon:"📊",section:"tatitra",panel:"monthlyReportView"},
+  {id:"csv",title:"Fampidirana avy amin’ny Excel / CSV",desc:"Ampidiro miaraka ny tatitra avy amin’ny rakitra",icon:"📥",section:"tatitra",panel:"reportCsvImport",adminOnly:true},
+  {id:"archive",title:"Tahiry sy backup",desc:"Jereo ny isan’ny tatitra ary misintona backup",icon:"🗄️",section:"voatahiry",adminOnly:true}
+ ],
+ annual:[
+  {id:"person",title:"Firaketana olona iray",desc:"Jereo sy tehirizo isam-bolana ny firaketana S-21 an’olona iray",icon:"👤",section:"firaketana",panel:"annualSingleView"},
+  {id:"all",title:"S-21 rehetra",desc:"Mamoròna sy jereo ny S-21 mitambatra ho an’ny olona rehetra",icon:"📚",section:"firaketana",panel:"annualBundleView"}
+ ],
+ admin:[
+  {id:"members",title:"Andiany sy mpikambana",desc:"Manampy andiany, olona vaovao ary mitantana ny lisitra",icon:"👥",section:"fitantanana",panel:"adminMembersView"},
+  {id:"profiles",title:"Mombamomba ny olona",desc:"Manova anarana, sokajy, andiany sy andraikitra S-21",icon:"🪪",section:"fitantanana",panel:"adminProfileView"},
+  {id:"requests",title:"Fangatahana fidirana",desc:"Mankato sy manome andraikitra ny kaonty",icon:"📨",section:"fangatahana",adminOnly:true},
+  {id:"responsibles",title:"Tompon’andraikitra sy Gmail",desc:"Mitantana ny kaonty sy ny mailaka handraisana tatitra",icon:"✉️",section:"tomponandraikitra",adminOnly:true}
+ ]
+};
+const workspaceCategoryTitles={reports:"Tatitra isam-bolana",annual:"Firaketana isan-taona — S-21",admin:"Fitantanana"};
+function hideWorkspaceContent(){
  document.querySelectorAll("main > section.card").forEach(section=>{
-  if(["publicLanding","fidirana-kaonty","workspaceDashboard"].includes(section.id))return;
-  const allowed=(map[category]||[]).includes(section.id);
-  const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"].includes(section.id);
-  section.style.display=allowed&&(!adminOnly||isAdmin)?"block":"none";
+  if(["publicLanding","fidirana-kaonty","workspaceDashboard","workspaceSubcategoryDashboard"].includes(section.id))return;
+  section.style.display="none";
  });
- if(category==="reports"||category==="annual"||category==="admin"){
-  const target=category==="reports"?"fampidirana":category==="annual"?"firaketana":"fitantanana";
-  $(target)?.scrollIntoView({behavior:"smooth",block:"start"});
- }else if(!category){dashboard.scrollIntoView({behavior:"smooth",block:"start"});}
+ ["monthlyEntryView","s88MonthlyCard","monthlyReportView","reportCsvImport","annualSingleView","annualBundleView","adminMembersView","adminProfileView"].forEach(id=>{const el=$(id);if(el)el.style.display="none"});
 }
+function renderWorkspaceSubcategories(category){
+ const isAdmin=currentProfile?.role==="admin";
+ const items=(workspaceSubcategories[category]||[]).filter(item=>!item.adminOnly||isAdmin);
+ $("workspaceSubcategoryHeading").textContent=workspaceCategoryTitles[category]||"Safidio ny asa";
+ $("workspaceSubcategoryTiles").innerHTML=items.map(item=>'<button type="button" class="workspace-tile" data-workspace-sub="'+item.id+'"><span class="workspace-icon">'+item.icon+'</span><strong>'+item.title+'</strong><small>'+item.desc+'</small><span class="workspace-open">Sokafy →</span></button>').join("");
+}
+function showWorkspaceCategory(category){
+ const hasAccess=!!currentUser&&(currentProfile?.role==="admin"||currentProfile?.role==="responsable");
+ if(!hasAccess){$("workspaceDashboard").style.display="none";$("workspaceSubcategoryDashboard").style.display="none";$("workspaceBackBar").style.display="none";$("workspaceContentBackBar").style.display="none";return}
+ activeWorkspaceCategory=category||"";activeWorkspaceSubcategory="";
+ hideWorkspaceContent();
+ $("workspaceDashboard").style.display=category?"none":"block";
+ $("workspaceSubcategoryDashboard").style.display=category?"block":"none";
+ $("workspaceBackBar").style.display=category?"flex":"none";
+ $("workspaceContentBackBar").style.display="none";
+ if(category)renderWorkspaceSubcategories(category);
+ else $("workspaceDashboard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function showWorkspaceSubcategory(id){
+ const item=(workspaceSubcategories[activeWorkspaceCategory]||[]).find(x=>x.id===id);
+ if(!item|| (item.adminOnly&&currentProfile?.role!=="admin"))return;
+ activeWorkspaceSubcategory=id;
+ hideWorkspaceContent();
+ $("workspaceDashboard").style.display="none";
+ $("workspaceSubcategoryDashboard").style.display="none";
+ $("workspaceBackBar").style.display="none";
+ $("workspaceContentBackBar").style.display="flex";
+ $("workspaceSubcategoryTitle").textContent=item.title;
+ const section=$(item.section);if(section)section.style.display="block";
+ if(item.panel){const panel=$(item.panel);if(panel)panel.style.display="block"}
+ if(item.section==="tatitra"&&item.panel==="monthlyReportView")$("reportCsvImport").style.display="none";
+ if(item.section==="tatitra"&&item.panel==="reportCsvImport")$("monthlyReportView").style.display="none";
+ if(item.section==="fampidirana"&&item.panel==="monthlyEntryView")$("s88MonthlyCard").style.display="none";
+ if(item.section==="fampidirana"&&item.panel==="s88MonthlyCard")$("monthlyEntryView").style.display="none";
+ if(item.section==="firaketana"&&item.id==="person")$("annualRecordStatus").style.display="none";
+ const target=item.section==="fampidirana"?"fampidirana":item.section==="tatitra"?"tatitra":item.section==="voatahiry"?"voatahiry":item.section==="firaketana"?"firaketana":"fitantanana";
+ $(target)?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function backToWorkspaceSubcategories(){if(activeWorkspaceCategory)showWorkspaceCategory(activeWorkspaceCategory)}
 document.addEventListener("click",event=>{
  const tile=event.target.closest("[data-workspace]");
  if(tile){if(tile.dataset.workspace==="admin"&&currentProfile?.role!=="admin")return;showWorkspaceCategory(tile.dataset.workspace);return}
- if(event.target.closest("#workspaceBackBtn"))showWorkspaceCategory("");
+ const subTile=event.target.closest("[data-workspace-sub]");
+ if(subTile){showWorkspaceSubcategory(subTile.dataset.workspaceSub);return}
+ if(event.target.closest("#workspaceBackBtn")){showWorkspaceCategory("");return}
+ if(event.target.closest("#workspaceSubBackBtn")){backToWorkspaceSubcategories();return}
 });
 function showRoleUI(){
  const role=currentProfile?.role;
@@ -786,12 +833,16 @@ function showRoleUI(){
  $("memberDirectAdd").style.display=isAdmin?"block":"none";
  const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"];
  document.querySelectorAll("main > section.card").forEach(section=>{
-  if(["publicLanding","fidirana-kaonty","workspaceDashboard"].includes(section.id))return;
+  if(["publicLanding","fidirana-kaonty","workspaceDashboard","workspaceSubcategoryDashboard"].includes(section.id))return;
   section.style.display="none";
  });
  $("workspaceDashboard").style.display=hasAccess?"block":"none";
+ $("workspaceSubcategoryDashboard").style.display="none";
  $("workspaceBackBar").style.display="none";
- activeWorkspaceCategory="";
+ $("workspaceContentBackBar").style.display="none";
+ activeWorkspaceCategory="";activeWorkspaceSubcategory="";
+ hideWorkspaceContent();
+ $("workspaceAdminTile").style.display=isAdmin?"flex":"none";
  document.querySelectorAll("nav a").forEach(a=>{
   const target=a.getAttribute("href")?.slice(1);
   a.style.display=hasAccess&&(!adminOnly.includes(target)||isAdmin)?"block":"none";
