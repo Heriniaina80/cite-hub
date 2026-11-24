@@ -504,7 +504,9 @@ function configureS88ServiceYear(){
 }
 function renderS88Month(){
  const card=$("s88MonthlyCard");if(!card)return;
- const authorized=s88IsAuthorized();card.style.display=authorized?"block":"none";if(!authorized)return;
+ const authorized=s88IsAuthorized();
+ card.style.display=authorized&&activeWorkspaceCategory==="reports"&&activeWorkspaceSubcategory==="s88"?"block":"none";
+ if(!authorized)return;
  const monthPicker=$("s88ReportMonth");
  if(!monthPicker.value)monthPicker.value=$("month")?.value||new Date().toISOString().slice(0,7);
  const month=s88MonthKey(monthPicker.value),notice=$("s88SchemaNotice");
