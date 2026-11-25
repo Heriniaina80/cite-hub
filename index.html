@@ -8,7 +8,7 @@
 <link rel="icon" href="./icons/cite-hub.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icons/cite-hub.svg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<title>CITE HUB — Fitantanana tatitra</title>
+<title>Tatitra — Fitantanana tatitra</title>
 <style>
 :root{--navy:#173b68;--blue:#1769aa;--pale:#e8f1fc;--ink:#1e293b;--muted:#64748b;--line:#dbe4f0;--bg:#f3f6fb;--white:#fff}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:82px}
@@ -113,14 +113,14 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 .mobile-pdf-open{padding:18px;text-align:center;background:#f8fafc;border-radius:10px;color:#334155}.mobile-pdf-open p{margin:0 0 14px}.button-link{display:inline-block;background:#1769aa;color:#fff;padding:11px 18px;border-radius:8px;text-decoration:none;font-weight:700}@media(max-width:700px){.s21-modal-body iframe{display:none}.mobile-pdf-open{display:block!important}}</style>
 </head>
 <body class="public-view">
-<header><button id="menuToggle" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Sokafy ny menu">☰ Menu</button><div><h1>CITE HUB</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></div></header>
+<header><button id="menuToggle" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Sokafy ny menu">☰ Menu</button><div><h1>Tatitra</h1><p>Fitantanana tatitra isam-bolana sy isan-taona</p></div></header>
 <nav id="mainMenu" aria-label="Menu lehibe">
 <a href="#accueil">Fandraisana</a><a href="#fampidirana">Fampidirana tatitra</a><a href="#firaketana">Firaketana isan-taona</a><a href="#fitantanana">Fitantanana lisitra</a><a href="#fangatahana" id="requestsNav" style="display:none">Fangatahana fidirana</a><a href="#tomponandraikitra" id="responsiblesNav" style="display:none">Tompon’andraikitra</a><a href="#tatitra">Tatitra isam-bolana</a><a href="#voatahiry">Tatitra voatahiry</a>
 </nav>
 <main>
 <section class="card landing-card" id="publicLanding">
 <div class="landing-eyebrow">SEHATRA FITANTANANA TATITRA</div>
-<h2>Tongasoa eto amin’ny CITE HUB</h2>
+<h2>Tongasoa eto amin’ny Tatitra</h2>
 <p class="landing-lead">Toerana iray hitantanana ny tatitra isam-bolana, ny firaketana isan-taona, ary ny lisitry ny mpikambana. Midira amin’ny kaontinao vao manomboka mampiasa ny sehatra.</p>
 <div class="landing-features">
 <div class="landing-feature"><strong>Fampidirana tatitra</strong><span>Fenoy sy tehirizo amin’ny fomba mirindra ny tatitra isam-bolana.</span></div>
@@ -131,15 +131,15 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 </section>
 <section class="card" id="fidirana-kaonty" style="display:none">
 <h2>Mamorona kaonty na miditra</h2>
-<p class="hint">Tsy mitovy amin’ny tenimiafina Gmail-nao ny tenimiafina CITE HUB.</p>
+<p class="hint">Tsy mitovy amin’ny tenimiafina Gmail-nao ny tenimiafina Tatitra.</p>
 <div class="grid">
 <div><label for="loginEmail">Adiresy Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="anarana@gmail.com"></div>
-<div><label for="loginPassword">Tenimiafina CITE HUB</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tenimiafina"></div>
+<div><label for="loginPassword">Tenimiafina Tatitra</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tenimiafina"></div>
 </div>
 <div class="toolbar"><button id="emailLogin" type="button" style="display:none">Hiditra</button><button id="signUpBtn" class="secondary" type="button" style="display:none">Hisoratra anarana</button><button id="switchAuthModeBtn" class="secondary" type="button" style="display:none">Hisafidy fomba hafa</button><button id="backToLandingBtn" class="secondary" type="button" style="display:none">← Hiverina any amin’ny fandraisana</button><button id="forgotPasswordBtn" class="secondary" type="button" style="display:none">Adinoko ny tenimiafina</button><button id="logoutBtn" class="secondary" type="button" style="display:none">Hivoaka</button></div>
 <div id="resetPasswordBox" class="notice" style="display:none">
 <h3>Fanovana tenimiafina</h3>
-<p class="hint">Ampidiro ny tenimiafina vaovao ho an’ny CITE HUB.</p>
+<p class="hint">Ampidiro ny tenimiafina vaovao ho an’ny Tatitra.</p>
 <label for="newPassword">Tenimiafina vaovao</label><input id="newPassword" type="password" autocomplete="new-password" placeholder="Tenimiafina vaovao">
 <label for="confirmNewPassword" style="margin-top:10px">Avereno ny tenimiafina vaovao</label><input id="confirmNewPassword" type="password" autocomplete="new-password" placeholder="Avereno ny tenimiafina">
 <div class="toolbar"><button id="saveNewPassword" type="button">Tehirizo ny tenimiafina vaovao</button></div>
@@ -162,7 +162,7 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 </section>
 <div id="workspaceContentBackBar" class="workspace-backbar" style="display:none"><button type="button" class="danger workspace-return-button" id="workspaceSubBackBtn">← Hiverina amin’ny lisitra</button><strong id="workspaceSubcategoryTitle"></strong></div>
 <section class="card" id="accueil">
-<h2>Pejy fandraisana</h2><p>Tongasoa eto amin'ny CITE HUB.</p>
+<h2>Pejy fandraisana</h2><p>Tongasoa eto amin'ny Tatitra.</p>
 <p>Afaka manomboka mampiditra tatitra avy hatrany ianao. Safidio ny bokotra etsy ambany, fidio ny andiany sy ny volana, ary fenoy ny tatitra rehetra ao anatin'ny pejy iray.</p>
 <div class="toolbar"><a href="#fampidirana" style="display:inline-block;padding:13px 20px;background:var(--blue);color:white;text-decoration:none;border-radius:9px;font-weight:700">＋ Ampidiro tatitra</a></div>
 </section>
@@ -176,7 +176,7 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 <p class="hint">Rehefa misafidy andiany ianao dia miseho eto ambany ny lisitry ny olona sy ny saha mifanaraka amin'ny andraikiny.</p>
 <div id="rosterStatus" class="notice" style="display:none"></div>
 <div id="reportCategorySchemaNotice" class="notice" style="display:none;margin:12px 0">Tsy mbola misy saha hitahirizana ny sokajy isam-bolana ao amin’ny tahiry iombonana. Tehirizo ny drafitra eo an-toerana aloha ary ampiharo ny SQL fanavaozana mba hahafahana mampifanaraka azy.</div>
-<div id="offlineStatus" class="notice" role="status" aria-live="polite" style="margin:12px 0">Ny CITE HUB dia afaka mitahiry drafitra eto amin’ity fitaovana ity. Rehefa misy connexion dia azo alefa any amin’ny tahiry iombonana.</div>
+<div id="offlineStatus" class="notice" role="status" aria-live="polite" style="margin:12px 0">Ny Tatitra dia afaka mitahiry drafitra eto amin’ity fitaovana ity. Rehefa misy connexion dia azo alefa any amin’ny tahiry iombonana.</div>
 <div style="margin:12px 0"><label for="reportPersonSearch">Hikaroka mpitory amin’ny anarany</label><input id="reportPersonSearch" type="search" autocomplete="off" placeholder="Soraty eto ny anarana..."><p class="hint" id="reportPersonSearchStatus">Soraty ny anarana na ampahany amin’ny anarana mba hahitana haingana ilay mpitory.</p></div>
 <div id="allPeopleToggleWrap" class="toolbar" style="display:none;margin:10px 0"><button type="button" class="secondary" id="toggleAllPeople">Asehoy ny mpitory rehetra</button></div>
  <div id="peopleList" class="people-list"><p class="hint">Safidio aloha ny andiany.</p></div>
@@ -261,7 +261,7 @@ body.app-view>nav,body.app-view #menuToggle{display:none!important}
 <label style="display:flex;align-items:center;gap:9px;font-weight:400;margin:8px 0"><input id="profileSpecialPioneer" type="checkbox" style="width:auto;margin:0"> Mpisava lalana manokana</label>
 <label style="display:flex;align-items:center;gap:9px;font-weight:400;margin:8px 0"><input id="profileMissionary" type="checkbox" style="width:auto;margin:0"> Misionera eny amin’ny saha</label>
 <p class="hint" style="margin:8px 0 0">Safidio araka ny andraikitra tena ananan’ilay olona. Tsy miankina amin’ny maha-lahy na maha-vavy ireo safidy ireo. Raha tsy manana andraikitra iray ilay olona dia avela tsy voamarika ilay efajoro.</p>
-<div id="s21RoleColumnsNotice" class="notice" style="display:none;margin-top:10px">Mba hitahirizana ireo safidy dimy ireo dia mila misy tsanganana dimy ao amin’ny Supabase. Jereo ny toromarika SQL eto amin’ny resaka. Azo ampiasaina ihany ny CITE HUB mandra-panaovana izany.</div>
+<div id="s21RoleColumnsNotice" class="notice" style="display:none;margin-top:10px">Mba hitahirizana ireo safidy dimy ireo dia mila misy tsanganana dimy ao amin’ny Supabase. Jereo ny toromarika SQL eto amin’ny resaka. Azo ampiasaina ihany ny Tatitra mandra-panaovana izany.</div>
 </div>
 <div style="margin-top:12px"><label for="profileNotes">Fanazavana hafa ho an’ny S-21</label><textarea id="profileNotes" rows="3" placeholder="Fanazavana fanampiny (tsy voatery)"></textarea></div>
 <div class="toolbar"><button type="button" id="saveProfileRole">Tehirizo ny fanovana</button><button type="button" class="secondary" id="cancelProfileRole">Aoka ihany</button></div>
@@ -601,7 +601,7 @@ function createS88Pdf(year){
  doc.text("FILAZANA NY ISAN’NY MPANATRIKA",105,12,{align:"center"});doc.text("IREO FIVORIAN’NY FIANGONANA",105,18,{align:"center"});
  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text("Taom-panompoana "+year+"–"+(year+1),105,23,{align:"center"});
  let y=29;y=drawS88Table(doc,"Fivoriana Andavanandro",rows,"weekday",y);y+=7;drawS88Table(doc,"Fivoriana Amin’ny Faran’ny Herinandro",rows,"weekend",y);
- doc.setFontSize(7);doc.setTextColor(90,100,115);doc.text("S-88-MG 12/18 · CITE HUB",12,289);doc.text("Taom-panompoana "+year+"–"+(year+1),198,289,{align:"right"});
+ doc.setFontSize(7);doc.setTextColor(90,100,115);doc.text("S-88-MG 12/18 · Tatitra",12,289);doc.text("Taom-panompoana "+year+"–"+(year+1),198,289,{align:"right"});
  return doc;
 }
 function previewS88Pdf(){
@@ -748,8 +748,8 @@ function showAuthForm(mode){
  $("publicLanding").style.display="none";
  $("fidirana-kaonty").style.display="block";
  $("fidirana-kaonty").classList.remove("session-card");
- $("fidirana-kaonty").querySelector("h2").textContent=authMode==="signup"?"Hisoratra anarana":"Hiditra amin’ny CITE HUB";
- $("fidirana-kaonty").querySelector(":scope > p").textContent=authMode==="signup"?"Mamoròna kaonty CITE HUB amin’ny mailaka sy tenimiafinao. Mety mbola mila fankatoavan’ny Administration ianao vao afaka mampiasa ny tatitra.":"Ampidiro ny mailaka sy tenimiafina CITE HUB. Tsy mitovy amin’ny tenimiafina Gmail-nao izany.";
+ $("fidirana-kaonty").querySelector("h2").textContent=authMode==="signup"?"Hisoratra anarana":"Hiditra amin’ny Tatitra";
+ $("fidirana-kaonty").querySelector(":scope > p").textContent=authMode==="signup"?"Mamoròna kaonty Tatitra amin’ny mailaka sy tenimiafinao. Mety mbola mila fankatoavan’ny Administration ianao vao afaka mampiasa ny tatitra.":"Ampidiro ny mailaka sy tenimiafina Tatitra. Tsy mitovy amin’ny tenimiafina Gmail-nao izany.";
  $("emailLogin").style.display=authMode==="login"?"inline-block":"none";
  $("signUpBtn").style.display=authMode==="signup"?"inline-block":"none";
  $("switchAuthModeBtn").style.display="inline-block";
@@ -856,7 +856,7 @@ function showRoleUI(){
  $("loginEmail").closest(".grid").style.display=currentUser?"none":"grid";
  $("fidirana-kaonty").classList.toggle("session-card",!!currentUser);
  $("fidirana-kaonty").querySelector(":scope > p").style.display=currentUser?"none":"block";
- $("fidirana-kaonty").querySelector("h2").textContent=currentUser?"Kaonty CITE HUB":authMode==="signup"?"Hisoratra anarana":"Hiditra amin’ny CITE HUB";
+ $("fidirana-kaonty").querySelector("h2").textContent=currentUser?"Kaonty Tatitra":authMode==="signup"?"Hisoratra anarana":"Hiditra amin’ny Tatitra";
  $("memberDirectAdd").style.display=isAdmin?"block":"none";
  const adminOnly=["fitantanana","voatahiry","fangatahana","tomponandraikitra"];
  document.querySelectorAll("main > section.card").forEach(section=>{
@@ -1007,11 +1007,11 @@ $("accessRequests").addEventListener("click",event=>{
  if(event.target.closest("[data-reject]"))handleAccessRequest(row.dataset.userId,false,null);
 });
 async function loadProfile(){
- if(!currentUser){currentProfile=null;showRoleUI();setStatus("Midira amin’ny Gmail sy tenimiafina CITE HUB aloha vao afaka mampiasa ny tatitra.");updateOfflineStatus();return}
+ if(!currentUser){currentProfile=null;showRoleUI();setStatus("Midira amin’ny Gmail sy tenimiafina Tatitra aloha vao afaka mampiasa ny tatitra.");updateOfflineStatus();return}
  const p=await sbClient.from("profils_acces").select("user_id,role,andiany_id").eq("user_id",currentUser.id).maybeSingle();
  if(p.error){
   if(isNetworkFailure(p.error)&&restoreOfflineSnapshot(currentUser.id)){
-   showRoleUI();setStatus("Tsy misy connexion azo ampiasaina amin’izao. Nohidiana amin’ny tahiry voatahiry amin’ity fitaovana ity ny CITE HUB; azonao fenoiny ny tatitra ary ampifanarahana rehefa tafaverina ny Internet.",false);updateOfflineStatus();return;
+   showRoleUI();setStatus("Tsy misy connexion azo ampiasaina amin’izao. Nohidiana amin’ny tahiry voatahiry amin’ity fitaovana ity ny Tatitra; azonao fenoiny ny tatitra ary ampifanarahana rehefa tafaverina ny Internet.",false);updateOfflineStatus();return;
   }
   throw p.error;
  }
@@ -1035,7 +1035,7 @@ $("signUpBtn").addEventListener("click",async()=>{
  const password=$("loginPassword").value;
  if(!email||!password){setStatus("Ampidiro ny adiresy Gmail sy tenimiafina tianao hampiasaina.",true);return}
  if(password.length<6){setStatus("Tokony ho 6 tarehintsoratra farafahakeliny ny tenimiafina.",true);return}
- setStatus("Mamorona kaonty CITE HUB...");
+ setStatus("Mamorona kaonty Tatitra...");
  try{
   const {data,error}=await sbClient.auth.signUp({email,password,options:{emailRedirectTo:"https://heriniaina80.github.io/cite-hub/"}});
   if(error){setStatus("Tsy vita ny fisoratana anarana: "+error.message,true);return}
@@ -1060,7 +1060,7 @@ async function startAuth(){
 $("emailLogin").addEventListener("click",async()=>{
  const email=$("loginEmail").value.trim();
  const password=$("loginPassword").value;
- if(!email||!password){setStatus("Ampidiro ny Gmail sy ny tenimiafina CITE HUB.",true);return}
+ if(!email||!password){setStatus("Ampidiro ny Gmail sy ny tenimiafina Tatitra.",true);return}
  setStatus("Eo am-panamarinana ny kaonty...");
  const {error}=await sbClient.auth.signInWithPassword({email,password});
  if(error)setStatus("Tsy tafiditra: "+error.message,true);
@@ -1087,7 +1087,7 @@ $("saveNewPassword").addEventListener("click",async()=>{
  if(error){setStatus("Tsy voatahiry ny tenimiafina: "+error.message,true);return}
  $("resetPasswordBox").style.display="none";
  $("newPassword").value="";$("confirmNewPassword").value="";
- setStatus("Vita ny fanovana tenimiafina. Afaka miditra amin’ny CITE HUB ianao.");
+ setStatus("Vita ny fanovana tenimiafina. Afaka miditra amin’ny Tatitra ianao.");
  await loadProfile();
 });
 $("logoutBtn").addEventListener("click",async()=>{const {error}=await sbClient.auth.signOut();if(error){setStatus(error.message,true);return}currentUser=null;currentProfile=null;authMode=null;roster=[];reports=[];showRoleUI();setStatus("Nivoaka soa aman-tsara.");});
@@ -1095,7 +1095,7 @@ sbClient.auth.onAuthStateChange((event,session)=>{
  currentUser=session?.user||null;
  if(event==="PASSWORD_RECOVERY"){
   $("resetPasswordBox").style.display="block";
-  setStatus("Sokafy eto ny fanovana: mametraha tenimiafina vaovao ho an’ny CITE HUB.");
+  setStatus("Sokafy eto ny fanovana: mametraha tenimiafina vaovao ho an’ny Tatitra.");
   return;
  }
  setTimeout(()=>loadProfile().catch(e=>setStatus(e.message,true)),0);
@@ -1129,7 +1129,7 @@ function renderPeople(){
  if(toggleButton){toggleButton.dataset.expanded="false";toggleButton.textContent="Asehoy ny mpitory rehetra";}
  $("message").textContent="";
  const categoryNotice=$("reportCategorySchemaNotice");if(categoryNotice)categoryNotice.style.display=reportCategoryColumnReady?"none":"block";
- if(!currentUser||!currentProfile){list.innerHTML='<p class="hint">Midira amin’ny Gmail sy tenimiafina CITE HUB aloha.</p>';status.style.display="none";return}
+ if(!currentUser||!currentProfile){list.innerHTML='<p class="hint">Midira amin’ny Gmail sy tenimiafina Tatitra aloha.</p>';status.style.display="none";return}
  if(!group){list.innerHTML='<p class="hint">Safidio aloha ny andiany.</p>';status.style.display="none";return}
  if(!canSeeGroup(group)){list.innerHTML='<p class="hint">Tsy nahazo alalana hijery ity andiany ity ianao.</p>';return}
  const people=peopleForGroup(group);
@@ -1175,9 +1175,9 @@ function exportMonthlyReport(printMode,options={}){
  const safe=s=>String(s??"").replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
  const normalizeCategory=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/\\s+/g," ").trim();const isAssistant=v=>{const n=normalizeCategory(v);return n==="mpanampy"||n.includes("mpisavalalana mpanampy")||n.includes("mpisava lalana mpanampy")};const isRegular=v=>{const n=normalizeCategory(v);return n.includes("maharitra")&&(n.includes("mpisava")||n.includes("pionnier"))};const categories=[["Mpitory",rows.filter(r=>normalizeCategory(r.sokajy)==="mpitory")],["Mpisavalalana mpanampy",rows.filter(r=>isAssistant(r.sokajy))],["Mpisavalalana maharitra",rows.filter(r=>isRegular(r.sokajy))],["Mpisava lalana manokana",rows.filter(r=>normalizeCategory(r.sokajy).includes("manokana"))]];
  const tableRows=categories.map(([label,list])=>'<tr class="category"><th colspan="6">'+label+'</th></tr>'+list.map(r=>'<tr><td>'+safe(r.anarana)+'</td><td>'+safe(r.sokajy)+'</td><td>'+safe(r.fandraisana_anjara||"—")+'</td><td>'+safe(r.ora??"—")+'</td><td>'+safe(r.fampianarana_baiboly??0)+'</td><td>'+safe(r.fanamarihana||"")+'</td></tr>').join("")).join("");
- const html='<!doctype html><html lang="mg"><head><meta charset="utf-8"><title>CITE HUB - '+safe(group)+' - '+safe(month)+'</title><style>body{font:12px Arial,sans-serif;color:#17233b;margin:24px}h1{font-size:20px;margin:0 0 6px;color:#17375e}p{margin:4px 0 18px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #b8c5d6;padding:7px;text-align:left}thead th,.category th{background:#eaf1fb}.category th{color:#17375e;padding:8px}footer{margin-top:24px;font-size:10px;color:#64748b}@media print{body{margin:10mm}}</style></head><body><h1>CITE HUB — Tatitra isam-bolana</h1><p><b>Andiany:</b> '+safe(group)+' &nbsp; <b>Volana:</b> '+safe(month)+'<br><b>Isan’ny olona:</b> '+rows.length+'</p><table><thead><tr><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th><th>Fanamarihana</th></tr></thead><tbody>'+tableRows+'</tbody></table><footer>CITE HUB · Tatitra novokarina avy amin’ny angona voatahiry</footer></body></html>';
- if(printMode){if(!window.jspdf?.jsPDF){$("monthlyExportStatus").textContent="Tsy afaka mamorona PDF izao. Jereo ny fifandraisana Internet dia avereno.";return}const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});const left=12,right=285;let y=15;const pageBottom=195;const line=(text,size=9,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);const wrapped=doc.splitTextToSize(String(text??""),right-left);if(y+wrapped.length*4.5>pageBottom){doc.addPage();y=15}doc.text(wrapped,left,y);y+=wrapped.length*4.5+2};doc.setTextColor(23,55,94);line("TATITRA ISAM-BOLANA",16,true);doc.setTextColor(30,41,59);line("Andiany: "+group+"    |    Volana: "+month+"    |    Isan'ny olona: "+rows.length,10,true);y+=3;const widths=[58,45,34,20,35,68],headers=["Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"];const drawRow=(cells,isHeader=false)=>{const lineHeight=5;const wrapped=cells.map((v,i)=>doc.splitTextToSize(String(v??"—"),widths[i]-3));const h=Math.max(7,...wrapped.map(a=>a.length*lineHeight+2));if(y+h>pageBottom){doc.addPage();y=15}let x=left;wrapped.forEach((txt,i)=>{if(isHeader){doc.setFillColor(232,241,251);doc.rect(x,y,widths[i],h,"F")}doc.setDrawColor(184,197,214);doc.rect(x,y,widths[i],h);doc.setFont("helvetica",isHeader?"bold":"normal");doc.setFontSize(8);doc.setTextColor(30,41,59);doc.text(txt,x+1.5,y+4.5);x+=widths[i]});y+=h};for(const [label,list] of categories){if(y+10>pageBottom){doc.addPage();y=15}y+=2;line(label,11,true);drawRow(headers,true);for(const r of list){drawRow([r.anarana,r.sokajy,r.fandraisana_anjara||"—",r.ora??"—",r.fampianarana_baiboly??0,r.fanamarihana||""])}y+=3}const pages=doc.internal.getNumberOfPages();for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(100,116,139);doc.text("CITE HUB · "+group+" · "+month+" · Pejy "+p+"/"+pages,285,202,{align:"right"})}if(options.returnDoc)return doc;doc.save("CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf");$("monthlyExportStatus").textContent="Vita ny PDF. Nalaina mivantana ilay tatitra."}
- else {const data=[["Volana","Andiany","Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"],...rows.map(r=>[month,group,r.anarana,r.sokajy,r.fandraisana_anjara,r.ora,r.fampianarana_baiboly,r.fanamarihana])];const csv=data.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".csv";a.click();URL.revokeObjectURL(url);$("monthlyExportStatus").textContent="Voasintona ny CSV."}
+ const html='<!doctype html><html lang="mg"><head><meta charset="utf-8"><title>Tatitra - '+safe(group)+' - '+safe(month)+'</title><style>body{font:12px Arial,sans-serif;color:#17233b;margin:24px}h1{font-size:20px;margin:0 0 6px;color:#17375e}p{margin:4px 0 18px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #b8c5d6;padding:7px;text-align:left}thead th,.category th{background:#eaf1fb}.category th{color:#17375e;padding:8px}footer{margin-top:24px;font-size:10px;color:#64748b}@media print{body{margin:10mm}}</style></head><body><h1>Tatitra — Tatitra isam-bolana</h1><p><b>Andiany:</b> '+safe(group)+' &nbsp; <b>Volana:</b> '+safe(month)+'<br><b>Isan’ny olona:</b> '+rows.length+'</p><table><thead><tr><th>Anarana</th><th>Sokajy</th><th>Nandray anjara</th><th>Ora</th><th>Fampianarana Baiboly</th><th>Fanamarihana</th></tr></thead><tbody>'+tableRows+'</tbody></table><footer>Tatitra · Tatitra novokarina avy amin’ny angona voatahiry</footer></body></html>';
+ if(printMode){if(!window.jspdf?.jsPDF){$("monthlyExportStatus").textContent="Tsy afaka mamorona PDF izao. Jereo ny fifandraisana Internet dia avereno.";return}const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});const left=12,right=285;let y=15;const pageBottom=195;const line=(text,size=9,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);const wrapped=doc.splitTextToSize(String(text??""),right-left);if(y+wrapped.length*4.5>pageBottom){doc.addPage();y=15}doc.text(wrapped,left,y);y+=wrapped.length*4.5+2};doc.setTextColor(23,55,94);line("TATITRA ISAM-BOLANA",16,true);doc.setTextColor(30,41,59);line("Andiany: "+group+"    |    Volana: "+month+"    |    Isan'ny olona: "+rows.length,10,true);y+=3;const widths=[58,45,34,20,35,68],headers=["Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"];const drawRow=(cells,isHeader=false)=>{const lineHeight=5;const wrapped=cells.map((v,i)=>doc.splitTextToSize(String(v??"—"),widths[i]-3));const h=Math.max(7,...wrapped.map(a=>a.length*lineHeight+2));if(y+h>pageBottom){doc.addPage();y=15}let x=left;wrapped.forEach((txt,i)=>{if(isHeader){doc.setFillColor(232,241,251);doc.rect(x,y,widths[i],h,"F")}doc.setDrawColor(184,197,214);doc.rect(x,y,widths[i],h);doc.setFont("helvetica",isHeader?"bold":"normal");doc.setFontSize(8);doc.setTextColor(30,41,59);doc.text(txt,x+1.5,y+4.5);x+=widths[i]});y+=h};for(const [label,list] of categories){if(y+10>pageBottom){doc.addPage();y=15}y+=2;line(label,11,true);drawRow(headers,true);for(const r of list){drawRow([r.anarana,r.sokajy,r.fandraisana_anjara||"—",r.ora??"—",r.fampianarana_baiboly??0,r.fanamarihana||""])}y+=3}const pages=doc.internal.getNumberOfPages();for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(100,116,139);doc.text("Tatitra · "+group+" · "+month+" · Pejy "+p+"/"+pages,285,202,{align:"right"})}if(options.returnDoc)return doc;doc.save("Tatitra-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf");$("monthlyExportStatus").textContent="Vita ny PDF. Nalaina mivantana ilay tatitra."}
+ else {const data=[["Volana","Andiany","Anarana","Sokajy","Nandray anjara","Ora","Fampianarana Baiboly","Fanamarihana"],...rows.map(r=>[month,group,r.anarana,r.sokajy,r.fandraisana_anjara,r.ora,r.fampianarana_baiboly,r.fanamarihana])];const csv=data.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="Tatitra-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".csv";a.click();URL.revokeObjectURL(url);$("monthlyExportStatus").textContent="Voasintona ny CSV."}
 }
 $("printMonthlyReport").addEventListener("click",()=>exportMonthlyReport(true));$("downloadMonthlyCsv").addEventListener("click",()=>exportMonthlyReport(false));
 
@@ -1365,7 +1365,7 @@ function removePendingReportEntries(entries){
 }
 async function saveCompletedReports(){
  const month=$("month").value,group=$("group").value,button=$("saveCompleted");
- if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty CITE HUB aloha.";return}
+ if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty Tatitra aloha.";return}
  if(!month||!group){$("message").textContent="Safidio aloha ny volana sy ny andiany.";return}
  if(!canSeeGroup(group)){$("message").textContent="Tsy nahazo alalana amin’ity andiany ity ianao.";return}
  const people=peopleForGroup(group);
@@ -1426,7 +1426,7 @@ async function saveCompletedReports(){
 $("saveCompleted").addEventListener("click",saveCompletedReports);
 $("saveAll").addEventListener("click",async()=>{
  const month=$("month").value,group=$("group").value;
- if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty CITE HUB efa nampiasaina tamin’ity fitaovana ity aloha.";return}
+ if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty Tatitra efa nampiasaina tamin’ity fitaovana ity aloha.";return}
  if(!month||!group){$("message").textContent="Safidio aloha ny volana sy ny andiany.";return}
  if(!canSeeGroup(group)){$("message").textContent="Tsy nahazo alalana amin’ity andiany ity ianao.";return}
  const people=peopleForGroup(group);
@@ -1460,7 +1460,7 @@ $("saveAll").addEventListener("click",async()=>{
    const pdfBuffer=pdfDoc.output("arraybuffer"),bytes=new Uint8Array(pdfBuffer);
    let binary="";for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode(...bytes.subarray(offset,Math.min(offset+0x8000,bytes.length)));
    const pdfBase64=btoa(binary);
-   const filename="CITE-HUB-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf";
+   const filename="Tatitra-"+group.replace(/[^a-z0-9]+/gi,"-")+"-"+month+".pdf";
    if(group!=="all"){
     const {data:mailResult,error:mailError}=await sbClient.functions.invoke("cite-hub-send-report",{body:{andiany_id:groupId(group),month,pdfBase64,filename}});
     if(mailError)throw mailError;
@@ -1468,7 +1468,7 @@ $("saveAll").addEventListener("click",async()=>{
     $("message").textContent+=" Nalefa tamin’ny Gmail an’ny tompon’andraikitra koa ny PDF.";
    }else{$("message").textContent+=" Vita ny PDF mitambatra ho an’ny andiany rehetra; tsy nalefa ho azy tamin’ny Gmail satria samy manana tompon’andraikitra ny andiany.";}
   }catch(mailError){
-   console.error("CITE HUB email error:",mailError);
+   console.error("Tatitra email error:",mailError);
    $("message").textContent+=" Voatahiry ny tatitra, saingy tsy tafita ny mailaka: "+(mailError?.message||String(mailError));
    $("message").style.color="#b45309";
   }
@@ -1516,7 +1516,7 @@ $("monthlyTable").addEventListener("click",async event=>{
 });
 
 $("backupBtn").addEventListener("click",()=>{
- const blob=new Blob([JSON.stringify({format:"CITE-HUB-BACKUP",createdAt:new Date().toISOString(),reports},null,2)],{type:"application/json;charset=utf-8"});
+ const blob=new Blob([JSON.stringify({format:"Tatitra-BACKUP",createdAt:new Date().toISOString(),reports},null,2)],{type:"application/json;charset=utf-8"});
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="cite-hub-backup.json";a.click();URL.revokeObjectURL(a.href);
 });
 $("exportBtn").addEventListener("click",()=>{
@@ -1859,7 +1859,7 @@ boot();
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").catch((error) => {
-      console.warn("Tsy voasoratra ny service worker CITE HUB:", error);
+      console.warn("Tsy voasoratra ny service worker Tatitra:", error);
     });
   });
 }
