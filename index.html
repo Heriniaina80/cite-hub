@@ -1516,8 +1516,8 @@ $("monthlyTable").addEventListener("click",async event=>{
 });
 
 $("backupBtn").addEventListener("click",()=>{
- const blob=new Blob([JSON.stringify({format:"Tatitra-BACKUP",createdAt:new Date().toISOString(),reports},null,2)],{type:"application/json;charset=utf-8"});
- const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="cite-hub-backup.json";a.click();URL.revokeObjectURL(a.href);
+ const blob=new Blob([JSON.stringify({format:"CITE-HUB-BACKUP",createdAt:new Date().toISOString(),reports},null,2)],{type:"application/json;charset=utf-8"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="tatitra-backup.json";a.click();URL.revokeObjectURL(a.href);
 });
 $("exportBtn").addEventListener("click",()=>{
  const data=reports.filter(r=>(!$("filterMonth").value||r.volana===$("filterMonth").value)&&($("filterGroup").value==="all"||r.andiany===$("filterGroup").value));
