@@ -1123,6 +1123,8 @@ function filterReportPeople(){
  cards.forEach(card=>{const match=query?normalizeImportText(card.dataset.name||"").includes(query):(!allMode||expanded);card.style.display=match?"":"none";if(match)shown++});
  const status=$("reportPersonSearchStatus");if(status)status.textContent=query?shown+" amin’ny "+cards.length+" no mifanaraka amin’ny fikarohana.":(allMode&&!expanded?"Ampiasao ny bokotra “Asehoy ny mpitory rehetra” na tadiavo amin’ny anarany.":"Soraty ny anarana na ampahany amin’ny anarana mba hahitana haingana ilay mpitory.");
 }
+function isMonthlyReportEditable(month){if(currentProfile?.role==="admin")return true;if(currentProfile?.role!=="responsable")return false;const now=new Date(),current=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");if(month===current)return true;const parts=String(month||"").split("-").map(Number);if(parts.length!==2||!parts[0]||!parts[1])return false;const next=new Date(parts[0],parts[1],1);return next.getFullYear()+"-"+String(next.getMonth()+1).padStart(2,"0")===current;}
+function monthlyEditLockMessage(month){return "Voahidy ny tatitra "+month+". Ny tompon’andraikitra dia afaka manova tatitra amin’ny volana anaovana tatitra sy amin’ny volana manaraka ihany. Admin ihany no afaka manova rehefa tapitra izany."}
 function renderPeople(){
  const group=$("group").value,month=$("month").value,list=$("peopleList"),status=$("rosterStatus"),toggleWrap=$("allPeopleToggleWrap"),toggleButton=$("toggleAllPeople");
  if(toggleWrap)toggleWrap.style.display=group==="all"&&currentProfile?.role==="admin"?"flex":"none";
@@ -1135,6 +1137,7 @@ function renderPeople(){
  const people=peopleForGroup(group);
  if(!people.length){list.innerHTML='<p class="hint">Tsy mbola misy mpikambana ao amin’ity andiany ity. </p>';status.style.display="block";status.textContent="Tsy misy mpikambana hita ao amin'ny tahiry.";return}
  status.style.display="none";
+ const editable=isMonthlyReportEditable(month);if(!editable){status.style.display="block";status.textContent=monthlyEditLockMessage(month);status.className="notice";}
  const memberIds=new Set(people.map(p=>String(p.id)));const existing=reports.filter(r=>r.volana===month&&(group==="all"?memberIds.has(String(r.mpikambana_id)):r.andiany===group));
  const draftStore=readReportDrafts(),activeDraft=draftStore[reportDraftKey(group,month)];
  const categories=["Mpitory","Mpisavalalana mpanampy","Mpisavalalana maharitra","Mpisava lalana manokana"];
@@ -1151,6 +1154,7 @@ function renderPeople(){
    fields+='<div><label for="note-'+i+'">Fanamarihana</label><input id="note-'+i+'" data-field="note" value="'+esc(old.fanamarihana||"")+'"></div>';
    return '<div class="person" data-member-id="'+p.id+'" data-name="'+esc(p.anarana)+'" data-role="'+esc(category)+'"><div class="person-main"><div class="person-name">'+(i+1)+'. '+esc(p.anarana)+'</div><select class="report-role-picker" aria-label="Sokajy amin’ity volana ity" title="Sokajy amin’ity volana ity" data-field="category">'+categoryOptions+'</select></div>'+fields+'</div>';
  }).join("");
+ if(!editable)list.querySelectorAll("input,select").forEach(control=>control.disabled=true);
  list.querySelectorAll(".person[data-member-id]").forEach(updateReportCardCompletion);
  filterReportPeople();
  updateOfflineStatus();
@@ -1364,6 +1368,7 @@ function removePendingReportEntries(entries){
  mergePendingReports();
 }
 async function saveCompletedReports(){
+ const selectedMonth=$("month").value;if(!isMonthlyReportEditable(selectedMonth)){$("message").textContent=monthlyEditLockMessage(selectedMonth);$("message").style.color="#b91c1c";return}
  const month=$("month").value,group=$("group").value,button=$("saveCompleted");
  if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty Tatitra aloha.";return}
  if(!month||!group){$("message").textContent="Safidio aloha ny volana sy ny andiany.";return}
@@ -1425,6 +1430,7 @@ async function saveCompletedReports(){
 }
 $("saveCompleted").addEventListener("click",saveCompletedReports);
 $("saveAll").addEventListener("click",async()=>{
+ const selectedMonth=$("month").value;if(!isMonthlyReportEditable(selectedMonth)){$("message").textContent=monthlyEditLockMessage(selectedMonth);$("message").style.color="#b91c1c";return}
  const month=$("month").value,group=$("group").value;
  if(!currentUser||!currentProfile){$("message").textContent="Midira amin’ny kaonty Tatitra efa nampiasaina tamin’ity fitaovana ity aloha.";return}
  if(!month||!group){$("message").textContent="Safidio aloha ny volana sy ny andiany.";return}
